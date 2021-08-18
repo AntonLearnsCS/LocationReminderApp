@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
 apply plugin: "androidx.navigation.safeargs.kotlin"
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.google.gms.google-services'
 
 android {
@@ -10,12 +9,13 @@ android {
     buildToolsVersion "29.0.2"
 
     defaultConfig {
-        applicationId "com.udacity.project4"
+        applicationId "com.udacity.project4.authentication"
         minSdkVersion rootProject.minSdkVersion
         targetSdkVersion rootProject.targetSdkVersion
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -127,5 +127,8 @@ dependencies {
 
     //firebase
     implementation 'com.firebaseui:firebase-ui-auth:5.0.0'
+
+    //Timber
+    implementation 'com.jakewharton.timber:timber:5.0.1'
 
 }

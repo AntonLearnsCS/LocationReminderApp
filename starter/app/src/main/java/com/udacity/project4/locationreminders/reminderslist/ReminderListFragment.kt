@@ -25,6 +25,7 @@ class ReminderListFragment : BaseFragment() {
                 inflater,
                 R.layout.fragment_reminders, container, false
             )
+
         binding.viewModel = _viewModel
 
         setHasOptionsMenu(true)
