@@ -20,17 +20,25 @@ class RemindersActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminders)
-
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
                 val nav_host_fragment = findNavController(R.id.nav_host_fragment)
-                (nav_host_fragment as NavHostFragment).navController.popBackStack()
+                nav_host_fragment.popBackStack()
+                //(nav_host_fragment as NavHostFragment).navController.popBackStack()
                 return true
             }
         }
         return super.onOptionsItemSelected(item)
     }
+    //triggers request permission display
+    /*
+     ActivityCompat.requestPermissions(
+       this@HuntMainActivity,
+       permissionsArray,
+       resultCode
+   )
+     */
 }

@@ -24,6 +24,7 @@ abstract class BaseRecyclerViewAdapter<T>(private val callback: ((item: T) -> Un
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataBindingViewHolder<T> {
         val layoutInflater = LayoutInflater.from(parent.context)
 
+            //ViewDataBinding - Base class for generated data binding classes.
         val binding = DataBindingUtil
             .inflate<ViewDataBinding>(layoutInflater, getLayoutRes(viewType), parent, false)
 

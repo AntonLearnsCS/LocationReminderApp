@@ -5,9 +5,12 @@ import androidx.navigation.NavDirections
 /**
  * Sealed class used with the live data to navigate between the fragments
  */
+//sealed class - Sealed classes and interfaces represent restricted class hierarchies that provide more control over inheritance.
+//All subclasses of a sealed class are known at compile time.
 sealed class NavigationCommand {
     /**
      * navigate to a direction
+     * The data class extends the sealed class
      */
     data class To(val directions: NavDirections) : NavigationCommand()
 

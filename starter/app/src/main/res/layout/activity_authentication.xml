@@ -31,7 +31,6 @@
             android:layout_marginLeft="144dp"
             android:layout_marginTop="152dp"
             android:clickable="true"
-            android:text="Login"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             android:focusable="true" />

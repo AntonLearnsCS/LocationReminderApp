@@ -20,10 +20,8 @@ class FirebaseUserLiveData : LiveData<FirebaseUser?>() {
     //  updates on the current Firebase user logged into the app.
     //AuthStateListener is triggered whenever a user logs in or out
     private val authStateListener = FirebaseAuth.AuthStateListener { firebaseAuthListener ->
-
         //value here refers to the value of the whole class, which is of type LiveData
         value = firebaseAuthListener.currentUser
-
     }
     // TODO Use the FirebaseAuth instance instantiated at the beginning of the class to get an
     //  entry point into the Firebase Authentication SDK the app is using.

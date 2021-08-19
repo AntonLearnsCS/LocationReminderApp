@@ -13,6 +13,7 @@ class RemindersListViewModel(
     app: Application,
     private val dataSource: ReminderDataSource
 ) : BaseViewModel(app) {
+
     // list that holds the reminder data to be displayed on the UI
     val remindersList = MutableLiveData<List<ReminderDataItem>>()
 
@@ -21,11 +22,16 @@ class RemindersListViewModel(
      * or show error if any
      */
     fun loadReminders() {
+        //showLoading is of type "SingleLiveEvent" - This LiveData only calls the observable if there's an
+        //explicit call to setValue() or call().
+
         showLoading.value = true
         viewModelScope.launch {
             //interacting with the dataSource has to be through a coroutine
+            //returns a list of database items
             val result = dataSource.getReminders()
             showLoading.postValue(false)
+
             when (result) {
                 is Result.Success<*> -> {
                     val dataList = ArrayList<ReminderDataItem>()

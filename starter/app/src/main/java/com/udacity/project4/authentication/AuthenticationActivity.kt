@@ -8,6 +8,8 @@ import android.view.LayoutInflater
 import android.view.View.inflate
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
@@ -30,44 +32,55 @@ class AuthenticationActivity : AppCompatActivity() {
     private  lateinit var binding : ActivityAuthenticationBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_authentication)
+        //Interestingly, if we perform a setContentView(R.layout.activity_authentication) and a
+        //"binding = ActivityAuthenticationBinding.inflate(getLayoutInflater())", Android will take set the layout as
+        //the one specified in setContentView while ignoring the latter. This would then ignore all calls to the binding object
+        //such as onSetClickListener{}. For inflating fragments, do "DataBindingUtil.inflate(inflater, R.layout,container, false)"
+
+        //DataBindingUtil - Utility class to create ViewDataBinding from layouts.
+        //setContentView - Set the Activity's content view to the given layout and return the associated binding.
+        binding = DataBindingUtil.setContentView(
+            this, R.layout.activity_authentication)
+
+        //setContentView(R.layout.activity_authentication)
+       // binding = ActivityAuthenticationBinding.inflate(getLayoutInflater())
+
+        viewModel = ViewModelProvider(this).get(AuthViewModel::class.java)
+        Timber.i("" + viewModel.authenticationState.value.toString() )
+
+        if (viewModel.authenticationState.value == AuthViewModel.AuthenticationState.AUTHENTICATED) {
+            binding.button.setText("Logout")
+            binding.button.setOnClickListener {
+                Timber.i("authPositive")
+                binding.button.setText("Login")
+                AuthUI.getInstance().signOut(this)
+            }
+
+            //Tip: Don't start activity from here, do it from onActivityResult
+        }
+        else {
+            binding.button.setText("Login")
+            binding.button.setOnClickListener {
+                Timber.i("authNegative")
+                launchSignInFlow()
+
+            }
+        }
 
         //inflating xml layout in activity
         //for inflating xml layout in fragment: DataBindingUtil.inflate(inflater, R.layout.activity_authentication, container, false)
-        binding = ActivityAuthenticationBinding.inflate(getLayoutInflater())
+        //binding = ActivityAuthenticationBinding.inflate(getLayoutInflater())
 
         binding.lifecycleOwner = this
-        viewModel = ViewModelProvider(this).get(AuthViewModel::class.java)
 //         TODO: Implement the create account and sign in using FirebaseUI, use sign in using email and sign in using Google
 
-
 //          TODO: If the user was authenticated, send him to RemindersActivity
-            if (viewModel.authenticationState.value == AuthViewModel.AuthenticationState.AUTHENTICATED)
-            {
-                binding.button.setText("Logout")
-                binding.button.setOnClickListener {
-                    Timber.i("auth")
-                    binding.button.setText("Login")
-                    AuthUI.getInstance().signOut(this)
 
-                }
-                // I wouldn't use navController here since we are dealing with activities and not fragments
-                val remindersIntent = Intent(this, RemindersActivity::class.java)
-                startActivity(remindersIntent)
-            }
-        else
-            {
-                binding.button.setText("Login")
-                binding.button.setOnClickListener {
-                Timber.i("not auth")
-                launchSignInFlow()
-
-                    //binding.button.setText("Logout")
-                }
-            }
 //          TODO: a bonus is to customize the sign in flow to look nice using :
         //https://github.com/firebase/FirebaseUI-Android/blob/master/auth/README.md#custom-layout
     }
+
+
     private fun launchSignInFlow() {
         // Give users the option to sign in / register with their email
         // If users choose to register with their email,
@@ -94,6 +107,9 @@ class AuthenticationActivity : AppCompatActivity() {
                     "Successfully signed in user " +
                             "${FirebaseAuth.getInstance().currentUser?.displayName}!"
                 )
+                // I wouldn't use navController here since we are dealing with activities and not fragments
+                val remindersIntent = Intent(this, RemindersActivity::class.java)
+                startActivity(remindersIntent)
             } else {
                 // Sign in failed. If response is null the user canceled the sign-in flow using
                 // the back button. Otherwise check response.getError().getErrorCode() and handle
@@ -107,4 +123,5 @@ class AuthenticationActivity : AppCompatActivity() {
         const val TAG = "MainFragment"
         const val SIGN_IN_RESULT_CODE = 1001
     }
+
 }

@@ -1,0 +1,28 @@
+[
+  {
+    "featureType": "poi",
+    "stylers": [
+      {
+        "color": "#bb00ff"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "elementType": "labels.text",
+    "stylers": [
+      {
+        "color": "#050505"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "geometry.stroke",
+    "stylers": [
+      {
+        "color": "#f42710"
+      }
+    ]
+  }
+]

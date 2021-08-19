@@ -32,6 +32,8 @@ class ReminderListFragment : BaseFragment() {
         setDisplayHomeAsUpEnabled(false)
         setTitle(getString(R.string.app_name))
 
+        //setOnRefreshListener - Classes that wish to be notified when the swipe gesture correctly
+        // triggers a refresh should implement this interface.
         binding.refreshLayout.setOnRefreshListener { _viewModel.loadReminders() }
 
         return binding.root
@@ -53,7 +55,8 @@ class ReminderListFragment : BaseFragment() {
     }
 
     private fun navigateToAddReminder() {
-        //use the navigationCommand live data to navigate between the fragments
+        //use the navigationCommand live data to navigate between the
+        //Q:How does posting a value for a generic mutable live data cause navigation to the SaveReminder fragment
         _viewModel.navigationCommand.postValue(
             NavigationCommand.To(
                 ReminderListFragmentDirections.toSaveReminder()
