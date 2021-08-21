@@ -13,6 +13,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ResolvableApiException
@@ -27,6 +28,7 @@ import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.locationreminders.savereminder.location
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import timber.log.Timber
 import java.util.*
 
 
@@ -39,11 +41,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     //Use Koin to get the view model of the SaveReminder
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
+    private lateinit var mapFragment: SupportMapFragment
 
     private lateinit var map : GoogleMap
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
+
         binding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_select_location, container, false)
 
@@ -65,14 +69,36 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         //The activity that contains the SupportMapFragment must implement the OnMapReadyCallback
         // interface and that interface's onMapReady() method.
-        val mapFragment : MapFragment = childFragmentManager.findFragmentById(R.id.map) as MapFragment//binding.map as MapFragment
-            //.findFragmentById(R.id.map) as SupportMapFragment
+        //val mapFragment : MapFragment = childFragmentManager.findFragmentById(R.id.map) as MapFragment
+
+        val activity = getActivity()
+        if (activity != null && isAdded)
+        {
+            Timber.i("testingNull")
+            //Q: Issue caused by navigating away from current fragment to MapFragment? This causes "Fragment not attach to Activity"
+            //error
+            //childFragmentManager - Return a private FragmentManager for placing and managing Fragments inside of this Fragment.
+            mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+            //mapFragment.setTargetFragment(this,1)
+        }
+        //Tried methods to get MapFragment:
+
+        //SupportFragmentManager.newInstance().childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        //binding.map as MapFragment
+        //.findFragmentById(R.id.map) as SupportMapFragment
         //getMapAsync sets a callback object which will be triggered when the GoogleMap instance is ready to be used.
         //so "getMapAsync" will pass in the "googleMap" parameter in "onMapReady()"
-        mapFragment.getMapAsync(this)
+
+            //getMapAsync is called and executed from the Main thread
+            mapFragment.getMapAsync(this)
 
 
         return binding.root
+    }
+
+    override fun onAttachFragment(childFragment: Fragment) {
+        super.onAttachFragment(childFragment)
+        Timber.i("testingNullFragmentListener")
     }
 
     private fun onLocationSelected() {
