@@ -14,7 +14,11 @@ import org.koin.android.ext.android.inject
 import kotlin.coroutines.CoroutineContext
 
 class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
-
+/*
+    Users can add the reminders and then close the app, So our app has to run in the background
+ * and handle the geofencing in the background.
+ * To do that you can use https://developer.android.com/reference/android/support/v4/app/JobIntentService to do that.
+ */
     private var coroutineJob: Job = Job()
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + coroutineJob
@@ -22,7 +26,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
     companion object {
         private const val JOB_ID = 573
 
-        //        TODO: call this to start the JobIntentService to handle the geofencing transition events
+        //        TODO: call this to start the JobIntentService to handle the geofencing transition events i.e exit or enter geofence
         fun enqueueWork(context: Context, intent: Intent) {
             enqueueWork(
                 context,
