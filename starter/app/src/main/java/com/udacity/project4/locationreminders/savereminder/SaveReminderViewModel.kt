@@ -26,6 +26,8 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
 
     val locationMutable = MutableLiveData<location>()
 
+
+
     val successfuPermissionGranted = MutableLiveData<Boolean>()
 
     fun setLocationMutableNull()

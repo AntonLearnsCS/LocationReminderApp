@@ -13,6 +13,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.navigation.fragment.findNavController
@@ -48,8 +49,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
 
-        binding =
-            DataBindingUtil.inflate(inflater, R.layout.fragment_select_location, container, false)
+        binding = DataBindingUtil.inflate(inflater,R.layout.fragment_select_location,container,false)
+
+        //DataBindingUtil.inflate(inflater, R.layout.fragment_select_location, container, false)
 
         binding.viewModel = _viewModel
         binding.lifecycleOwner = this
@@ -64,7 +66,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
 
 //        TODO: call this function after the user confirms on the selected location
-        onLocationSelected()
+        //onLocationSelected()
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         //The activity that contains the SupportMapFragment must implement the OnMapReadyCallback
@@ -105,20 +107,22 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         //        TODO: When the user confirms on the selected location,
         //         send back the selected location details to the view model
         //         and navigate back to the previous fragment to save the reminder and add the geofence
-        findNavController().popBackStack()
-
+            map.setOnMapLongClickListener { latLang ->
+                //_viewModel.locationMutable.value?.latLng = latLang
+                findNavController().popBackStack()
+            }
     }
 
     override fun onMapReady(googleMap: GoogleMap?) {
         if (googleMap != null) {
             map = googleMap
         }
+        onLocationSelected()
 
         // Add a marker in Sydney and move the camera
         val latitude = 33.8452288
         val longitude = -118.0910236
         val zoomLevel = 18f
-
 
         val homeLatLng = LatLng(latitude, longitude)
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(homeLatLng, zoomLevel))
@@ -134,7 +138,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setMapLongClick(map)
         setPoiClick(map)
         setMapStyle(map)
-        map.addGroundOverlay(androidOverlay)
+        //map.addGroundOverlay(androidOverlay)
     }
 
     private fun setMapLongClick(map: GoogleMap) {
@@ -154,8 +158,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
             )
             _viewModel.locationMutable.value = location(latLng)
+            findNavController().popBackStack()
+
         }
     }
+
     private fun setPoiClick(map: GoogleMap) {
         map.setOnPoiClickListener { poi ->
             val poiMarker = map.addMarker(

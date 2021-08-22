@@ -1,11 +1,13 @@
 package com.udacity.project4.locationreminders.savereminder
 
 import android.Manifest
-import android.annotation.TargetApi
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.content.pm.PackageManager
+import android.location.Geocoder
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -25,9 +27,11 @@ import com.udacity.project4.databinding.FragmentSaveReminderBinding
 import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import timber.log.Timber
+import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
-import kotlin.math.round
+
 
 const val GEOFENCE_RADIUS_IN_METERS = 100f
 
@@ -52,13 +56,20 @@ class SaveReminderFragment : BaseFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_save_reminder, container, false)
+        binding = DataBindingUtil.inflate(
+            inflater,
+            R.layout.fragment_save_reminder,
+            container,
+            false
+        )
 
         setDisplayHomeAsUpEnabled(true)
 
         binding.viewModel = _viewModel
 
         geofencingClient = LocationServices.getGeofencingClient(requireContext())
+
+        Timber.i("testingNull" + _viewModel.reminderTitle.value)
 
         return binding.root
     }
@@ -82,24 +93,27 @@ class SaveReminderFragment : BaseFragment() {
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
 //             2) save the reminder to the local db
+            if(_viewModel.locationMutable.value != null)
+            {
+                Timber.i("viewModelNotNull")
+                currentLocation = _viewModel.locationMutable.value!!
+                checkDeviceLocationSettingsAndStartGeofence()
+            }
 
         }
     }
+
     override fun onStart() {
         super.onStart()
         //if a location was added on the map
-        if(_viewModel.locationMutable.value != null)
-        {
-            currentLocation = _viewModel.locationMutable.value!!
-            checkDeviceLocationSettingsAndStartGeofence()
-        }
+
     }
     /**
      * Starts the permission check and Geofence process only if the Geofence associated with the
      * current hint isn't yet active.
      */
 
-    private fun checkDeviceLocationSettingsAndStartGeofence(resolve:Boolean = true) {
+    private fun checkDeviceLocationSettingsAndStartGeofence(resolve: Boolean = true) {
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
         }
@@ -116,10 +130,13 @@ class SaveReminderFragment : BaseFragment() {
                 try {
                     // Show the dialog by calling startResolutionForResult(),
                     // and check the result in onActivityResult().
-                    exception.startResolutionForResult(requireActivity(),
-                        REQUEST_TURN_DEVICE_LOCATION_ON)
+                    exception.startResolutionForResult(
+                        requireActivity(),
+                        REQUEST_TURN_DEVICE_LOCATION_ON
+                    )
                 } catch (sendEx: IntentSender.SendIntentException) {
-                    Log.d(TAG, "Error geting location settings resolution: " + sendEx.message)
+                Timber.i("Error geting location settings resolution:" + sendEx.message)
+                //Log.d(TAG, "Error geting location settings resolution: " + sendEx.message)
                 }
             } else {
                 Snackbar.make(
@@ -132,6 +149,7 @@ class SaveReminderFragment : BaseFragment() {
         }
         locationSettingsResponseTask.addOnCompleteListener {
             if ( it.isSuccessful ) {
+                Timber.i("Success")
                 addGeofenceForClue()
             }
         }
@@ -142,7 +160,8 @@ class SaveReminderFragment : BaseFragment() {
         //Build the geofence using the geofence builder
         val geofence = Geofence.Builder()
             .setRequestId(createId(currentLocation).toString()) //so we can reference the geofences built
-            .setCircularRegion(currentLocation.latLng.latitude,
+            .setCircularRegion(
+                currentLocation.latLng.latitude,
                 currentLocation.latLng.longitude,
                 GEOFENCE_RADIUS_IN_METERS
             )
@@ -168,13 +187,16 @@ class SaveReminderFragment : BaseFragment() {
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            return
+            //return
+            Timber.i("CheckSelfPassed")
         }
         geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
             addOnSuccessListener {
                 // Geofences added.
-                Toast.makeText(requireActivity(), "Geofence Added",
-                    Toast.LENGTH_SHORT)
+                Toast.makeText(
+                    requireActivity(), "Geofence Added",
+                    Toast.LENGTH_SHORT
+                )
                     .show()
                 Log.e("Add Geofence", geofence.requestId)
                 // Tell the viewmodel that we've reached the end of the game and
@@ -184,8 +206,10 @@ class SaveReminderFragment : BaseFragment() {
             }
             addOnFailureListener {
                 // Failed to add geofences.
-                Toast.makeText(requireActivity(), R.string.geofences_not_added,
-                    Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireActivity(), R.string.geofences_not_added,
+                    Toast.LENGTH_SHORT
+                ).show()
                 if ((it.message != null)) {
                     Log.w(TAG, it.message!!)
                 }
@@ -198,13 +222,17 @@ class SaveReminderFragment : BaseFragment() {
             "RemindersActivity.savereminder.action.ACTION_GEOFENCE_EVENT"
     }
 
+
+
     override fun onDestroy() {
         super.onDestroy()
         //make sure to clear the view model after destroy, as it's a single view model.
         _viewModel.onClear()
     }
 }
-fun createId(num : location) : Int
+
+
+fun createId(num: location) : Int
 {
     val subNum = abs(num.latLng.latitude - num.latLng.longitude) + 1
     return ((num.latLng.latitude + num.latLng.longitude) /subNum).toInt()

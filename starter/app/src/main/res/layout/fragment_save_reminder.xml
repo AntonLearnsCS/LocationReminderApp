@@ -16,6 +16,18 @@
         android:layout_height="match_parent"
         android:background="@color/white">
 
+        <!--https://stackoverflow.com/questions/3656371/is-it-possible-to-have-placeholders-in-strings-xml-for-runtime-values
+        String.valueOf()-->
+        <TextView
+            android:id="@+id/coordinates"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{@string/location(viewModel.locationMutable.latLng.latitude,viewModel.locationMutable.latLng.longitude)}"
+            app:layout_constraintBottom_toTopOf="@+id/progressBar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/selectLocation" />
+
         <EditText
             android:id="@+id/reminderTitle"
             android:layout_width="match_parent"
