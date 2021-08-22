@@ -25,9 +25,13 @@ import com.udacity.project4.authentication.AuthenticationActivity.Companion.TAG
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSaveReminderBinding
+import com.udacity.project4.locationreminders.data.ReminderDataSource
+import com.udacity.project4.locationreminders.data.dto.ReminderDTO
+import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
+import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.util.*
@@ -44,6 +48,7 @@ class SaveReminderFragment : BaseFragment() {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSaveReminderBinding
     private var geofenceList = arrayListOf<Geofence>()
+    private lateinit var dataSource: ReminderDataSource
 
     val GEOFENCE_EXPIRATION_IN_MILLISECONDS: Long = TimeUnit.HOURS.toMillis(1)
 
@@ -111,9 +116,43 @@ class SaveReminderFragment : BaseFragment() {
                 checkDeviceLocationSettingsAndStartGeofence()
             }
 
+            //convert ReminderDataItem to ReminderDTO, how to do this without array?
+            val dataList = ArrayList<ReminderDTO>()
+
+            dataList.addAll((reminderDataItem as List<ReminderDataItem>).map { reminder ->
+                //map the reminder data from the DB to the be ready to be displayed on the UI
+                ReminderDTO(
+                    reminder.title,
+                    reminder.description,
+                    reminder.location,
+                    reminder.latitude,
+                    reminder.longitude,
+                    reminder.id
+                )
+            })
+
+            //remindersList.value = dataList
+
+
+            context?.let { it1 -> LocalDB.createRemindersDao(it1) }.saveReminder(dataList[0])
         }
     }
 
+        fun mapToReminderDTO(reminderDataItem: ReminderDataItem) : ReminderDTO
+        {
+            reminderDataItem.map { reminder ->
+                //map the reminder data from the DB to the be ready to be displayed on the UI
+                ReminderDTO(
+                    reminder.title,
+                    reminder.description,
+                    reminder.location,
+                    reminder.latitude,
+                    reminder.longitude,
+                    reminder.id
+                )
+            }
+            return reminderDataItem
+        }
     override fun onStart() {
         super.onStart()
         //if a location was added on the map
