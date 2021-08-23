@@ -17,6 +17,11 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
+import androidx.lifecycle.Transformations.map
+import androidx.lifecycle.map
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
@@ -31,6 +36,8 @@ import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import timber.log.Timber
@@ -40,6 +47,23 @@ import kotlin.math.abs
 
 
 const val GEOFENCE_RADIUS_IN_METERS = 100f
+
+//following structure from DevByte domain -> DTO conversion
+//create a dataclass
+data class ReminderContainer(val reminder: List<ReminderDataItem>)
+
+fun ReminderContainer.asDatabaseModel(): Array<ReminderDTO> {
+   // val nonLive : ReminderDataItem? = reminder.value
+    return reminder.map {
+        ReminderDTO(
+            title = it.title,
+            description = it.description,
+            location = it.location,
+            latitude = it.latitude,
+            longitude = it.longitude,
+            id = it.id)
+    }.toTypedArray()
+}
 
 
 class SaveReminderFragment : BaseFragment() {
@@ -55,7 +79,7 @@ class SaveReminderFragment : BaseFragment() {
     private lateinit var currentLocation : location
     private lateinit var geofencingClient: GeofencingClient
     private val runningQOrLater : Boolean = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
-    private lateinit var reminderDataItem : ReminderDataItem
+    private lateinit var reminderDataItem : MutableList<ReminderDataItem>
     private lateinit var intent : Intent
     private val geofencePendingIntent: PendingIntent by lazy {
          intent = Intent(requireContext(), GeofenceBroadcastReceiver::class.java)
@@ -102,9 +126,9 @@ class SaveReminderFragment : BaseFragment() {
             val latitude = _viewModel.latitude.value
             val longitude = _viewModel.longitude.value
 
-            reminderDataItem = ReminderDataItem(title,description,location,latitude,longitude)
+            reminderDataItem[0] = ReminderDataItem(title,description,location,latitude,longitude)
 
-            intent.putExtra("reminderDataItem", reminderDataItem)
+            intent.putExtra("reminderDataItem", reminderDataItem[0])
 
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
@@ -116,10 +140,8 @@ class SaveReminderFragment : BaseFragment() {
                 checkDeviceLocationSettingsAndStartGeofence()
             }
 
-            //convert ReminderDataItem to ReminderDTO, how to do this without array?
-            val dataList = ArrayList<ReminderDTO>()
-
-            dataList.addAll((reminderDataItem as List<ReminderDataItem>).map { reminder ->
+  /*          val dataList = ArrayList<ReminderDataItem>()
+            dataList.add(0, reminderDataItem.map { reminder ->
                 //map the reminder data from the DB to the be ready to be displayed on the UI
                 ReminderDTO(
                     reminder.title,
@@ -129,35 +151,16 @@ class SaveReminderFragment : BaseFragment() {
                     reminder.longitude,
                     reminder.id
                 )
-            })
-
-            //remindersList.value = dataList
+            })*/
 
 
-            context?.let { it1 -> LocalDB.createRemindersDao(it1) }.saveReminder(dataList[0])
+            var reminderContainerList  = ReminderContainer(reminderDataItem)
+            //val test = reminderContainerList.reminder.value
+
+            context?.let { it1 -> LocalDB.createRemindersDao(it1) }.saveReminder(reminderContainerList.asDatabaseModel()[0])
         }
     }
 
-        fun mapToReminderDTO(reminderDataItem: ReminderDataItem) : ReminderDTO
-        {
-            reminderDataItem.map { reminder ->
-                //map the reminder data from the DB to the be ready to be displayed on the UI
-                ReminderDTO(
-                    reminder.title,
-                    reminder.description,
-                    reminder.location,
-                    reminder.latitude,
-                    reminder.longitude,
-                    reminder.id
-                )
-            }
-            return reminderDataItem
-        }
-    override fun onStart() {
-        super.onStart()
-        //if a location was added on the map
-
-    }
     /**
      * Starts the permission check and Geofence process only if the Geofence associated with the
      * current hint isn't yet active.
