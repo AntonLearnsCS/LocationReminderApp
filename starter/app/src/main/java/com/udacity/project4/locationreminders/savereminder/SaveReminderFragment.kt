@@ -52,17 +52,15 @@ const val GEOFENCE_RADIUS_IN_METERS = 100f
 //create a dataclass
 data class ReminderContainer(val reminder: List<ReminderDataItem>)
 
-fun ReminderContainer.asDatabaseModel(): Array<ReminderDTO> {
+fun ReminderDataItem.asDatabaseModel(): ReminderDTO {
    // val nonLive : ReminderDataItem? = reminder.value
-    return reminder.map {
-        ReminderDTO(
-            title = it.title,
-            description = it.description,
-            location = it.location,
-            latitude = it.latitude,
-            longitude = it.longitude,
-            id = it.id)
-    }.toTypedArray()
+    return ReminderDTO(
+            title = this.title,
+            description = this.description,
+            location = this.location,
+            latitude = this.latitude,
+            longitude = this.longitude,
+            id = this.id)
 }
 
 
@@ -79,7 +77,7 @@ class SaveReminderFragment : BaseFragment() {
     private lateinit var currentLocation : location
     private lateinit var geofencingClient: GeofencingClient
     private val runningQOrLater : Boolean = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
-    private lateinit var reminderDataItem : MutableList<ReminderDataItem>
+    private lateinit var reminderDataItem : ReminderDataItem
     private lateinit var intent : Intent
     private val geofencePendingIntent: PendingIntent by lazy {
          intent = Intent(requireContext(), GeofenceBroadcastReceiver::class.java)
@@ -128,7 +126,7 @@ class SaveReminderFragment : BaseFragment() {
 
             reminderDataItem[0] = ReminderDataItem(title,description,location,latitude,longitude)
 
-            intent.putExtra("reminderDataItem", reminderDataItem[0])
+            intent.putExtra("reminderDataItem", reminderDataItem)
 
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
@@ -154,10 +152,10 @@ class SaveReminderFragment : BaseFragment() {
             })*/
 
 
-            var reminderContainerList  = ReminderContainer(reminderDataItem)
+            //var reminderContainerList  = ReminderContainer(reminderDataItem)
             //val test = reminderContainerList.reminder.value
 
-            context?.let { it1 -> LocalDB.createRemindersDao(it1) }.saveReminder(reminderContainerList.asDatabaseModel()[0])
+            context?.let { it1 -> LocalDB.createRemindersDao(it1) }.saveReminder(reminderDataItem.asDatabaseModel())
         }
     }
 
