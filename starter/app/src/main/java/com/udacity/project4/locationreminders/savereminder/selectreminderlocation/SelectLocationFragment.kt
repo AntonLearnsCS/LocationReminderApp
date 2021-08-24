@@ -98,10 +98,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         return binding.root
     }
 
-    override fun onAttachFragment(childFragment: Fragment) {
+/*    override fun onAttachFragment(childFragment: Fragment) {
         super.onAttachFragment(childFragment)
         Timber.i("testingNullFragmentListener")
-    }
+    }*/
 
     private fun onLocationSelected() {
         //        TODO: When the user confirms on the selected location,
@@ -158,8 +158,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
             )
             _viewModel.locationMutable.value = location(latLng)
+            _viewModel.reminderSelectedLocationStr.value = latLng.latitude.toString()
             findNavController().popBackStack()
-
         }
     }
 
@@ -239,7 +239,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     //                                          int[] grantResults)
                     // to handle the case where the user grants the permission. See the documentation
                     // for ActivityCompat#requestPermissions for more details.
-                    return
+                    //return
+                    Timber.i("RequestFailed1")
                 }
                 else
                 {
@@ -249,6 +250,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                             Manifest.permission.ACCESS_COARSE_LOCATION),
                         REQUEST_LOCATION_PERMISSION
                     )
+                    Timber.i("RequestSuccess1")
                 }
             }
             else {
@@ -267,7 +269,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     //                                          int[] grantResults)
                     // to handle the case where the user grants the permission. See the documentation
                     // for ActivityCompat#requestPermissions for more details.
-                    return
+                    //return
+                    Timber.i("RequestFailed2")
+
                 }
                 else
                 {
@@ -276,9 +280,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION,
                             Manifest.permission.ACCESS_COARSE_LOCATION),
                         REQUEST_LOCATION_PERMISSION
-                    )
-                }
 
+                    )
+                    Timber.i("RequestSuccess2")
+                }
             }
             map.setMyLocationEnabled(true)
             _viewModel.successfuPermissionGranted.value = true
@@ -301,7 +306,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     && (grantResults[1] == PackageManager.PERMISSION_GRANTED) && (grantResults[2] == PackageManager.PERMISSION_GRANTED))
                     {
                     enableMyLocation()
-                }
+                    }
             }
             else
             {

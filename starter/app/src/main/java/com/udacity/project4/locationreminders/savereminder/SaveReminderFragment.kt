@@ -22,6 +22,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import androidx.lifecycle.Transformations.map
 import androidx.lifecycle.map
+import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
@@ -76,9 +77,9 @@ class SaveReminderFragment : BaseFragment() {
 
     private lateinit var currentLocation : location
     private lateinit var geofencingClient: GeofencingClient
-    private val runningQOrLater : Boolean = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+    //private val runningQOrLater : Boolean = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
     private lateinit var reminderDataItem : ReminderDataItem
-    private lateinit var intent : Intent
+    private var intent = Intent()
     private val geofencePendingIntent: PendingIntent by lazy {
          intent = Intent(requireContext(), GeofenceBroadcastReceiver::class.java)
         intent.action = ACTION_GEOFENCE_EVENT
@@ -115,6 +116,8 @@ class SaveReminderFragment : BaseFragment() {
             _viewModel.navigationCommand.value =
                 NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
         }
+        reminderDataItem = ReminderDataItem(_viewModel.reminderTitle.value,_viewModel.reminderDescription.value,
+            _viewModel.reminderSelectedLocationStr.value,_viewModel.latitude.value,_viewModel.longitude.value)
 
         binding.saveReminder.setOnClickListener {
             //two-way data binding
@@ -123,8 +126,8 @@ class SaveReminderFragment : BaseFragment() {
             val location = _viewModel.reminderSelectedLocationStr.value
             val latitude = _viewModel.latitude.value
             val longitude = _viewModel.longitude.value
-
-            reminderDataItem[0] = ReminderDataItem(title,description,location,latitude,longitude)
+            //no id for clicked location b/c ReminderDataItem will automatically generate one for us, id only for geofence
+            reminderDataItem = ReminderDataItem(title,description,location,latitude,longitude)
 
             intent.putExtra("reminderDataItem", reminderDataItem)
 
@@ -138,24 +141,17 @@ class SaveReminderFragment : BaseFragment() {
                 checkDeviceLocationSettingsAndStartGeofence()
             }
 
-  /*          val dataList = ArrayList<ReminderDataItem>()
-            dataList.add(0, reminderDataItem.map { reminder ->
-                //map the reminder data from the DB to the be ready to be displayed on the UI
-                ReminderDTO(
-                    reminder.title,
-                    reminder.description,
-                    reminder.location,
-                    reminder.latitude,
-                    reminder.longitude,
-                    reminder.id
-                )
-            })*/
-
-
-            //var reminderContainerList  = ReminderContainer(reminderDataItem)
-            //val test = reminderContainerList.reminder.value
-
-            context?.let { it1 -> LocalDB.createRemindersDao(it1) }.saveReminder(reminderDataItem.asDatabaseModel())
+            if (_viewModel.validateAndSaveReminder(reminderDataItem))
+            {
+                Timber.i("testValidate")
+                //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+                _viewModel.navigationCommand.value =
+                    NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+            }
+            else
+            {
+                Toast.makeText(context,"Missing title/description",Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -186,7 +182,7 @@ class SaveReminderFragment : BaseFragment() {
                         REQUEST_TURN_DEVICE_LOCATION_ON
                     )
                 } catch (sendEx: IntentSender.SendIntentException) {
-                Timber.i("Error geting location settings resolution:" + sendEx.message)
+                Timber.i("Error getting location settings resolution:" + sendEx.message)
                 //Log.d(TAG, "Error geting location settings resolution: " + sendEx.message)
                 }
             } else {
@@ -209,7 +205,7 @@ class SaveReminderFragment : BaseFragment() {
     private fun addGeofenceForClue() {
 
         //Build the geofence using the geofence builder
-        geofenceList.add( Geofence.Builder()
+        geofenceList.add(Geofence.Builder()
             .setRequestId(createId(currentLocation).toString()) //so we can reference the geofences built
             .setCircularRegion(
                 currentLocation.latLng.latitude,
@@ -229,7 +225,13 @@ class SaveReminderFragment : BaseFragment() {
         if (ActivityCompat.checkSelfPermission(
                 requireActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireActivity(),
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                requireActivity(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -239,7 +241,7 @@ class SaveReminderFragment : BaseFragment() {
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
             //return
-            Timber.i("CheckSelfPassed")
+            Timber.i("CheckSelfNotPassed")
         }
         geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
             addOnSuccessListener {
