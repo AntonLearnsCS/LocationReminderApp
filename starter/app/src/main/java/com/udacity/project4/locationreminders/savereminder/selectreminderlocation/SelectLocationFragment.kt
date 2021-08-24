@@ -26,7 +26,6 @@ import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
-import com.udacity.project4.locationreminders.savereminder.location
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 import timber.log.Timber
@@ -157,8 +156,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .snippet(snippet)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
             )
-            _viewModel.locationMutable.value = location(latLng)
-            _viewModel.reminderSelectedLocationStr.value = latLng.latitude.toString()
+            _viewModel.latLng.value = latLng
             findNavController().popBackStack()
         }
     }
@@ -186,7 +184,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             if (!success) {
                 Log.e(TAG, "Style parsing failed.")
             }
-        } catch (e: Resources.NotFoundException) {
+        }
+        catch (e: Resources.NotFoundException) {
             Log.e(TAG, "Can't find style. Error: ", e)
         }
     }

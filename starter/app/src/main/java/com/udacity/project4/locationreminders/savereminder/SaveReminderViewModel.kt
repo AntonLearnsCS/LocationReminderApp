@@ -1,6 +1,8 @@
 package com.udacity.project4.locationreminders.savereminder
 
 import android.app.Application
+import android.location.Address
+import android.location.Geocoder
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
@@ -12,35 +14,49 @@ import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import kotlinx.coroutines.launch
-data class location(var latLng: LatLng)
 
 class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSource) :
     BaseViewModel(app) {
+
+    //idea of geocoder: https://stackoverflow.com/questions/59095837/convert-from-latlang-to-address-using-geocoding-not-working-android-kotlin
+    val geocoder = Geocoder(this.app)
+
+    val latLng : MutableLiveData<LatLng> = MutableLiveData(LatLng(33.8,-118.1))
+    //MutableLiveData<LatLng>().apply { postValue(LatLng(33.8,-118.1)) }
+    //val initialLocation = latLng.value?.let { location(it) }
+    //val locationMutable : MutableLiveData<location> = MutableLiveData(initialLocation)
+    val locationSingle =
+        latLng.value?.let { geocoder.getFromLocation(it.latitude, latLng.value!!.longitude,1) }
+
+        /*locationMutable.value?.latLng?.let { geocoder.getFromLocation(it.latitude,
+        locationMutable.value!!.latLng.longitude,1) }*/
+    /*    locationMutable.value?.latLng?.longitude?.let {
+        geocoder.getFromLocation(
+            locationMutable.value!!.latLng.latitude,
+            it,1)
+    }*/
+
+    val reminderSelectedLocationStr = locationSingle?.get(0)?.locality
+
     val reminderTitle = MutableLiveData<String>()
     val reminderDescription = MutableLiveData<String>()
-    val reminderSelectedLocationStr = MutableLiveData<String>()
+    //val reminderSelectedLocationStr : MutableLiveData<String> = MutableLiveData(locationSingle?.get(0).toString())
+
+
     val selectedPOI = MutableLiveData<PointOfInterest>()
     val latitude = MutableLiveData<Double>()
     val longitude = MutableLiveData<Double>()
 
 
-    val locationMutable = MutableLiveData<location>()
-
-
-
     val successfuPermissionGranted = MutableLiveData<Boolean>()
 
-    fun setLocationMutableNull()
-    {
-        locationMutable.value = null
-    }
     /**
      * Clear the live data objects to start fresh next time the view model gets called
      */
     fun onClear() {
         reminderTitle.value = null
         reminderDescription.value = null
-        reminderSelectedLocationStr.value = null
+        latLng.value = null
         selectedPOI.value = null
         latitude.value = null
         longitude.value = null

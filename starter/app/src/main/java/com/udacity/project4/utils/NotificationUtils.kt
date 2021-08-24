@@ -52,4 +52,4 @@ fun sendNotification(context: Context, reminderDataItem: ReminderDataItem) {
     notificationManager.notify(getUniqueId(), notification)
 }
 
-private fun getUniqueId() = ((System.currentTimeMillis() % 10000).toInt())
+ fun getUniqueId() = ((System.currentTimeMillis() % 10000).toInt())

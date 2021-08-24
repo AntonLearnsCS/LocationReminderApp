@@ -36,6 +36,7 @@ import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
+import com.udacity.project4.utils.getUniqueId
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -75,7 +76,6 @@ class SaveReminderFragment : BaseFragment() {
 
     val GEOFENCE_EXPIRATION_IN_MILLISECONDS: Long = TimeUnit.HOURS.toMillis(1)
 
-    private lateinit var currentLocation : location
     private lateinit var geofencingClient: GeofencingClient
     //private val runningQOrLater : Boolean = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
     private lateinit var reminderDataItem : ReminderDataItem
@@ -117,13 +117,13 @@ class SaveReminderFragment : BaseFragment() {
                 NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
         }
         reminderDataItem = ReminderDataItem(_viewModel.reminderTitle.value,_viewModel.reminderDescription.value,
-            _viewModel.reminderSelectedLocationStr.value,_viewModel.latitude.value,_viewModel.longitude.value)
+            _viewModel.reminderSelectedLocationStr,_viewModel.latitude.value,_viewModel.longitude.value)
 
         binding.saveReminder.setOnClickListener {
             //two-way data binding
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription.value
-            val location = _viewModel.reminderSelectedLocationStr.value
+            val location = _viewModel.reminderSelectedLocationStr
             val latitude = _viewModel.latitude.value
             val longitude = _viewModel.longitude.value
             //no id for clicked location b/c ReminderDataItem will automatically generate one for us, id only for geofence
@@ -134,10 +134,9 @@ class SaveReminderFragment : BaseFragment() {
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
 //             2) save the reminder to the local db
-            if(_viewModel.locationMutable.value != null)
+            if(_viewModel.latLng.value != null)
             {
                 Timber.i("viewModelNotNull")
-                currentLocation = _viewModel.locationMutable.value!!
                 checkDeviceLocationSettingsAndStartGeofence()
             }
 
@@ -203,18 +202,20 @@ class SaveReminderFragment : BaseFragment() {
     }
     //call only once permission is granted
     private fun addGeofenceForClue() {
-
+        val id = getUniqueId()
         //Build the geofence using the geofence builder
-        geofenceList.add(Geofence.Builder()
-            .setRequestId(createId(currentLocation).toString()) //so we can reference the geofences built
-            .setCircularRegion(
-                currentLocation.latLng.latitude,
-                currentLocation.latLng.longitude,
-                GEOFENCE_RADIUS_IN_METERS
-            )
-            .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-            .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
-            .build())
+        _viewModel.latLng.value?.let {
+            Geofence.Builder()
+                .setRequestId(_viewModel.reminderSelectedLocationStr + _viewModel.latLng.value!!.latitude.toString()) //so we can reference the geofences built
+                .setCircularRegion(
+                    it.latitude,
+                    _viewModel.latLng.value!!.longitude,
+                    GEOFENCE_RADIUS_IN_METERS
+                )
+                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+                .build()
+        }?.let { geofenceList.add(it) }
 
         //Build the geofence request
         val geofencingRequest = GeofencingRequest.Builder()
@@ -300,11 +301,7 @@ class SaveReminderFragment : BaseFragment() {
 }
 
 
-fun createId(num: location) : Int
-{
-    val subNum = abs(num.latLng.latitude - num.latLng.longitude) + 1
-    return ((num.latLng.latitude + num.latLng.longitude) /subNum).toInt()
-}
+
 private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
 private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
