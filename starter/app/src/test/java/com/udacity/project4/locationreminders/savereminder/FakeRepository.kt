@@ -8,24 +8,27 @@ import java.util.LinkedHashMap
 
 class FakeRepository : ReminderDataSource {
 
-    var tasksServiceData: LinkedHashMap<String, Task> = LinkedHashMap()
+    //Fake repository
+    var tasksServiceData: LinkedHashMap<String, ReminderDTO> = LinkedHashMap()
 
     override suspend fun getReminders(): Result<List<ReminderDTO>> {
-        TODO("Not yet implemented")
-    }
+        //The "Success" will cast the resulting list as a Result of type "Success"
+    return Result.Success(tasksServiceData.values.toList())
+        }
 
     override suspend fun saveReminder(reminder: ReminderDTO) {
-        withContext(ioDispatcher) {
-
-            remindersDao.saveReminder(reminder)
-        }
+      tasksServiceData[reminder.id] = reminder
     }
 
     override suspend fun getReminder(id: String): Result<ReminderDTO> {
-        TODO("Not yet implemented")
+        return Result.Success(tasksServiceData.get(id)!!)
     }
+    //TODO: implement
+    /* if(tasksServiceData.containsKey(id))
+        return Result.Success(tasksServiceData.get(id)!!)*/
+
 
     override suspend fun deleteAllReminders() {
-        TODO("Not yet implemented")
+        tasksServiceData.clear()
     }
 }

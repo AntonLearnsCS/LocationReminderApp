@@ -1,5 +1,6 @@
 package com.udacity.project4.locationreminders.savereminder
 
+import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
@@ -11,7 +12,10 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.annotation.Config
+import timber.log.Timber
 
+@Config(sdk = [Build.VERSION_CODES.Q])
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class SaveReminderViewModelTest {
@@ -26,10 +30,14 @@ class SaveReminderViewModelTest {
     {
         //Given - A fresh viewModel
         val testRepo = FakeRepository()
-        val viewModel = SaveReminderViewModel(ApplicationProvider.getApplicationContext(),testRepo)
-        //When
 
-        //Then
+
+        val viewModel = SaveReminderViewModel(ApplicationProvider.getApplicationContext(),testRepo)
+        //When we update the value of LatLng that has an initial value
+        viewModel.latLng.value = LatLng(2.0,2.0)
+        //viewModel.latLng.value = LatLng(4.0,4.0)
+        //Then the new value should be displayed
+        Timber.i("TestLat" + viewModel.latLng.value!!.latitude.toString())
     }
 
 }
