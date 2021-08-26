@@ -2,6 +2,7 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 
 import android.Manifest
+import android.app.Application
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
@@ -53,7 +54,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         //DataBindingUtil.inflate(inflater, R.layout.fragment_select_location, container, false)
 
         binding.viewModel = _viewModel
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = requireActivity()
 
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
@@ -118,9 +119,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
         onLocationSelected()
 
-        // Add a marker in Sydney and move the camera
+        // Add a marker in Lakewood/Long Beach CA and move the camera, note that coordinates have a wide range, which is why decimals
+        //can dictate the difference between two cities
         val latitude = 33.8452288
-        val longitude = -118.0910236
+        val longitude = 118.0321247
         val zoomLevel = 18f
 
         val homeLatLng = LatLng(latitude, longitude)
@@ -156,7 +158,15 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .snippet(snippet)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
             )
+            //TODO: Coordinates selected here do not change the latLang variable in the viewModel
+            /*
+            As you can see, the problem isn't with MutableLiveData, but with your ViewModel. Since it's a SharedViewModel,
+            you need to have it's LifeCycleOwner set to either an Activity or to your Application class. This way, if you
+            reuse that LifeCycleOwner with that ViewModel, the changes of your LiveData properties will be visible to your
+             other Activities or Fragment
+             */
             _viewModel.latLng.value = latLng
+            println("" + latLng.latitude.toString() + ", " + latLng.longitude.toString())
             findNavController().popBackStack()
         }
     }

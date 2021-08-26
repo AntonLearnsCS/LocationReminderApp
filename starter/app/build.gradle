@@ -5,7 +5,7 @@ apply plugin: "androidx.navigation.safeargs.kotlin"
 apply plugin: 'com.google.gms.google-services'
 
 android {
-    compileSdkVersion rootProject.compileSdkVersion
+    compileSdkVersion = 29//rootProject.compileSdkVersion
     buildToolsVersion "29.0.2"
 
     defaultConfig {
@@ -16,6 +16,11 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
+    }
+    configurations.all {
+        resolutionStrategy {
+            exclude group: "org.jetbrains.kotlinx", module: "kotlinx-coroutines-debug"
+        }
     }
     buildTypes {
         release {

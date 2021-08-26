@@ -20,7 +20,6 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
 
     //idea of geocoder: https://stackoverflow.com/questions/59095837/convert-from-latlang-to-address-using-geocoding-not-working-android-kotlin
     val geocoder = Geocoder(this.app)
-
     val latLng : MutableLiveData<LatLng> = MutableLiveData(LatLng(33.8,-118.1))
     //MutableLiveData<LatLng>().apply { postValue(LatLng(33.8,-118.1)) }
     //val initialLocation = latLng.value?.let { location(it) }
@@ -36,7 +35,8 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
             it,1)
     }*/
 
-    val reminderSelectedLocationStr = locationSingle?.get(0)?.locality
+    val reminderSelectedLocationStr : String? = if (locationSingle == null || locationSingle.size != 0) locationSingle?.get(0)?.locality
+    else null
 
     val reminderTitle = MutableLiveData<String>()
     val reminderDescription = MutableLiveData<String>()

@@ -102,7 +102,7 @@ class SaveReminderFragment : BaseFragment() {
         binding.viewModel = _viewModel
 
         geofencingClient = LocationServices.getGeofencingClient(requireContext())
-
+        //TODO: Strange, pressing add button after save button calls onCreateView
         Timber.i("testingNull" + _viewModel.reminderTitle.value)
 
         return binding.root
@@ -110,7 +110,7 @@ class SaveReminderFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.lifecycleOwner = this
+        binding.lifecycleOwner = requireActivity()
         binding.selectLocation.setOnClickListener {
             //Navigate to another fragment to get the user location
             _viewModel.navigationCommand.value =
@@ -144,7 +144,8 @@ class SaveReminderFragment : BaseFragment() {
             {
                 Timber.i("testValidate")
                 //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
-                _viewModel.navigationCommand.value =
+            //findNavController().popBackStack()
+             _viewModel.navigationCommand.value =
                     NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
             }
             else

@@ -21,6 +21,17 @@
 
 <!-- The @={} notation, which importantly includes the "=" sign, receives data changes to
 the property and listen to user updates at the same time.-->
+
+        <TextView
+            android:id="@+id/coordinates"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{@string/location(viewModel.latLng.latitude,viewModel.latLng.longitude)}"
+            app:layout_constraintBottom_toTopOf="@+id/progressBar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/selectLocation" />
+
         <EditText
             android:id="@+id/reminderTitle"
             android:layout_width="match_parent"
@@ -64,7 +75,7 @@ the property and listen to user updates at the same time.-->
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/margin_normal"
             android:layout_marginRight="@dimen/margin_normal"
-            android:text="@{viewModel.reminderSelectedLocationStr}"
+            android:text="@={viewModel.reminderSelectedLocationStr}"
             android:textColor="@color/black"
             app:layout_constraintBottom_toBottomOf="@id/selectLocation"
             app:layout_constraintEnd_toEndOf="parent"
