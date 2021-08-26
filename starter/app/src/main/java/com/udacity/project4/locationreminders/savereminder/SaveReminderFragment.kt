@@ -73,7 +73,6 @@ class SaveReminderFragment : BaseFragment() {
     private lateinit var binding: FragmentSaveReminderBinding
     private var geofenceList = arrayListOf<Geofence>()
     private lateinit var dataSource: ReminderDataSource
-
     val GEOFENCE_EXPIRATION_IN_MILLISECONDS: Long = TimeUnit.HOURS.toMillis(1)
 
     private lateinit var geofencingClient: GeofencingClient
@@ -90,6 +89,7 @@ class SaveReminderFragment : BaseFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         binding = DataBindingUtil.inflate(
             inflater,
             R.layout.fragment_save_reminder,
@@ -105,12 +105,18 @@ class SaveReminderFragment : BaseFragment() {
         //TODO: Strange, pressing add button after save button calls onCreateView
         Timber.i("testingNull" + _viewModel.reminderTitle.value)
 
+        //observe locationSingle variable
+        Timber.i("locationSingle: " + _viewModel.locationSingle.value?.get(0)?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude
+         + ", " + _viewModel.latLng.value?.longitude)
+
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.lifecycleOwner = requireActivity()
+        //Timber.tag("coord").i( _viewModel.latLng.value?.latitude + _viewModel.latLng.value?.longitude)
+        println("SaveReminder" + _viewModel.latLng.value?.latitude + ", " + _viewModel.latLng.value?.longitude)
         binding.selectLocation.setOnClickListener {
             //Navigate to another fragment to get the user location
             _viewModel.navigationCommand.value =

@@ -3,6 +3,7 @@ package com.udacity.project4.locationreminders.savereminder
 import android.app.Application
 import android.location.Address
 import android.location.Geocoder
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
@@ -20,23 +21,26 @@ class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSo
 
     //idea of geocoder: https://stackoverflow.com/questions/59095837/convert-from-latlang-to-address-using-geocoding-not-working-android-kotlin
     val geocoder = Geocoder(this.app)
+
+    @Synchronized
+    fun getSynchronizedLatLngAddress(LatLng : LatLng) : List<Address>
+    {
+       return geocoder.getFromLocation(LatLng.latitude, LatLng.longitude,1)
+    }
+
     val latLng : MutableLiveData<LatLng> = MutableLiveData(LatLng(33.8,-118.1))
     //MutableLiveData<LatLng>().apply { postValue(LatLng(33.8,-118.1)) }
     //val initialLocation = latLng.value?.let { location(it) }
     //val locationMutable : MutableLiveData<location> = MutableLiveData(initialLocation)
-    val locationSingle =
-        latLng.value?.let { geocoder.getFromLocation(it.latitude, latLng.value!!.longitude,1) }
 
-        /*locationMutable.value?.latLng?.let { geocoder.getFromLocation(it.latitude,
-        locationMutable.value!!.latLng.longitude,1) }*/
-    /*    locationMutable.value?.latLng?.longitude?.let {
-        geocoder.getFromLocation(
-            locationMutable.value!!.latLng.latitude,
-            it,1)
-    }*/
+    //TODO: Unchanging even though latLng changes value
+    val locationSingle = MutableLiveData(latLng.value?.let { getSynchronizedLatLngAddress(it) })
+        //latLng.value?.let { geocoder.getFromLocation(it.latitude, latLng.value!!.longitude,1) }
 
-    val reminderSelectedLocationStr : String? = if (locationSingle == null || locationSingle.size != 0) locationSingle?.get(0)?.locality
+    val reminderSelectedLocationStr : String? = if (locationSingle.value != null || locationSingle.value?.size != 0) locationSingle.value?.get(0)?.locality
     else null
+
+    val cityNameForTwoWayBinding = MutableLiveData(reminderSelectedLocationStr)
 
     val reminderTitle = MutableLiveData<String>()
     val reminderDescription = MutableLiveData<String>()

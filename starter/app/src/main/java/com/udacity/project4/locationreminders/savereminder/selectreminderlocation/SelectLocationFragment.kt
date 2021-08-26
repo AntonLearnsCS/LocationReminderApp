@@ -17,6 +17,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
@@ -122,8 +123,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         // Add a marker in Lakewood/Long Beach CA and move the camera, note that coordinates have a wide range, which is why decimals
         //can dictate the difference between two cities
         val latitude = 33.8452288
-        val longitude = 118.0321247
-        val zoomLevel = 18f
+        val longitude = -118.0321247
+        val zoomLevel = 4f
 
         val homeLatLng = LatLng(latitude, longitude)
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(homeLatLng, zoomLevel))
@@ -158,15 +159,17 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .snippet(snippet)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
             )
-            //TODO: Coordinates selected here do not change the latLang variable in the viewModel
             /*
             As you can see, the problem isn't with MutableLiveData, but with your ViewModel. Since it's a SharedViewModel,
             you need to have it's LifeCycleOwner set to either an Activity or to your Application class. This way, if you
             reuse that LifeCycleOwner with that ViewModel, the changes of your LiveData properties will be visible to your
              other Activities or Fragment
+             Source: https://stackoverflow.com/questions/54871649/mutablelivedata-sets-value-but-getvalue-returns-null
              */
             _viewModel.latLng.value = latLng
-            println("" + latLng.latitude.toString() + ", " + latLng.longitude.toString())
+            println("SelectLocation:" + latLng.latitude.toString() + ", " + latLng.longitude.toString())
+            Timber.i("locationSingle: " + _viewModel.locationSingle.value?.get(0)?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude
+                    + ", " + _viewModel.latLng.value?.longitude)
             findNavController().popBackStack()
         }
     }
@@ -348,6 +351,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         else -> super.onOptionsItemSelected(item)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        _viewModel.locationSingle.value = null
+    }
 }
 private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
 private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
