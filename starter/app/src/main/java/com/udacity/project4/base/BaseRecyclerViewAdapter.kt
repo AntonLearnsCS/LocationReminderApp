@@ -7,6 +7,8 @@ import androidx.databinding.DataBindingUtil
 import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
+import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
+import timber.log.Timber
 
 abstract class BaseRecyclerViewAdapter<T>(private val callback: ((item: T) -> Unit)? = null) :
     RecyclerView.Adapter<DataBindingViewHolder<T>>() {
@@ -37,6 +39,9 @@ abstract class BaseRecyclerViewAdapter<T>(private val callback: ((item: T) -> Un
         val item = getItem(position)
         holder.bind(item)
         holder.itemView.setOnClickListener {
+            //"invoke" is used for operators and is used when a class only has one method and thereby one function. As such,
+            //we can insert the "invoke" modifier in front of the operator so that we can call it without directly from the class
+            //without the operator/method name.
             callback?.invoke(item)
         }
     }

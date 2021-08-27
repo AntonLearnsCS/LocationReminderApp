@@ -3,14 +3,18 @@ package com.udacity.project4.locationreminders.reminderslist
 import android.os.Bundle
 import android.view.*
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentRemindersBinding
+import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import com.udacity.project4.utils.setTitle
 import com.udacity.project4.utils.setup
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import timber.log.Timber
 
 class ReminderListFragment : BaseFragment() {
     //use Koin to retrieve the ViewModel instance
@@ -46,6 +50,29 @@ class ReminderListFragment : BaseFragment() {
         binding.addReminderFAB.setOnClickListener {
             navigateToAddReminder()
         }
+
+        //TODO: value of "it" appears to be null. As I understand, "it" is the expression
+        // callBack: (selectedReminder: ReminderDataItem) -> Unit
+        RemindersListAdapter {
+            _viewModel.selectedReminder.value = it
+        }
+
+        Timber.i("selected Reminder: " + _viewModel.selectedReminder.value?.description)
+        // Observe the navigateToSelectedProperty LiveData and Navigate when it isn't null
+        // After navigating, call displayPropertyDetailsComplete() so that the ViewModel is ready
+        // for another navigation event.
+        _viewModel.selectedReminder.observe(viewLifecycleOwner, Observer {
+            if (null != it) {
+                // Must find the NavController from the Fragment
+                _viewModel.navigationCommand.value =
+                    NavigationCommand.To(ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity(it))
+
+                //this.findNavController().navigate(ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity(it))
+
+                // Tell the ViewModel we've made the navigate call to prevent multiple navigation
+                //viewModel.displayPropertyDetailsComplete()
+            }
+        })
     }
 
     override fun onResume() {
@@ -67,9 +94,15 @@ class ReminderListFragment : BaseFragment() {
     private fun setupRecyclerView() {
         val adapter = RemindersListAdapter {
         }
+
 //        setup the recycler view using the extension function
         binding.reminderssRecyclerView.setup(adapter)
+
     }
+
+    //RemindersListAdapter(_viewModel.selectedReminder.value = it)//binding.reminderssRecyclerView.setup(adapter)
+
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
@@ -78,7 +111,6 @@ class ReminderListFragment : BaseFragment() {
             }
         }
         return super.onOptionsItemSelected(item)
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

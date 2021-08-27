@@ -68,7 +68,7 @@ fun ReminderDataItem.asDatabaseModel(): ReminderDTO {
 
 class SaveReminderFragment : BaseFragment() {
     private var counter = 0
-    //Get the view model this time as a single to be shared with the another fragment
+    //Get the view model this time as a single to be shared with the another fragment, note the "override" tag
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSaveReminderBinding
     private var geofenceList = arrayListOf<Geofence>()
