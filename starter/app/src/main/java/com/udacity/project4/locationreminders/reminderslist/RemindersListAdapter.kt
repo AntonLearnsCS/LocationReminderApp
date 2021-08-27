@@ -10,4 +10,5 @@ import timber.log.Timber
 class RemindersListAdapter(callBack: (selectedReminder: ReminderDataItem) -> Unit) :
     BaseRecyclerViewAdapter<ReminderDataItem>(callBack) {
     override fun getLayoutRes(viewType: Int) = R.layout.it_reminder
+
 }

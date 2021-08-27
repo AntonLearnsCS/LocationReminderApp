@@ -52,7 +52,8 @@ class ReminderListFragment : BaseFragment() {
         }
 
         //TODO: value of "it" appears to be null. As I understand, "it" is the expression
-        // callBack: (selectedReminder: ReminderDataItem) -> Unit
+        // callBack: (selectedReminder: ReminderDataItem) -> Unit   Why is this value null? Based on the BaseRecyclerViewAdapter
+        // the value of callBack: (selectedReminder: ReminderDataItem) should be set when the user clicks on an item
         RemindersListAdapter {
             _viewModel.selectedReminder.value = it
         }
