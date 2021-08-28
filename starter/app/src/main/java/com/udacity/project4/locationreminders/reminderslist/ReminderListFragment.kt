@@ -1,25 +1,33 @@
 package com.udacity.project4.locationreminders.reminderslist
 
+import android.content.Intent
+import android.database.Observable
 import android.os.Bundle
 import android.view.*
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import com.google.android.gms.common.data.DataBufferObserver
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentRemindersBinding
+import com.udacity.project4.locationreminders.ReminderDescriptionActivity
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import com.udacity.project4.utils.setTitle
 import com.udacity.project4.utils.setup
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
+import java.util.*
 
 class ReminderListFragment : BaseFragment() {
+    private lateinit var adapter : RemindersListAdapter
     //use Koin to retrieve the ViewModel instance
     override val _viewModel: RemindersListViewModel by viewModel()
     private lateinit var binding: FragmentRemindersBinding
+    private lateinit var mCallback : ReminderDataItem
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -51,11 +59,13 @@ class ReminderListFragment : BaseFragment() {
             navigateToAddReminder()
         }
 
-        //TODO: value of "it" appears to be null. As I understand, "it" is the expression
-        // callBack: (selectedReminder: ReminderDataItem) -> Unit   Why is this value null? Based on the BaseRecyclerViewAdapter
-        // the value of callBack: (selectedReminder: ReminderDataItem) should be set when the user clicks on an item
-        RemindersListAdapter {
+      //TODO: Need to make callback parameter observable so that it can update selectedReminder automatically
+        adapter = RemindersListAdapter{
+        //The value of the expression parameter in ListAdapter is updated automatically, not sure why...
             _viewModel.selectedReminder.value = it
+            //not registering values below on detail activity
+            _viewModel.selectedReminder.value!!.latitude = 2.0
+            _viewModel.selectedReminder.value!!.longitude = 3.0
         }
 
         Timber.i("selected Reminder: " + _viewModel.selectedReminder.value?.description)
@@ -65,13 +75,9 @@ class ReminderListFragment : BaseFragment() {
         _viewModel.selectedReminder.observe(viewLifecycleOwner, Observer {
             if (null != it) {
                 // Must find the NavController from the Fragment
-                _viewModel.navigationCommand.value =
-                    NavigationCommand.To(ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity(it))
-
-                //this.findNavController().navigate(ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity(it))
-
-                // Tell the ViewModel we've made the navigate call to prevent multiple navigation
-                //viewModel.displayPropertyDetailsComplete()
+                val intent = Intent(context,ReminderDescriptionActivity::class.java)
+                intent.putExtra("EXTRA_ReminderDataItem",_viewModel.selectedReminder.value)
+                startActivity(intent)
             }
         })
     }
@@ -93,17 +99,14 @@ class ReminderListFragment : BaseFragment() {
     }
 
     private fun setupRecyclerView() {
-        val adapter = RemindersListAdapter {
+         adapter = RemindersListAdapter {
+            _viewModel.selectedReminder.value = it
         }
 
-//        setup the recycler view using the extension function
+        //setup the recycler view using the extension function
         binding.reminderssRecyclerView.setup(adapter)
 
     }
-
-    //RemindersListAdapter(_viewModel.selectedReminder.value = it)//binding.reminderssRecyclerView.setup(adapter)
-
-
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {

@@ -122,18 +122,17 @@ class SaveReminderFragment : BaseFragment() {
             _viewModel.navigationCommand.value =
                 NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
         }
-        reminderDataItem = ReminderDataItem(_viewModel.reminderTitle.value,_viewModel.reminderDescription.value,
-            _viewModel.reminderSelectedLocationStr,_viewModel.latitude.value,_viewModel.longitude.value)
+       /* reminderDataItem = ReminderDataItem(_viewModel.reminderTitle.value,_viewModel.reminderDescription.value,
+            _viewModel.reminderSelectedLocationStr,_viewModel.latitude.value,_viewModel.longitude.value)*/
 
         binding.saveReminder.setOnClickListener {
             //two-way data binding
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription.value
             val location = _viewModel.reminderSelectedLocationStr
-            val latitude = _viewModel.latitude.value
-            val longitude = _viewModel.longitude.value
+            val latLng = _viewModel.latLng.value
             //no id for clicked location b/c ReminderDataItem will automatically generate one for us, id only for geofence
-            reminderDataItem = ReminderDataItem(title,description,location,latitude,longitude)
+            reminderDataItem = ReminderDataItem(title,description,location,latLng?.latitude,latLng?.longitude)
 
             intent.putExtra("reminderDataItem", reminderDataItem)
 

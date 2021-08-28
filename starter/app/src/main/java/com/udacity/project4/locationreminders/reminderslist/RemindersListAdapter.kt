@@ -1,8 +1,10 @@
 package com.udacity.project4.locationreminders.reminderslist
 
+import androidx.test.core.app.ApplicationProvider
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseRecyclerViewAdapter
 import com.udacity.project4.base.DataBindingViewHolder
+import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
 import timber.log.Timber
 
 
@@ -10,5 +12,4 @@ import timber.log.Timber
 class RemindersListAdapter(callBack: (selectedReminder: ReminderDataItem) -> Unit) :
     BaseRecyclerViewAdapter<ReminderDataItem>(callBack) {
     override fun getLayoutRes(viewType: Int) = R.layout.it_reminder
-
 }
