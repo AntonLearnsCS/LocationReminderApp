@@ -9,9 +9,14 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelLazy
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.udacity.project4.R
+import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
 
 //import kotlinx.android.synthetic.main.activity_reminders.*
@@ -26,6 +31,18 @@ class RemindersActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminders)
+
+        //Sharing viewModel between activity and fragment for communication
+        // https://developer.android.com/guide/fragments/communicate
+        val _viewModel: RemindersListViewModel by viewModel()
+
+        val arg = intent.getStringExtra("finishedTask")
+
+        if (arg != null)
+        {
+        _viewModel.removeTaskFromList(arg)
+        //_viewModel.idFound.value = arg
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

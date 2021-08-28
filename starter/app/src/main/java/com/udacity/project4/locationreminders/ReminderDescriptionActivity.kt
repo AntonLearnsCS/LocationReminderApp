@@ -34,12 +34,18 @@ class ReminderDescriptionActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(
             this,
             R.layout.activity_reminder_description)
-
-        binding.reminderDataItem = intent.getSerializableExtra(EXTRA_ReminderDataItem) as ReminderDataItem?
+        val passedInReminderItem = intent.getSerializableExtra(EXTRA_ReminderDataItem) as ReminderDataItem?
+        binding.reminderDataItem = passedInReminderItem
         //TODO: Add the implementation of the reminder details
     //get allow user to navigate to DescriptionActivity
     /*val arg = ReminderDescriptionActivity.fromBundle(arguments!!).selectedReminderItem
         Timber.i(arg.description)
         binding.reminderDataItem = arg*/
+        binding.finishedTask.setOnClickListener{
+            //return to the ReminderActivity
+            var intent = Intent(applicationContext,RemindersActivity::class.java)
+            intent.putExtra("finishedTask",passedInReminderItem?.id)
+            startActivity(intent)
+        }
     }
 }

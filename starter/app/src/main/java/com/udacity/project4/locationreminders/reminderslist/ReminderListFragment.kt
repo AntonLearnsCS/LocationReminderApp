@@ -44,6 +44,14 @@ class ReminderListFragment : BaseFragment() {
         setDisplayHomeAsUpEnabled(false)
         setTitle(getString(R.string.app_name))
 
+        //val arg = arguments?.getString("finishedTask")
+
+       /* if (_viewModel.idFound.value != null)
+        {
+            Timber.i("finishedTaskTest")
+            _viewModel.removeTaskFromList()
+        }
+*/
         //setOnRefreshListener - Classes that wish to be notified when the swipe gesture correctly
         // triggers a refresh should implement this interface.
         binding.refreshLayout.setOnRefreshListener { _viewModel.loadReminders() }
@@ -58,6 +66,7 @@ class ReminderListFragment : BaseFragment() {
         binding.addReminderFAB.setOnClickListener {
             navigateToAddReminder()
         }
+
 
       //TODO: Need to make callback parameter observable so that it can update selectedReminder automatically
         adapter = RemindersListAdapter{
