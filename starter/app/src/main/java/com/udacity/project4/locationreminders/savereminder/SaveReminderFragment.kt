@@ -73,6 +73,7 @@ class SaveReminderFragment : BaseFragment() {
     //because we are setting up our code in a fragment, if it was in an activity it would be allowed
     //https://stackoverflow.com/questions/53332832/unresolved-reference-none-of-the-following-candidates-is-applicable-because-of
     override val _viewModel: SaveReminderViewModel by inject()
+
     private lateinit var binding: FragmentSaveReminderBinding
     private var geofenceList = arrayListOf<Geofence>()
     private lateinit var dataSource: ReminderDataSource

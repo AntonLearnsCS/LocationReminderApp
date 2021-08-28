@@ -19,6 +19,8 @@ import com.udacity.project4.databinding.ActivityAuthenticationBinding
 //import com.udacity.project4.databinding.ActivityAuthenticationBinding
 import com.udacity.project4.databinding.ItReminderBinding.inflate
 import com.udacity.project4.locationreminders.RemindersActivity
+import com.udacity.project4.testClass
+import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.util.zip.Inflater
 
