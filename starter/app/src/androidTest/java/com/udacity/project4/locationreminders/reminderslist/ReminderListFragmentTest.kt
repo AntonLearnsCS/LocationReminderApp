@@ -1,33 +1,161 @@
 package com.udacity.project4.locationreminders.reminderslist
 
-import android.content.Context
 import android.os.Bundle
+import android.view.View
+import android.widget.TextView
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
-import androidx.test.core.app.ApplicationProvider.getApplicationContext
+import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.UiController
+import androidx.test.espresso.ViewAction
+import androidx.test.espresso.action.ViewActions.*
+import androidx.test.espresso.assertion.ViewAssertions
+import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.contrib.RecyclerViewActions
+import androidx.test.espresso.matcher.BoundedMatcher
+import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.udacity.project4.R
+import com.udacity.project4.locationreminders.data.ReminderDataSource
+import com.udacity.project4.locationreminders.savereminder.SaveReminderFragment
+import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import org.hamcrest.CoreMatchers.allOf
+import org.hamcrest.Description
+import org.hamcrest.Matcher
+import org.hamcrest.Matchers.not
 import org.junit.Assert.*
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.test.KoinTest
+import org.koin.test.inject
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
 //UI Testing
 @MediumTest
-class ReminderListFragmentTest {
+class ReminderListFragmentTest : KoinTest {
 
+    @get: Rule
+    val mInstantTaskExecutorRule = InstantTaskExecutorRule()
+
+    val mRepo by inject<ReminderDataSource>()
 //    TODO: test the navigation of the fragments.
 //    TODO: test the displayed data on the UI.
 //    TODO: add testing for the error messages.
+
+    //Needs coordinates
+    /*@Test
+    fun addReminder_ClickReminder_NavigateToDetail() = runBlocking {
+
+        //Given - The ReminderList fragment and a mock NavController; added a Reminder
+        mRepo.saveReminder(ReminderDTO("Title", "Description", "Location", 2.0, 3.0))
+
+        val scenario = launchFragmentInContainer<SaveReminderFragment>(Bundle(), R.style.AppTheme)
+        val navController = mock(NavController::class.java)
+
+        scenario.onFragment {
+            onView(withId(R.id.reminderTitle)).perform(setTextInTextView("Title"))//.perform(replaceText("Title"))
+            onView(withId(R.id.reminderDescription)).perform(setTextInTextView("Description"))//.perform(replaceText("Description"))
+            Navigation.setViewNavController(it.view!!, navController)
+        }
+            //Need to get coordinates to pass verification and save to Database, SaveReminderFragment does not coordinates
+        //by default
+
+        //WHEN - Click on the first list item; uses Espresso
+        onView(withId(R.id.saveReminder)).perform(click())
+
+        //Then - Navigate back to ReminderListFragment; uses Espresso
+        verify(navController).navigate(
+            SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment()
+        )
+    }*/
+
+    @Test
+    fun SaveReminderFragment_LocationClick_NavigateToMap()
+    {
+        //Given - SaveReminderFragment with NavController
+        val scenario = launchFragmentInContainer<SaveReminderFragment>(Bundle(), R.style.AppTheme)
+        val navController = mock(NavController::class.java)
+
+        scenario.onFragment {
+            Navigation.setViewNavController(it.view!!, navController)
+        }
+
+        //When - Clicked Location button navigates to SelectLocationFragment
+        onView(withId(R.id.selectLocation)).perform(click())
+
+        //Then - Navigate to SelectLocationFragment
+        verify(navController).navigate(
+            SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment()
+        )
+
+    }
+    @Test
+    fun recyclerView_saveReminder_UpdateUI()
+    {
+        //Given - SaveReminderFragment
+        val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
+
+        //When - Updating UI text
+        scenario.onFragment {
+            onView(withId(R.id.reminderTitle)).perform(typeText("myTitle"))
+            onView(withId(R.id.reminderDescription)).perform(typeText("myDescription"))
+        }
+
+        //Then - Text is updated
+
+        //TODO: I think I need to inject the viewModel into the ReminderListFragment as a parameter to be able to add items
+        //to the RecyclerView
+        //onView(withId(R.id.refreshLayout)).check(matches(not(hasItem(hasDescendant(withText("myTitle"))))))
+    }
+
+    //Source: https://stackoverflow.com/questions/53288986/android-espresso-check-if-text-doesnt-exist-in-recyclerview
+    fun hasItem(matcher: Matcher<View?>): Matcher<View?> {
+        return object : BoundedMatcher<View?, RecyclerView>(RecyclerView::class.java) {
+            override fun describeTo(description: Description) {
+                description.appendText("has item: ")
+                matcher.describeTo(description)
+            }
+
+            override fun matchesSafely(view: RecyclerView): Boolean {
+                val adapter = view.adapter
+                for (position in 0 until adapter!!.itemCount) {
+                    val type = adapter.getItemViewType(position)
+                    val holder = adapter.createViewHolder(view, type)
+                    adapter.onBindViewHolder(holder, position)
+                    if (matcher.matches(holder.itemView)) {
+                        return true
+                    }
+                }
+                return false
+            }
+        }
+    }
+    //Source: https://stackoverflow.com/questions/32846738/android-testing-how-to-change-text-of-a-textview-using-espresso
+    fun setTextInTextView(value: String?): ViewAction? {
+        return object : ViewAction {
+            override fun getConstraints(): Matcher<View> {
+                return allOf(isDisplayed(), isAssignableFrom(TextView::class.java))
+            }
+
+            override fun perform(uiController: UiController?, view: View) {
+                (view as TextView).text = value
+            }
+
+            override fun getDescription(): String {
+                return "replace text"
+            }
+        }
+    }
 
 
 }

@@ -76,7 +76,6 @@ class SaveReminderFragment : BaseFragment() {
 
     private lateinit var binding: FragmentSaveReminderBinding
     private var geofenceList = arrayListOf<Geofence>()
-    private lateinit var dataSource: ReminderDataSource
     val GEOFENCE_EXPIRATION_IN_MILLISECONDS: Long = TimeUnit.HOURS.toMillis(1)
 
     private lateinit var geofencingClient: GeofencingClient
@@ -152,10 +151,10 @@ class SaveReminderFragment : BaseFragment() {
             if (_viewModel.validateAndSaveReminder(reminderDataItem))
             {
                 Timber.i("testValidate")
-                //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+                findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
             //findNavController().popBackStack()
-             _viewModel.navigationCommand.value =
-                    NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+             /*_viewModel.navigationCommand.value =
+                    NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())*/
             }
             else
             {
