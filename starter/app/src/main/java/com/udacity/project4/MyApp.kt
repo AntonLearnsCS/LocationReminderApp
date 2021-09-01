@@ -14,6 +14,9 @@ import timber.log.Timber
 
 class MyApp : Application() {
 
+    val taskRepository: RemindersLocalRepository
+        get() = ServiceLocator.provideTasksRepository(this)
+
     override fun onCreate() {
         super.onCreate()
 
