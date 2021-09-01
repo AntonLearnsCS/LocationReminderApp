@@ -22,7 +22,7 @@ class RemindersListViewModel(
     val selectedReminder = MutableLiveData<ReminderDataItem>()
     // list that holds the reminder data to be displayed on the UI
     val remindersList = MutableLiveData<List<ReminderDataItem>>()
-
+    //TODO: Receiving error: "No instrumentation registered!"
     private val dataSource: ReminderDataSource = (requireContext(ApplicationProvider.getApplicationContext()).applicationContext
             as MyApp).taskRepository
     /**

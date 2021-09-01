@@ -52,7 +52,6 @@ class MyApp : Application() {
                     get()
                 )
             }
-
             single { RemindersLocalRepository(get()) as ReminderDataSource }
             single { LocalDB.createRemindersDao(this@MyApp) }
             single{testClass(get())}

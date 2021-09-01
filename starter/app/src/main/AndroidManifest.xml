@@ -15,6 +15,12 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+   <!-- <instrumentation
+        android:label="Multdex"
+        android:name="android.support.test.runner.AndroidJUnitRunner"
+        android:targetPackage="br.com.foo"
+        android:functionalTest="true"/>-->
+
 
     <application
         android:name=".MyApp"
