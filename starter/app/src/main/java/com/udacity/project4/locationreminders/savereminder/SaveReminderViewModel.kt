@@ -3,11 +3,14 @@ package com.udacity.project4.locationreminders.savereminder
 import android.app.Application
 import android.location.Address
 import android.location.Geocoder
+import androidx.core.content.ContentProviderCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.test.core.app.ApplicationProvider
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PointOfInterest
+import com.udacity.project4.MyApp
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseViewModel
 import com.udacity.project4.base.NavigationCommand
@@ -17,9 +20,11 @@ import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.testClass
 import kotlinx.coroutines.launch
 
-class SaveReminderViewModel(val app: Application, val dataSource: ReminderDataSource) :
+class SaveReminderViewModel(val app: Application) :
     BaseViewModel(app) {
-
+//, val dataSource: ReminderDataSource
+private val dataSource: ReminderDataSource = (ContentProviderCompat.requireContext(
+    ApplicationProvider.getApplicationContext()).applicationContext as MyApp).taskRepository
     //idea of geocoder: https://stackoverflow.com/questions/59095837/convert-from-latlang-to-address-using-geocoding-not-working-android-kotlin
     val geocoder = Geocoder(this.app)
 

@@ -60,6 +60,7 @@ class ReminderListFragment : BaseFragment() {
         // triggers a refresh should implement this interface.
         binding.refreshLayout.setOnRefreshListener { _viewModel.loadReminders() }
 
+
         return binding.root
     }
 
