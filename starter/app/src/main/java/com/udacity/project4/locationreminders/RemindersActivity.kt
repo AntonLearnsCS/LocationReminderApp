@@ -15,6 +15,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import com.udacity.project4.R
+import com.udacity.project4.ServiceLocator
+import com.udacity.project4.authentication.FakeLocalRepository
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -43,6 +45,8 @@ class RemindersActivity : AppCompatActivity() {
         _viewModel.removeTaskFromList(arg)
         //_viewModel.idFound.value = arg
         }
+        ServiceLocator.tasksRepository = FakeLocalRepository
+
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

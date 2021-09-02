@@ -14,7 +14,7 @@ import timber.log.Timber
 
 class MyApp : Application() {
 
-    val taskRepository: RemindersLocalRepository
+    val taskRepository: ReminderDataSource
         get() = ServiceLocator.provideTasksRepository(this)
 
     override fun onCreate() {
@@ -41,7 +41,7 @@ class MyApp : Application() {
             //Declare a ViewModel - be later inject into Fragment with dedicated injector using by viewModel()
             viewModel {
                 RemindersListViewModel(
-                    get()
+                    get(), get()
                 )
             }
             //Declare singleton definitions to be later injected using by inject()
@@ -49,14 +49,13 @@ class MyApp : Application() {
             single {
                 //This view model is declared singleton to be used across multiple fragments
                 SaveReminderViewModel(
-                    get()
+                    get(),get()
                 )
             }
-            single { RemindersLocalRepository(get()) as ReminderDataSource }
+
+            single {ServiceLocator.provideTasksRepository(applicationContext)}
+            //single { RemindersLocalRepository(get()) as ReminderDataSource } //replaced by ServiceLocator
             single { LocalDB.createRemindersDao(this@MyApp) }
-            single{testClass(get())}
-            single { testClass1() }
-            single { testClass2() }
         }
 
         startKoin {

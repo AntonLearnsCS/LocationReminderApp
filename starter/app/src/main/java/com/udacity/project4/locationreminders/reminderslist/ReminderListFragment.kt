@@ -27,7 +27,7 @@ import java.util.*
 class ReminderListFragment : BaseFragment() {
     private lateinit var adapter : RemindersListAdapter
     //use Koin to retrieve the ViewModel instance
-    override val _viewModel: RemindersListViewModel by viewModel()
+    override val _viewModel: RemindersListViewModel by inject()
     private lateinit var binding: FragmentRemindersBinding
     private lateinit var mCallback : ReminderDataItem
     override fun onCreateView(
@@ -45,8 +45,6 @@ class ReminderListFragment : BaseFragment() {
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(false)
         setTitle(getString(R.string.app_name))
-
-
 
         //val arg = arguments?.getString("finishedTask")
 

@@ -8,27 +8,35 @@ import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
+import androidx.test.core.app.ApplicationProvider
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions.*
 import androidx.test.espresso.assertion.ViewAssertions
+import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.matcher.BoundedMatcher
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
+import com.udacity.project4.FakeLocalRepository
 import com.udacity.project4.R
+import com.udacity.project4.ServiceLocator
 import com.udacity.project4.locationreminders.data.ReminderDataSource
+import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragment
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import org.hamcrest.CoreMatchers.allOf
+import kotlinx.coroutines.runBlocking
+import org.hamcrest.CoreMatchers.*
 import org.hamcrest.Description
 import org.hamcrest.Matcher
+import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.not
 import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -97,25 +105,29 @@ class ReminderListFragmentTest : KoinTest {
         verify(navController).navigate(
             SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment()
         )
+    }
 
+    @Before
+    fun init()
+    {
+        //mRepo
     }
     @Test
     fun recyclerView_saveReminder_UpdateUI()
     {
-        //Given - SaveReminderFragment
+        //Given - Fake repository
+        //ServiceLocator.tasksRepository = FakeLocalRepository
+        ServiceLocator.provideTasksRepository(ApplicationProvider.getApplicationContext())
+
+        runBlocking {
+        ServiceLocator.tasksRepository?.saveReminder(ReminderDTO("TitleM","DescriptionM","LocationM",8.0,9.0))
+        }
+        //When - Launching ListFragment
         val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
 
-        //When - Updating UI text
-        scenario.onFragment {
-            onView(withId(R.id.reminderTitle)).perform(typeText("myTitle"))
-            onView(withId(R.id.reminderDescription)).perform(typeText("myDescription"))
-        }
-
-        //Then - Text is updated
-
-        //TODO: I think I need to inject the viewModel into the ReminderListFragment as a parameter to be able to add items
-        //to the RecyclerView
-        //onView(withId(R.id.refreshLayout)).check(matches(not(hasItem(hasDescendant(withText("myTitle"))))))
+        //Then - Items in repository is displayed
+        //"withText" is the Matcher to be passed into "hasItem()"
+        onView(withId(R.id.reminderssRecyclerView)).check(matches(hasItem(hasDescendant(withText("Title")))))
     }
 
     //Source: https://stackoverflow.com/questions/53288986/android-espresso-check-if-text-doesnt-exist-in-recyclerview

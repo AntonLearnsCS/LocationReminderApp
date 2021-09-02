@@ -20,11 +20,9 @@ import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.testClass
 import kotlinx.coroutines.launch
 
-class SaveReminderViewModel(val app: Application) :
-    BaseViewModel(app) {
+class SaveReminderViewModel(val app: Application, private val dataSource: ReminderDataSource) : BaseViewModel(app) {
 //, val dataSource: ReminderDataSource
-private val dataSource: ReminderDataSource = (ContentProviderCompat.requireContext(
-    ApplicationProvider.getApplicationContext()).applicationContext as MyApp).taskRepository
+
     //idea of geocoder: https://stackoverflow.com/questions/59095837/convert-from-latlang-to-address-using-geocoding-not-working-android-kotlin
     val geocoder = Geocoder(this.app)
 

@@ -19,12 +19,12 @@ object ServiceLocator {
     // since multiple threads can request a repository. This is accomplished by: Volatile fields provide memory
     // visibility and guarantee that the value that is being read, comes from the main memory and not the cpu-cache
     @Volatile
-    var tasksRepository: RemindersLocalRepository? = null
+    var tasksRepository: ReminderDataSource? = null
         @VisibleForTesting set
     //"@VisibleForTesting set" allows you to set the value for this variable, so we can set the
     //repository to a fake repository
 
-    fun provideTasksRepository(context: Context): RemindersLocalRepository {
+    fun provideTasksRepository(context: Context): ReminderDataSource {
         //recall that synchronized means that only one thread can call this function at a time like a room with a key with only
         //person allowed in at one time. Here, "this", which is the ServiceLocator object acts as the key
         synchronized(this) {
