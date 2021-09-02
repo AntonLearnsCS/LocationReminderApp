@@ -45,7 +45,7 @@ class RemindersActivity : AppCompatActivity() {
         _viewModel.removeTaskFromList(arg)
         //_viewModel.idFound.value = arg
         }
-        ServiceLocator.tasksRepository = FakeLocalRepository
+        //ServiceLocator.tasksRepository = FakeLocalRepository
 
     }
 

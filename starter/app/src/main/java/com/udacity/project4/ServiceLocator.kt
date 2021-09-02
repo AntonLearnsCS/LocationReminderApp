@@ -38,7 +38,7 @@ object ServiceLocator {
         return newRepo
     }*/
 
-    private fun createTaskLocalDataSource(context: Context): RemindersLocalRepository {
+    private fun createTaskLocalDataSource(context: Context): ReminderDataSource {
         val database = database ?: createDataBase(context)
         return RemindersLocalRepository(database.reminderDao())
     }

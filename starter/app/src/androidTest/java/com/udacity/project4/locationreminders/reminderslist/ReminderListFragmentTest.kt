@@ -1,6 +1,7 @@
 package com.udacity.project4.locationreminders.reminderslist
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
@@ -110,24 +111,27 @@ class ReminderListFragmentTest : KoinTest {
     @Before
     fun init()
     {
-        //mRepo
+        ServiceLocator.provideTasksRepository(ApplicationProvider.getApplicationContext())
+
     }
     @Test
     fun recyclerView_saveReminder_UpdateUI()
     {
         //Given - Fake repository
         //ServiceLocator.tasksRepository = FakeLocalRepository
-        ServiceLocator.provideTasksRepository(ApplicationProvider.getApplicationContext())
 
         runBlocking {
-        ServiceLocator.tasksRepository?.saveReminder(ReminderDTO("TitleM","DescriptionM","LocationM",8.0,9.0))
+            //TODO: Not saving ReminderDTO to real repository
+            //Log.i("recyclerView"," " + (ServiceLocator.tasksRepository == null).toString())
+            ServiceLocator.tasksRepository?.saveReminder(ReminderDTO("TitleM","DescriptionM","LocationM",8.0,9.0))
         }
+
         //When - Launching ListFragment
         val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
 
         //Then - Items in repository is displayed
         //"withText" is the Matcher to be passed into "hasItem()"
-        onView(withId(R.id.reminderssRecyclerView)).check(matches(hasItem(hasDescendant(withText("Title")))))
+        onView(withId(R.id.reminderssRecyclerView)).check(matches(hasItem(hasDescendant(withText("TitleM")))))
     }
 
     //Source: https://stackoverflow.com/questions/53288986/android-espresso-check-if-text-doesnt-exist-in-recyclerview
