@@ -7,6 +7,7 @@ import android.view.*
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
+import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.data.DataBufferObserver
 import com.udacity.project4.R
@@ -87,11 +88,15 @@ class ReminderListFragment : BaseFragment() {
         _viewModel.selectedReminder.observe(viewLifecycleOwner, Observer {
             if (null != it) {
                 // Must find the NavController from the Fragment
-                val intent = Intent(context,ReminderDescriptionActivity::class.java)
+                /*val intent = Intent(context,ReminderDescriptionActivity::class.java)
                 intent.putExtra("EXTRA_ReminderDataItem",_viewModel.selectedReminder.value)
-                startActivity(intent)
+                startActivity(intent)*/
+                Navigation.findNavController(view).navigate(R.id.ReminderDescriptionActivity)
+                findNavController().navigate(ReminderListFragmentDirections.
+                actionReminderListFragmentToReminderDescriptionActivity(_viewModel.selectedReminder.value!!))
             }
         })
+
     }
 
     override fun onResume() {

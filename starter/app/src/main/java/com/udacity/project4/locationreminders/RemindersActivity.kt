@@ -46,7 +46,6 @@ class RemindersActivity : AppCompatActivity() {
         //_viewModel.idFound.value = arg
         }
         //ServiceLocator.tasksRepository = FakeLocalRepository
-
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

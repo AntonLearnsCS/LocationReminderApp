@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.navigation.navArgs
 import com.google.android.gms.location.GeofencingClient
 import com.udacity.project4.R
 import com.udacity.project4.databinding.ActivityReminderDescriptionBinding
@@ -17,6 +18,9 @@ import timber.log.Timber
 //Note: We have to designate an activity as the detail screen since we cannot navigate to a fragment from a pending intent of the
 //notification
 class ReminderDescriptionActivity : AppCompatActivity() {
+
+    val args: ReminderDescriptionActivityArgs by navArgs()
+
     companion object {
         private const val EXTRA_ReminderDataItem = "EXTRA_ReminderDataItem"
 
@@ -34,7 +38,9 @@ class ReminderDescriptionActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(
             this,
             R.layout.activity_reminder_description)
-        val passedInReminderItem = intent.getSerializableExtra(EXTRA_ReminderDataItem) as ReminderDataItem?
+        //TOOD: Checkout: https://developer.android.com/guide/navigation/navigation-migrate#add
+        //create two nav graphs: https://stackoverflow.com/questions/62214514/navigate-from-one-activity-to-another-with-navigation-component
+        val passedInReminderItem = args.ReminderDataItem//intent.getSerializableExtra(EXTRA_ReminderDataItem) as ReminderDataItem?
         binding.reminderDataItem = passedInReminderItem
         //TODO: Add the implementation of the reminder details
     //get allow user to navigate to DescriptionActivity

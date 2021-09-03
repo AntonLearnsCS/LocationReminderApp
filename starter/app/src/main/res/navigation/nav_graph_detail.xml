@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/nav_graph_detail"
+    app:startDestination="@id/ReminderDescriptionActivity">
+    <activity
+        android:id="@+id/ReminderDescriptionActivity"
+        android:name="com.udacity.project4.locationreminders.ReminderDescriptionActivity"
+        android:label="ReminderDescriptionActivity">
+
+        <argument
+            android:name="ReminderDataItem"
+            app:argType="com.udacity.project4.locationreminders.reminderslist.ReminderDataItem"
+
+            />
+
+    </activity>
+
+
+</navigation>
