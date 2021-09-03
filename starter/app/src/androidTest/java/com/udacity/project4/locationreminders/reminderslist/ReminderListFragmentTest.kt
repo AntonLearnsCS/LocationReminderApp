@@ -7,6 +7,7 @@ import android.widget.TextView
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ApplicationProvider
@@ -18,15 +19,21 @@ import androidx.test.espresso.assertion.ViewAssertions
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
+import androidx.test.espresso.intent.Intents.intended
+import androidx.test.espresso.intent.matcher.IntentMatchers.toPackage
+import androidx.test.espresso.intent.rule.IntentsTestRule
 import androidx.test.espresso.matcher.BoundedMatcher
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
 import com.udacity.project4.FakeLocalRepository
+import com.udacity.project4.MyApp
 import com.udacity.project4.R
 import com.udacity.project4.ServiceLocator
+import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
+import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragment
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -56,6 +63,10 @@ class ReminderListFragmentTest : KoinTest {
     @get: Rule
     val mInstantTaskExecutorRule = InstantTaskExecutorRule()
 
+    @get:Rule
+    val intentsTestRule = IntentsTestRule(RemindersActivity::class.java)
+
+    private lateinit var realRepo : ReminderDataSource
     val mRepo by inject<ReminderDataSource>()
 //    TODO: test the navigation of the fragments.
 //    TODO: test the displayed data on the UI.
@@ -107,23 +118,33 @@ class ReminderListFragmentTest : KoinTest {
             SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment()
         )
     }
-
+    //Note: @Before annotation are run before each test, so we clean the repository before each test
     @Before
     fun init()
     {
-        ServiceLocator.provideTasksRepository(ApplicationProvider.getApplicationContext())
+        ServiceLocator.resetRepository()
+        //Note: We set ServiceLocator.provideTaskRepository() to a variable instead of calling saveReminder on
+        // ServiceLocator.taskRepository.saveReminder() b/c "ServiceLocator.provideTaskRepository()" returns an instance
+        //of a repository, so if we don't set that to anything then we never created a repository
+        //As such, don't use: ServiceLocator.provideTasksRepository(ApplicationProvider.getApplicationContext()) and instead
+        //use: ((ApplicationProvider.getApplicationContext()) as MyApp).taskRepository to get repository instance
 
     }
+
+
     @Test
     fun recyclerView_saveReminder_UpdateUI()
     {
-        //Given - Fake repository
-        //ServiceLocator.tasksRepository = FakeLocalRepository
+        //Given - A real repository
+        //For fake repository use: ServiceLocator.tasksRepository = FakeLocalRepository
+        realRepo = ((ApplicationProvider.getApplicationContext()) as MyApp).taskRepository
+        //Note: runBlocking is different from synchronized b/c synchronized ensures that only one thread can access a function
+        // or code while runBlocking ensures that all suspend functions are completed before signaling the test execution as completed
 
         runBlocking {
-            //TODO: Not saving ReminderDTO to real repository
-            //Log.i("recyclerView"," " + (ServiceLocator.tasksRepository == null).toString())
-            ServiceLocator.tasksRepository?.saveReminder(ReminderDTO("TitleM","DescriptionM","LocationM",8.0,9.0))
+            realRepo.saveReminder(ReminderDTO("TitleZ","DescriptionM","LocationM",8.0,9.0))
+            realRepo.saveReminder(ReminderDTO("TitleM","DescriptionM","LocationM",8.0,9.0))
+            realRepo.saveReminder(ReminderDTO("TitleQ","DescriptionZ","LocationZ",10.0,11.0))
         }
 
         //When - Launching ListFragment
@@ -131,7 +152,37 @@ class ReminderListFragmentTest : KoinTest {
 
         //Then - Items in repository is displayed
         //"withText" is the Matcher to be passed into "hasItem()"
-        onView(withId(R.id.reminderssRecyclerView)).check(matches(hasItem(hasDescendant(withText("TitleM")))))
+        onView(withId(R.id.reminderssRecyclerView)).check(matches(hasItem(hasDescendant(withText("TitleZ")))))
+    }
+
+    @Test
+    fun reminderListFragment_CompleteTask_IntentCalled()
+    {
+        //Given - The reminderListFragment
+        realRepo = ((ApplicationProvider.getApplicationContext()) as MyApp).taskRepository
+
+        runBlocking {
+            realRepo.saveReminder(ReminderDTO("TitleZ","DescriptionM","LocationM",8.0,9.0))
+            realRepo.saveReminder(ReminderDTO("TitleM","DescriptionM","LocationM",8.0,9.0))
+            realRepo.saveReminder(ReminderDTO("TitleQ","DescriptionZ","LocationZ",10.0,11.0))
+        }
+        val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
+
+        val navController = mock(NavController::class.java)
+        //When - Selecting on a task and clicking finished task
+        scenario.onFragment {
+            Navigation.setViewNavController(it.view!!, navController)
+        }
+
+        //verify(navController.navigate(ReminderListFragmentDirections.))
+
+        onView(withId(R.id.reminderssRecyclerView)).perform(RecyclerViewActions.actionOnItem<RecyclerView.ViewHolder>(
+            hasDescendant(withText("TitleZ")), click()))
+
+        intended(toPackage("com.udacity.project4.locationreminders.ReminderDescriptionActivity"))
+
+        //verify(navController.navigate(ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity()))
+        //Then - the selected task should be gone from ReminderListFragment
     }
 
     //Source: https://stackoverflow.com/questions/53288986/android-espresso-check-if-text-doesnt-exist-in-recyclerview

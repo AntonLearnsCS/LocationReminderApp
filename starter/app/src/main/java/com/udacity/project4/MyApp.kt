@@ -13,7 +13,8 @@ import org.koin.dsl.module
 import timber.log.Timber
 
 class MyApp : Application() {
-
+    //We create this variable so that we ensure we only have one instance of the repository by always getting an instance of said
+    //repository from MyApp
     val taskRepository: ReminderDataSource
         get() = ServiceLocator.provideTasksRepository(this)
 
