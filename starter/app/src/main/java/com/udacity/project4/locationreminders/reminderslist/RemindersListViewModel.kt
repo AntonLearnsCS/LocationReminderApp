@@ -64,6 +64,7 @@ class RemindersListViewModel(
             invalidateShowNoData()
         }
     }
+
     fun removeTaskFromList(id : String)
     {
         viewModelScope.launch {

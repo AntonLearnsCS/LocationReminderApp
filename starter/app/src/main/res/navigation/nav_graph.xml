@@ -4,7 +4,7 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/reminderListFragment"
     >
-
+<!--  If you have arguments to pass to the start destination of Graph B, you can designate them in the activity destination definition. -->
     <activity
         android:id="@+id/ReminderDescriptionActivity"
         android:name="com.udacity.project4.locationreminders.ReminderDescriptionActivity"
@@ -29,10 +29,12 @@
             app:destination="@id/ReminderDescriptionActivity" />
 
     </fragment>
+
     <activity
         android:id="@+id/mainActivity"
         android:name="com.udacity.project4.locationreminders.RemindersActivity"
         android:label="MainActivity" />
+
     <fragment
         android:id="@+id/saveReminderFragment"
         android:name="com.udacity.project4.locationreminders.savereminder.SaveReminderFragment"
@@ -44,6 +46,7 @@
             android:id="@+id/action_saveReminderFragment_to_selectLocationFragment"
             app:destination="@id/selectLocationFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/selectLocationFragment"
         android:name="com.udacity.project4.locationreminders.savereminder.selectreminderlocation.SelectLocationFragment"
