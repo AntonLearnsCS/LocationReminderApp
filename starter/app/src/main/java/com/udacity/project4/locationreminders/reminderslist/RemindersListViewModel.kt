@@ -37,7 +37,7 @@ class RemindersListViewModel(
         viewModelScope.launch {
             //interacting with the dataSource has to be through a coroutine
             //returns a list of database items
-            val result = dataSource.getReminders()
+            val result  = dataSource.getReminders()
             showLoading.postValue(false)
 
             when (result) {

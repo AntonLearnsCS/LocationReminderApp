@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.TextView
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.testing.launchFragmentInContainer
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph
@@ -28,6 +29,7 @@ import androidx.test.espresso.matcher.BoundedMatcher
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
+import com.android.dx.rop.cst.CstArray
 import com.udacity.project4.FakeLocalRepository
 import com.udacity.project4.MyApp
 import com.udacity.project4.R
@@ -36,6 +38,7 @@ import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
+import com.udacity.project4.locationreminders.data.dto.succeeded
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragment
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
@@ -70,6 +73,9 @@ class ReminderListFragmentTest : KoinTest {
     @get:Rule
     val intentsTestRule = IntentsTestRule(RemindersActivity::class.java)
 
+    val remindersList = MutableLiveData<List<ReminderDataItem>>()
+    private lateinit var reminderDataItem: ReminderDataItem
+    private lateinit var reminderDTO: Result<ReminderDTO>
     private lateinit var stubDTO : ReminderDataItem
     private lateinit var reminderZ_id : String
     private lateinit var realRepo : ReminderDataSource
@@ -146,9 +152,7 @@ class ReminderListFragmentTest : KoinTest {
             realRepo.saveReminder(ReminderDTO("TitleM","DescriptionM","LocationM",8.0,9.0))
             realRepo.saveReminder(ReminderDTO("TitleQ","DescriptionZ","LocationZ",10.0,11.0))
         }
-
         mViewModel  = RemindersListViewModel(ApplicationProvider.getApplicationContext(),realRepo)
-
     }
 
 
@@ -209,13 +213,40 @@ class ReminderListFragmentTest : KoinTest {
        // onView(withId(R.id.reminderssRecyclerView)).perform(RecyclerViewActions.actionOnItem<RecyclerView.ViewHolder>(hasDescendant(withText("TitleZ")), click()))
         runBlocking {
             mViewModel.loadReminders()
-            //val test = (realRepo.getReminder(reminderZ_id)) as ReminderDataItem
+
+            reminderDTO = realRepo.getReminder(reminderZ_id)
         }
-        val Z = mViewModel.remindersList.value?.get(0)
-        //ReminderDataItem("TitleZ","DescriptionM","LocationM",8.0,9.0)
+
+            when(reminderDTO)
+            {
+                is Result.Success<*> -> {
+                        //TODO: How to prevent error "Smart cast to 'Result.Success<*>' is impossible, because 'reminderDTO' is a mutable
+                        // property that could have been changed by this time"
+                        reminderDataItem = convertToReminderItem(reminderDTO.data as ReminderDTO)
+                }
+                is Result.Error ->
+                    println("Error")
+            }
+
+        //TODO: Why is this viewModle returning null when I have initialized the values in @Before init()?
+        val titleZ = mViewModel.remindersList.value?.get(0)
+
         //Then - Navigate to ReminderDescriptionActivity
-        onView(withId(R.id.reminderssRecyclerView)).check(matches(not(hasItem(hasDescendant(withText("TitleM"))))))
-        //verify(mNavController).navigate(ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity(Z!!))
+        onView(withId(R.id.reminderssRecyclerView)).check(matches((hasItem(hasDescendant(withText("TitleZ"))))))
+           //TODO: Pass parameter value here
+        verify(mNavController).navigate(ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity(
+            reminderDataItem))
+    }
+    fun convertToReminderItem(reminderDTO: ReminderDTO) : ReminderDataItem
+    {
+        return ReminderDataItem(
+            reminderDTO.title,
+            reminderDTO.description,
+            reminderDTO.location,
+            reminderDTO.latitude,
+            reminderDTO.longitude,
+            reminderDTO.id
+        )
     }
 
     //Source: https://stackoverflow.com/questions/53288986/android-espresso-check-if-text-doesnt-exist-in-recyclerview
