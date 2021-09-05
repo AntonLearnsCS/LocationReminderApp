@@ -211,32 +211,48 @@ class ReminderListFragmentTest : KoinTest {
         }
         //When - Clicked on itemView
        // onView(withId(R.id.reminderssRecyclerView)).perform(RecyclerViewActions.actionOnItem<RecyclerView.ViewHolder>(hasDescendant(withText("TitleZ")), click()))
-        runBlocking {
-            mViewModel.loadReminders()
-
-            reminderDTO = realRepo.getReminder(reminderZ_id)
-        }
-
-            when(reminderDTO)
-            {
-                is Result.Success<*> -> {
-                        //TODO: How to prevent error "Smart cast to 'Result.Success<*>' is impossible, because 'reminderDTO' is a mutable
-                        // property that could have been changed by this time"
-                        reminderDataItem = convertToReminderItem(reminderDTO.data as ReminderDTO)
-                }
-                is Result.Error ->
-                    println("Error")
-            }
 
         //TODO: Why is this viewModle returning null when I have initialized the values in @Before init()?
-        val titleZ = mViewModel.remindersList.value?.get(0)
+        //val titleZ = mViewModel.remindersList.value?.get(0)
 
         //Then - Navigate to ReminderDescriptionActivity
         onView(withId(R.id.reminderssRecyclerView)).check(matches((hasItem(hasDescendant(withText("TitleZ"))))))
            //TODO: Pass parameter value here
+
+        onView(withId(R.id.reminderssRecyclerView))
+            .perform(RecyclerViewActions.actionOnItem<RecyclerView.ViewHolder>(
+                hasDescendant(withText("TitleZ")), click()))
+
         verify(mNavController).navigate(ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity(
-            reminderDataItem))
+            returnReminderDataItemFromDb(reminderZ_id)))
+        //check if a view exists
+        onView(withId(R.id.taskTitle)).check(matches(isDisplayed()))
+
+        onView(withId(R.layout.reminder_description_fragment)).check(matches(withText("TitleZ")))
     }
+
+    fun returnReminderDataItemFromDb(id : String) : ReminderDataItem =
+        runBlocking {
+            //mViewModel.loadReminders()
+            var reminderDataItem : ReminderDataItem = ReminderDataItem("Title","Description","Location",1.0,2.0)
+            //Place inside blocking b/c: https://knowledge.udacity.com/questions/686016
+            val reminderDTO = realRepo.getReminder(id)
+
+
+            when (reminderDTO) {
+                is Result.Success<*> -> {
+
+                    //TODO: How to prevent error "Smart cast to 'Result.Success<*>' is impossible, because 'reminderDTO' is a mutable
+                    // property that could have been changed by this time"
+
+                    reminderDataItem = convertToReminderItem(reminderDTO.data as ReminderDTO)
+                }
+                is Result.Error ->
+                    println("Error")
+            }
+            return@runBlocking reminderDataItem
+        }
+
     fun convertToReminderItem(reminderDTO: ReminderDTO) : ReminderDataItem
     {
         return ReminderDataItem(

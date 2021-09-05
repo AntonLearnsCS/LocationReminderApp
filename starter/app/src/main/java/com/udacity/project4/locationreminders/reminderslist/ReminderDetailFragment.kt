@@ -20,6 +20,7 @@ import com.udacity.project4.locationreminders.ReminderDescriptionActivity
 import com.udacity.project4.locationreminders.ReminderDescriptionActivityArgs
 import com.udacity.project4.locationreminders.RemindersActivity
 import org.koin.android.ext.android.inject
+import timber.log.Timber
 
 class ReminderDetailFragment() : BaseFragment() {
     override val _viewModel: BaseViewModel by inject()
@@ -45,6 +46,7 @@ class ReminderDetailFragment() : BaseFragment() {
     ): View? {
         binding = DataBindingUtil.inflate(layoutInflater,R.layout.reminder_description_fragment,container,false)
 
+        Timber.i("test",args.ReminderDataItem.title)
         val passedInReminderItem = args.ReminderDataItem //intent.getSerializableExtra(EXTRA_ReminderDataItem) as ReminderDataItem?
         binding.reminderDataItem = passedInReminderItem
         //TODO: Add the implementation of the reminder details
