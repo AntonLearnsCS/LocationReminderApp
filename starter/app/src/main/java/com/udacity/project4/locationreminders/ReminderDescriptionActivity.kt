@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.navigation.navArgs
 import com.google.android.gms.location.GeofencingClient
 import com.udacity.project4.R
@@ -21,9 +22,12 @@ import timber.log.Timber
 //Note: We have to designate an activity as the detail screen since we cannot navigate to a fragment from a pending intent of the
 //notification
 class ReminderDescriptionActivity : AppCompatActivity() {
+    val args: ReminderDescriptionActivityArgs by navArgs()
 
-    override fun onCreate(savedInstanceState: Bundle?, persistentState: PersistableBundle?) {
-        super.onCreate(savedInstanceState, persistentState)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminder_description)
+        Timber.i("DetailActivity",args.ReminderDataItem.title)
+        println("Args Test: " + args.ReminderDataItem.title)
     }
 }
