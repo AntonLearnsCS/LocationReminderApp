@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.navigation.Navigation
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -27,7 +28,17 @@ class ReminderDescriptionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminder_description)
 
-        findNavController(R.id.activity_reminder_description)
+        //NavController manages app navigation within a NavHost.
+        Navigation.findNavController(this, R.id.activity_reminder_description)
             .setGraph(R.navigation.nav_graph_detail, intent.extras)
     }
+    /*
+    Logic:
+    1) https://developer.android.com/guide/navigation/navigation-migrate#add
+    2) https://developer.android.com/reference/kotlin/androidx/navigation/package-summary#(android.app.Activity).findNavController(kotlin.Int)
+    3) https://developer.android.com/reference/kotlin/androidx/navigation/Navigation
+
+    Possible Solution:
+    https://stackoverflow.com/questions/50502269/illegalstateexception-link-does-not-have-a-navcontroller-set
+     */
 }
