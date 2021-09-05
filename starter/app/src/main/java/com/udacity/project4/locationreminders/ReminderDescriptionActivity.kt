@@ -22,12 +22,12 @@ import timber.log.Timber
 //Note: We have to designate an activity as the detail screen since we cannot navigate to a fragment from a pending intent of the
 //notification
 class ReminderDescriptionActivity : AppCompatActivity() {
-    val args: ReminderDescriptionActivityArgs by navArgs()
-
+    //source: https://developer.android.com/guide/navigation/navigation-migrate#add
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminder_description)
-        Timber.i("DetailActivity",args.ReminderDataItem.title)
-        println("Args Test: " + args.ReminderDataItem.title)
+
+        findNavController(R.id.ReminderDescriptionActivity)
+            .setGraph(R.navigation.nav_graph_detail, intent.extras)
     }
 }
