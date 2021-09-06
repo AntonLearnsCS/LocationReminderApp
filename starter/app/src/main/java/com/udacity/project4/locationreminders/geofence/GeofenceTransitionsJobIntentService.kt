@@ -25,8 +25,9 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
 
     companion object {
         private const val JOB_ID = 573
-
-        //        TODO: call this to start the JobIntentService to handle the geofencing transition events i.e exit or enter geofence
+        //So we need to start a job that will monitor our location to ensure that we are either still inside
+        // or have left the geofence. We do this in the background since we don't know when the user will leave the area
+        //TODO: call this to start the JobIntentService to handle the geofencing transition events i.e exit or enter geofence
         fun enqueueWork(context: Context, intent: Intent) {
             enqueueWork(
                 context,
@@ -40,6 +41,8 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
         //TODO: handle the geofencing transition events and
         // send a notification to the user when he enters the geofence area
         //TODO call @sendNotification
+
+
     }
 
     //TODO: get the request id of the current geofence

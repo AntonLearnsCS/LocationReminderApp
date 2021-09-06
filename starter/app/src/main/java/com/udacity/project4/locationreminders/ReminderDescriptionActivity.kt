@@ -29,6 +29,8 @@ class ReminderDescriptionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminder_description)
 
+        //TODO: Why am I receiving error saying that NavController is not set when I am setting the navGraph for
+        // the activity here?
         Navigation.findNavController(findViewById(R.id.activity_reminder_description)).setGraph(
             R.navigation.nav_graph_detail,intent.extras
         )
