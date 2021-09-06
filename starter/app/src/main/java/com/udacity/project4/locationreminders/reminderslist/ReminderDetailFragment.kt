@@ -17,6 +17,7 @@ import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.BaseViewModel
 import com.udacity.project4.databinding.ReminderDescriptionFragmentBinding
 import com.udacity.project4.locationreminders.ReminderDescriptionActivity
+import com.udacity.project4.locationreminders.ReminderDescriptionActivityArgs
 //import com.udacity.project4.locationreminders.ReminderDescriptionActivityArgs
 import com.udacity.project4.locationreminders.RemindersActivity
 import org.koin.android.ext.android.inject
@@ -26,7 +27,7 @@ class ReminderDetailFragment() : BaseFragment() {
     override val _viewModel: BaseViewModel by inject()
     private lateinit var binding: ReminderDescriptionFragmentBinding
 
-    val args: ReminderDetailFragmentArgs by navArgs()
+    val args: ReminderDescriptionActivityArgs by navArgs()
 
     companion object {
         private const val EXTRA_ReminderDataItem = "EXTRA_ReminderDataItem"
