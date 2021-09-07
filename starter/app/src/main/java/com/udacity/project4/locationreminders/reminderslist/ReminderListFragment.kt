@@ -30,7 +30,7 @@ class ReminderListFragment : BaseFragment() {
     //use Koin to retrieve the ViewModel instance
     override val _viewModel: RemindersListViewModel by inject()
     private lateinit var binding: FragmentRemindersBinding
-    private lateinit var mCallback : ReminderDataItem
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -42,7 +42,7 @@ class ReminderListFragment : BaseFragment() {
             )
 
         binding.viewModel = _viewModel
-
+        //binding.setLifecycleOwner { requireActivity().lifecycle }
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(false)
         setTitle(getString(R.string.app_name))
@@ -81,7 +81,6 @@ class ReminderListFragment : BaseFragment() {
             _viewModel.selectedReminder.value!!.longitude = 3.0
         }
 
-        Timber.i("selected Reminder: " + _viewModel.selectedReminder.value?.description)
         // Observe the navigateToSelectedProperty LiveData and Navigate when it isn't null
         // After navigating, call displayPropertyDetailsComplete() so that the ViewModel is ready
         // for another navigation event.
@@ -91,12 +90,14 @@ class ReminderListFragment : BaseFragment() {
                 /*val intent = Intent(context,ReminderDescriptionActivity::class.java)
                 intent.putExtra("EXTRA_ReminderDataItem",_viewModel.selectedReminder.value)
                 startActivity(intent)*/
-                Navigation.findNavController(view).navigate(R.id.ReminderDescriptionActivity)
+                //Navigation.findNavController(view).navigate(R.id.ReminderDescriptionActivity)
+
+                Timber.i("selected Reminder: " + _viewModel.selectedReminder.value?.title)
+
                 findNavController().navigate(ReminderListFragmentDirections.
                 actionReminderListFragmentToReminderDescriptionActivity(_viewModel.selectedReminder.value!!))
             }
         })
-
     }
 
     override fun onResume() {

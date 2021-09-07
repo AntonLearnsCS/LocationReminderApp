@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.util.TimeFormatException
+import androidx.core.app.JobIntentService
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofenceStatusCodes
@@ -37,37 +38,11 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 //TODO: implement the onReceive method to receive the geofencing events at the background
 override fun onReceive(context: Context, intent: Intent) {
     if (intent.action == ACTION_GEOFENCE_EVENT) {
-        //You can call GeofencingEvent.fromIntent(android.content.Intent) to get the transition type, geofences
-            // that triggered this intent and the location that triggered the geofence transition.
-        val geofencingEvent = GeofencingEvent.fromIntent(intent)
-
-        if (geofencingEvent.hasError()) {
-
-            Timber.i("" + geofencingEvent.errorCode)
-            return
-        }
-        if (geofencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-
-        }
-        if (geofencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-            Log.v(TAG, context.getString(R.string.geofence_entered))
-
-            val fenceId = when {
-                geofencingEvent.triggeringGeofences.isNotEmpty() ->
-                    geofencingEvent.triggeringGeofences[0].requestId
-                else -> {
-                    Log.e(TAG, "No Geofence Trigger Found! Abort mission!")
-                    return
-                }
-            }
             //source: https://stackoverflow.com/questions/47593205/how-to-pass-custom-object-via-intent-in-kotlin
-            val dataItem = intent.getSerializableExtra("reminderDataItem") as? ReminderDataItem
 
-            if (dataItem != null) {
-                sendNotification(context,dataItem)
-            }
+            GeofenceTransitionsJobIntentService.enqueueWork(context, intent)
         }
     }
 }
 
-}
+

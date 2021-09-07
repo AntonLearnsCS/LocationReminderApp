@@ -9,6 +9,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
 import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.NavHostFragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.navArgs
@@ -25,15 +26,27 @@ import timber.log.Timber
 //notification
 class ReminderDescriptionActivity : AppCompatActivity() {
     //source: https://developer.android.com/guide/navigation/navigation-migrate#add
+    val args: ReminderDescriptionActivityArgs by navArgs()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminder_description)
+            if (args.ReminderDataItem.title == null)
+        //Source: https://stackoverflow.com/questions/57682209/exception-view-does-not-have-a-navcontroller-set
 
-        //TODO: Why am I receiving error saying that NavController is not set when I am setting the navGraph for
-        // the activity here?
-        Navigation.findNavController(findViewById(R.id.activity_reminder_description)).setGraph(
-            R.navigation.nav_graph_detail,intent.extras
-        )
+        //1) val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_detail) as NavHostFragment
+
+        //Pass activity destination args to a start destination fragment
+        //To do this, you need a reference to the NavHostFragment and set that fragment's navController's graph
+
+        //NavController manages app navigation within a NavHost.
+        //The navGraph shows the relationship between fragments
+        //Navigation flows and destinations are determined by the navigation graph owned by the controller
+        //2) navHostFragment.navController.setGraph(R.navigation.nav_graph_detail, intent.extras)
+
+        //You need to explicitly mention the NavHostFragment
+        Navigation.findNavController(findViewById(R.id.nav_host_fragment_detail)).setGraph(
+            R.navigation.nav_graph_detail,intent.extras)
+
         //NavController manages app navigation within a NavHost.
   /*      Navigation.findNavController(this, R.id.activity_reminder_description)
             .setGraph(R.navigation.nav_graph_detail, intent.extras)*/

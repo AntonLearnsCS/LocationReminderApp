@@ -81,6 +81,7 @@ class SaveReminderFragment : BaseFragment() {
     //private val runningQOrLater : Boolean = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
     private lateinit var reminderDataItem : ReminderDataItem
     private var intent = Intent()
+
     private val geofencePendingIntent: PendingIntent by lazy {
          intent = Intent(requireContext(), GeofenceBroadcastReceiver::class.java)
         intent.action = ACTION_GEOFENCE_EVENT

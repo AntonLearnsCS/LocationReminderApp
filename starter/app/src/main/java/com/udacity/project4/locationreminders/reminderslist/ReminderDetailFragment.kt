@@ -24,8 +24,11 @@ import org.koin.android.ext.android.inject
 import timber.log.Timber
 
 class ReminderDetailFragment() : BaseFragment() {
-    override val _viewModel: BaseViewModel by inject()
+    override val _viewModel: RemindersListViewModel by inject()
     private lateinit var binding: ReminderDescriptionFragmentBinding
+
+    //val args = ReminderDescriptionActivityArgs.fromBundle(arguments!!).ReminderDataItem
+    //val args = this.arguments
 
     val args: ReminderDescriptionActivityArgs by navArgs()
 
@@ -46,7 +49,6 @@ class ReminderDetailFragment() : BaseFragment() {
         savedInstanceState: Bundle?
     ): View? {
         binding = DataBindingUtil.inflate(layoutInflater,R.layout.reminder_description_fragment,container,false)
-
         Timber.i("test",args.ReminderDataItem.title)
         val passedInReminderItem = args.ReminderDataItem //intent.getSerializableExtra(EXTRA_ReminderDataItem) as ReminderDataItem?
         binding.reminderDataItem = passedInReminderItem
@@ -56,7 +58,7 @@ class ReminderDetailFragment() : BaseFragment() {
             Timber.i(arg.description)
             binding.reminderDataItem = arg*/
 
-        binding.finishedTask.setOnClickListener{
+        binding.finishedTask.setOnClickListener {
             //return to the ReminderActivity
             var intent = Intent(ApplicationProvider.getApplicationContext(), RemindersActivity::class.java)
             intent.putExtra("finishedTask", passedInReminderItem.id)
