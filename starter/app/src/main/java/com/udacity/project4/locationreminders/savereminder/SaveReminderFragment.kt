@@ -23,6 +23,7 @@ import androidx.lifecycle.Transformations
 import androidx.lifecycle.Transformations.map
 import androidx.lifecycle.map
 import androidx.navigation.fragment.findNavController
+import androidx.test.core.app.ApplicationProvider
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.material.snackbar.Snackbar
@@ -74,7 +75,7 @@ class SaveReminderFragment : BaseFragment() {
     override val _viewModel: SaveReminderViewModel by inject()
 
     private lateinit var binding: FragmentSaveReminderBinding
-    private var geofenceList = arrayListOf<Geofence>()
+    private var geofenceList = mutableListOf<Geofence>()
     val GEOFENCE_EXPIRATION_IN_MILLISECONDS: Long = TimeUnit.HOURS.toMillis(1)
 
     private lateinit var geofencingClient: GeofencingClient
@@ -85,6 +86,7 @@ class SaveReminderFragment : BaseFragment() {
     private val geofencePendingIntent: PendingIntent by lazy {
          intent = Intent(requireContext(), GeofenceBroadcastReceiver::class.java)
         intent.action = ACTION_GEOFENCE_EVENT
+        //intent.putExtra()
         PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
@@ -229,7 +231,7 @@ class SaveReminderFragment : BaseFragment() {
         //Build the geofence request
         val geofencingRequest = GeofencingRequest.Builder()
             .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-            .addGeofence(geofenceList[counter])
+            .addGeofences(geofenceList)
             .build()
 
         if (ActivityCompat.checkSelfPermission(
@@ -253,6 +255,8 @@ class SaveReminderFragment : BaseFragment() {
             //return
             Timber.i("CheckSelfNotPassed")
         }
+        //to add a geofence, you add the actual geofence location (geofenceRequest) as well as where you want the
+        //activity to start once the geofence is triggered (geofencePendingIntent), which in our case is BroadcastReceiver
         geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
             addOnSuccessListener {
                 // Geofences added.
@@ -279,6 +283,23 @@ class SaveReminderFragment : BaseFragment() {
                 if ((it.message != null)) {
                     Log.w(TAG, it.message!!)
                 }
+            }
+        }
+    }
+    private fun removeGeofences() {
+       /* if (!foregroundAndBackgroundLocationPermissionApproved()) {
+            return
+        }*/
+        geofencingClient.removeGeofences(geofencePendingIntent)?.run {
+            addOnSuccessListener {
+                // Geofences removed
+                //Log.d(TAG, getString(R.string.geofences_removed))
+                Toast.makeText(ApplicationProvider.getApplicationContext(),"Geofences removed", Toast.LENGTH_SHORT)
+                    .show()
+            }
+            addOnFailureListener {
+                // Failed to remove geofences
+                Log.d(TAG, "Geofences not removed")
             }
         }
     }

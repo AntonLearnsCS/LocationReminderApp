@@ -67,8 +67,9 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
             return
         }
         if (geofencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-
+            //remove geofence
         }
+
         if (geofencingEvent.geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
             Log.v("test", applicationContext.getString(R.string.geofence_entered))
 
@@ -80,17 +81,22 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
                     return
                 }
             }
-            sendNotification(geofencingEvent.triggeringGeofences)
-            sendNotification(
-                applicationContext,
-                intent.getSerializableExtra("ReminderDataItem") as ReminderDataItem
-            )
+
+            // triggeringGeofences - Returns a list of geofences that triggered this geofence transition alert.
+            val numberOfTriggers = geofencingEvent.triggeringGeofences.size
+            var i = 0
+            while (i < numberOfTriggers)
+            {
+                sendNotification(geofencingEvent.triggeringGeofences[i])
+                i++
+            }
+
         }
     }
 
     //TODO: get the request id of the current geofence
-    private fun sendNotification(triggeringGeofences: List<Geofence>) {
-        val requestId = triggeringGeofences[0].requestId
+    private fun sendNotification(triggeringGeofences: Geofence) {
+        val requestId = triggeringGeofences.requestId
 
         //Get the local repository instance
         val remindersLocalRepository: RemindersLocalRepository by inject()
