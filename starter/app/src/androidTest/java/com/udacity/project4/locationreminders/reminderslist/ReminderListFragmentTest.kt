@@ -1,16 +1,14 @@
 package com.udacity.project4.locationreminders.reminderslist
 
-import android.app.Application
+import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.TextView
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ApplicationProvider
@@ -18,20 +16,19 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions.*
-import androidx.test.espresso.assertion.ViewAssertions
-import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
+import androidx.test.espresso.core.internal.deps.guava.collect.Iterables.getOnlyElement
+import androidx.test.espresso.core.internal.deps.guava.collect.Iterators.getOnlyElement
 import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.Intents.intended
-import androidx.test.espresso.intent.matcher.IntentMatchers.toPackage
+import androidx.test.espresso.intent.matcher.IntentMatchers.*
 import androidx.test.espresso.intent.rule.IntentsTestRule
 import androidx.test.espresso.matcher.BoundedMatcher
 import androidx.test.espresso.matcher.ViewMatchers.*
+import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
-import com.android.dx.rop.cst.CstArray
-import com.udacity.project4.FakeLocalRepository
 import com.udacity.project4.MyApp
 import com.udacity.project4.R
 import com.udacity.project4.ServiceLocator
@@ -39,18 +36,13 @@ import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
-import com.udacity.project4.locationreminders.data.dto.succeeded
-import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragment
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.Description
 import org.hamcrest.Matcher
-import org.hamcrest.Matchers.contains
-import org.hamcrest.Matchers.not
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -61,6 +53,7 @@ import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
+import org.mockito.internal.util.collections.Iterables
 
 
 @RunWith(AndroidJUnit4::class)
@@ -72,8 +65,14 @@ class ReminderListFragmentTest : KoinTest {
     @get: Rule
     val mInstantTaskExecutorRule = InstantTaskExecutorRule()
 
+    //The IntentsTestRule simply calls Intents.init() before the @Test block and Intents.release()
+    // after the @Test block is completed.
     @get:Rule
     val intentsTestRule = IntentsTestRule(RemindersActivity::class.java)
+
+    //Since it is a rule, Activity scenario rule will call Intents.init() and Intents.release() before & after each test
+    /*@get : Rule
+    var rule: ActivityScenarioRule<RemindersActivity> = ActivityScenarioRule(RemindersActivity::class.java)*/
 
     val remindersList = MutableLiveData<List<ReminderDataItem>>()
     private lateinit var reminderDataItem: ReminderDataItem
@@ -139,7 +138,8 @@ class ReminderListFragmentTest : KoinTest {
     @Before
     fun init()
     {
-        Intents.init()
+       //Intents.init()
+        //Intents.init()
         ServiceLocator.resetRepository()
         //Note: We set ServiceLocator.provideTaskRepository() to a variable instead of calling saveReminder on
         // ServiceLocator.taskRepository.saveReminder() b/c "ServiceLocator.provideTaskRepository()" returns an instance
@@ -149,18 +149,18 @@ class ReminderListFragmentTest : KoinTest {
         realRepo = ((ApplicationProvider.getApplicationContext()) as MyApp).taskRepository
 
         runBlocking {
-            val Z = ReminderDTO("TitleZ","DescriptionZ","LocationZ",6.0,7.0)
+            val Z = ReminderDTO("TitleZ", "DescriptionZ", "LocationZ", 6.0, 7.0)
             reminderZ_id = Z.id
             realRepo.saveReminder(Z)
-            realRepo.saveReminder(ReminderDTO("TitleM","DescriptionM","LocationM",8.0,9.0))
-            realRepo.saveReminder(ReminderDTO("TitleQ","DescriptionZ","LocationZ",10.0,11.0))
+            realRepo.saveReminder(ReminderDTO("TitleM", "DescriptionM", "LocationM", 8.0, 9.0))
+            realRepo.saveReminder(ReminderDTO("TitleQ", "DescriptionZ", "LocationZ", 10.0, 11.0))
         }
-        mViewModel  = RemindersListViewModel(ApplicationProvider.getApplicationContext(),realRepo)
+        mViewModel  = RemindersListViewModel(ApplicationProvider.getApplicationContext(), realRepo)
     }
     @After
     fun After()
     {
-        Intents.release()
+      //  Intents.release()
     }
 
     @Test
@@ -185,7 +185,8 @@ class ReminderListFragmentTest : KoinTest {
     fun saveReminderFragment_saveReminder_PendingIntentCalled()
     {
         //Given - The reminderListFragment
-
+        //Note: launching a fragment is needed before calling onView on fragment's views, otherwise will receive
+        //no hierarchy error
         val scenario = launchFragmentInContainer<SaveReminderFragment>(Bundle(), R.style.AppTheme)
 
         val navController = mock(NavController::class.java)
@@ -193,9 +194,18 @@ class ReminderListFragmentTest : KoinTest {
         scenario.onFragment {
             Navigation.setViewNavController(it.view!!, navController)
         }
+        //maybe need to populate title, description and coordinates before being able to save
+        onView(withId(R.id.reminderTitle)).perform(setTextInTextView("Title"))
+        onView(withId(R.id.reminderDescription)).perform(setTextInTextView("Description"))
+        onView(withId(R.id.selectedLocation)).perform(setTextInTextView("City"))
+        onView(withId(R.id.reminderTitle)).perform(setTextInTextView("Title"))
 
         //verify(navController.navigate(ReminderListFragmentDirections.))
-        onView(withId(R.id.saveReminder)).perform(click())
+        onView(withId(R.id.coordinates)).perform(setTextInTextView("2.0,3.0"))
+
+        //TODO: How to get assert that an intent has a given action on commented out code directly below?
+        //assertThat(Intents.getIntents(), `is`("RemindersActivity.savereminder.action.ACTION_GEOFENCE_EVENT"))
+        //TODO: Why is my intent showing as null/not matching?
 
         intended(toPackage("com.udacity.project4.geofence.GeofenceBroadcastReceiver"))
 
@@ -224,21 +234,33 @@ class ReminderListFragmentTest : KoinTest {
            //TODO: Pass parameter value here
 
         onView(withId(R.id.reminderssRecyclerView))
-            .perform(RecyclerViewActions.actionOnItem<RecyclerView.ViewHolder>(
-                hasDescendant(withText("TitleZ")), click()))
+            .perform(
+                RecyclerViewActions.actionOnItem<RecyclerView.ViewHolder>(
+                    hasDescendant(withText("TitleZ")), click()
+                )
+            )
 
-        verify(mNavController).navigate(ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity(
-            returnReminderDataItemFromDb(reminderZ_id)))
+        verify(mNavController).navigate(
+            ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity(
+                returnReminderDataItemFromDb(reminderZ_id)
+            )
+        )
         //check if a view exists
         //onView(withId(R.id.taskTitle)).check(matches(isDisplayed()))
 
         //onView(withId(R.layout.reminder_description_fragment)).check(matches(withText("TitleZ")))
     }
 
-    fun returnReminderDataItemFromDb(id : String) : ReminderDataItem =
+    fun returnReminderDataItemFromDb(id: String) : ReminderDataItem =
         runBlocking {
             //mViewModel.loadReminders()
-            var reminderDataItem : ReminderDataItem = ReminderDataItem("Title","Description","Location",1.0,2.0)
+            var reminderDataItem : ReminderDataItem = ReminderDataItem(
+                "Title",
+                "Description",
+                "Location",
+                1.0,
+                2.0
+            )
             //Place inside blocking b/c: https://knowledge.udacity.com/questions/686016
             val reminderDTO = realRepo.getReminder(id)
 

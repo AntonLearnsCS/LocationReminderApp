@@ -144,14 +144,12 @@ class SaveReminderFragment : BaseFragment() {
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
 //             2) save the reminder to the local db
-            if(_viewModel.latLng.value != null)
-            {
-                Timber.i("viewModelNotNull")
-                checkDeviceLocationSettingsAndStartGeofence()
-            }
 
-            if (_viewModel.validateAndSaveReminder(reminderDataItem))
+            checkDeviceLocationSettingsAndStartGeofence()
+
+            if (_viewModel.validateAndSaveReminder(reminderDataItem) && _viewModel.latLng.value != null )
             {
+                //checkDeviceLocationSettingsAndStartGeofence()
                 Timber.i("testValidate")
                 findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
             //findNavController().popBackStack()
