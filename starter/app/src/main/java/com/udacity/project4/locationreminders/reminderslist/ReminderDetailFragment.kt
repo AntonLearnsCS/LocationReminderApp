@@ -60,9 +60,13 @@ class ReminderDetailFragment() : BaseFragment() {
 
         binding.finishedTask.setOnClickListener {
             //return to the ReminderActivity
-            val intent = Intent(ApplicationProvider.getApplicationContext(), RemindersActivity::class.java)
+            //Note: "ApplicationProvider.getApplicationContext()" gets the context for the whole app.
+            // Here, we just need the context of the fragment, doing so results in the error:
+            //java.lang.IllegalStateException: No instrumentation registered! Must run under a registering instrumentation.
+            val intent = Intent(context, RemindersActivity::class.java)
             intent.putExtra("finishedTask", passedInReminderItem.id)
             startActivity(intent)
+
         }
         return binding.root
     }

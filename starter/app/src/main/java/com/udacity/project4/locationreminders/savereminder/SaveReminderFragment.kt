@@ -286,6 +286,7 @@ class SaveReminderFragment : BaseFragment() {
             }
         }
     }
+    //remove current geofences pending intent before sending new pending intent
     private fun removeGeofences() {
        /* if (!foregroundAndBackgroundLocationPermissionApproved()) {
             return

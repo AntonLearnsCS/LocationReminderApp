@@ -22,6 +22,7 @@ import androidx.test.espresso.assertion.ViewAssertions
 import androidx.test.espresso.assertion.ViewAssertions.doesNotExist
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
+import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.Intents.intended
 import androidx.test.espresso.intent.matcher.IntentMatchers.toPackage
 import androidx.test.espresso.intent.rule.IntentsTestRule
@@ -50,6 +51,7 @@ import org.hamcrest.Description
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers.contains
 import org.hamcrest.Matchers.not
+import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
@@ -137,6 +139,7 @@ class ReminderListFragmentTest : KoinTest {
     @Before
     fun init()
     {
+        Intents.init()
         ServiceLocator.resetRepository()
         //Note: We set ServiceLocator.provideTaskRepository() to a variable instead of calling saveReminder on
         // ServiceLocator.taskRepository.saveReminder() b/c "ServiceLocator.provideTaskRepository()" returns an instance
@@ -154,7 +157,11 @@ class ReminderListFragmentTest : KoinTest {
         }
         mViewModel  = RemindersListViewModel(ApplicationProvider.getApplicationContext(),realRepo)
     }
-
+    @After
+    fun After()
+    {
+        Intents.release()
+    }
 
     @Test
     fun recyclerView_saveReminder_UpdateUI()
@@ -175,12 +182,11 @@ class ReminderListFragmentTest : KoinTest {
     }
     //can be used to test notification
     @Test
-    fun reminderListFragment_CompleteTask_IntentCalled()
+    fun saveReminderFragment_saveReminder_PendingIntentCalled()
     {
         //Given - The reminderListFragment
 
-
-        val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
+        val scenario = launchFragmentInContainer<SaveReminderFragment>(Bundle(), R.style.AppTheme)
 
         val navController = mock(NavController::class.java)
         //When - Selecting on a task and clicking finished task
@@ -189,11 +195,9 @@ class ReminderListFragmentTest : KoinTest {
         }
 
         //verify(navController.navigate(ReminderListFragmentDirections.))
+        onView(withId(R.id.saveReminder)).perform(click())
 
-        onView(withId(R.id.reminderssRecyclerView)).perform(RecyclerViewActions.actionOnItem<RecyclerView.ViewHolder>(
-            hasDescendant(withText("TitleZ")), click()))
-
-        intended(toPackage("com.udacity.project4.locationreminders.ReminderDescriptionActivity"))
+        intended(toPackage("com.udacity.project4.geofence.GeofenceBroadcastReceiver"))
 
         //verify(navController.navigate(ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity()))
         //Then - the selected task should be gone from ReminderListFragment

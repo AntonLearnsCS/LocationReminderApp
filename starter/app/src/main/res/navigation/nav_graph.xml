@@ -15,6 +15,7 @@
         app:argType="com.udacity.project4.locationreminders.reminderslist.ReminderDataItem"
         />
 
+
 </activity>
 
     <fragment
