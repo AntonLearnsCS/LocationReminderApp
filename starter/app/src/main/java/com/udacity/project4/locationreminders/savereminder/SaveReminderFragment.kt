@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
 
-const val GEOFENCE_RADIUS_IN_METERS = 100f
+const val GEOFENCE_RADIUS_IN_METERS = 1000f
 
 //following structure from DevByte domain -> DTO conversion
 //create a dataclass
@@ -84,7 +84,7 @@ class SaveReminderFragment : BaseFragment() {
     private var intent = Intent()
 
     private val geofencePendingIntent: PendingIntent by lazy {
-         intent = Intent(requireContext(), GeofenceBroadcastReceiver::class.java)
+         intent = Intent(requireActivity(), GeofenceBroadcastReceiver::class.java)
         intent.action = ACTION_GEOFENCE_EVENT
         //intent.putExtra()
         PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
@@ -106,7 +106,7 @@ class SaveReminderFragment : BaseFragment() {
 
         binding.viewModel = _viewModel
 
-        geofencingClient = LocationServices.getGeofencingClient(requireContext())
+        geofencingClient = LocationServices.getGeofencingClient(requireActivity())
         //TODO: Strange, pressing add button after save button calls onCreateView
         Timber.i("testingNull" + _viewModel.reminderTitle.value)
 

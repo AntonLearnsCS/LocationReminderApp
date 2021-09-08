@@ -122,9 +122,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         // Add a marker in Lakewood/Long Beach CA and move the camera, note that coordinates have a wide range, which is why decimals
         //can dictate the difference between two cities
-        val latitude = 33.8452288
-        val longitude = -118.0321247
-        val zoomLevel = 4f
+        val latitude = 33.8447593
+        val longitude = -118.1480706
+        val zoomLevel = 15f
 
         val homeLatLng = LatLng(latitude, longitude)
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(homeLatLng, zoomLevel))

@@ -53,10 +53,12 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
         //TODO: handle the geofencing transition events and
         // send a notification to the user when he enters the geofence area
         //TODO call @sendNotification
+
         /*
         After we receive an Intent Broadcast, we need to retrieve the reminder info from our local database,
         which is a potentially long-running task and therefore has to be performed and handled in a background service.
          */
+
         //You can call GeofencingEvent.fromIntent(android.content.Intent) to get the transition type, geofences
         // that triggered this intent and the location that triggered the geofence transition.
         val geofencingEvent = GeofencingEvent.fromIntent(intent)
@@ -90,7 +92,6 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
                 sendNotification(geofencingEvent.triggeringGeofences[i])
                 i++
             }
-
         }
     }
 

@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.util.TimeFormatException
+import android.widget.Toast
 import androidx.core.app.JobIntentService
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.Geofence
@@ -37,11 +38,12 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
 
 //TODO: implement the onReceive method to receive the geofencing events at the background
 override fun onReceive(context: Context, intent: Intent) {
-    if (intent.action == ACTION_GEOFENCE_EVENT) {
+    //if (intent.action == ACTION_GEOFENCE_EVENT) {
             //source: https://stackoverflow.com/questions/47593205/how-to-pass-custom-object-via-intent-in-kotlin
-
+            Toast.makeText(context,"Broadcast Received",Toast.LENGTH_LONG).show()
+        Timber.i("Timber","Broadcast Received")
             GeofenceTransitionsJobIntentService.enqueueWork(context, intent)
-        }
+
     }
 }
 

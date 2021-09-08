@@ -26,14 +26,12 @@ import timber.log.Timber
 //notification
 class ReminderDescriptionActivity : AppCompatActivity() {
     //source: https://developer.android.com/guide/navigation/navigation-migrate#add
-    val args: ReminderDescriptionActivityArgs by navArgs()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminder_description)
-            if (args.ReminderDataItem.title == null)
         //Source: https://stackoverflow.com/questions/57682209/exception-view-does-not-have-a-navcontroller-set
 
-        //1) val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_detail) as NavHostFragment
+         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_detail) as NavHostFragment
 
         //Pass activity destination args to a start destination fragment
         //To do this, you need a reference to the NavHostFragment and set that fragment's navController's graph

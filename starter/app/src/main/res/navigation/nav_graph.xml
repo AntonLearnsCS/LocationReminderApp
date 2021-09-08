@@ -16,6 +16,7 @@
         />
 
 </activity>
+
     <fragment
         android:id="@+id/reminderListFragment"
         android:name="com.udacity.project4.locationreminders.reminderslist.ReminderListFragment"
