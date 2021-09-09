@@ -40,10 +40,10 @@ class RemindersListViewModelTest {
         assertThat(reminderViewModel.selectedReminder.value,`is`(!equals(null)))
     }*/
 
-    @Test
+   /* @Test
     fun reminderListAdapter_CheckCallbackValue_NonNull()
     {
         //Given a ListAdapter
         val myAdapter = ListAdapter<>
-    }
+    }*/
 }
