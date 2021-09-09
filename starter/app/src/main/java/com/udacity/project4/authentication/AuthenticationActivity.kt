@@ -30,8 +30,19 @@ import java.util.zip.Inflater
  * This class should be the starting point of the app, It asks the users to sign in / register, and redirects the
  * signed in users to the RemindersActivity.
  */
-//TODO Create new firebase since I changed the package name from "com.udacity.project4.authentication"
-// to "com.udacity.project4"
+/*
+ SHA-1 certificate fingerprint:
+    3A:5F:39:66:46:9D:A2:75:4F:CB:7C:9D:77:28:89:18:21:EC:37:15
+
+    Alternatively, follow the directions here:
+    https://developers.google.com/maps/documentation/android/start#get-key
+
+    Once you have your key (it starts with "AIza"), replace the "google_maps_key"
+    string in this file.
+    username:gilong314@gmail.com
+    password:abcd1234
+ */
+
 class AuthenticationActivity : AppCompatActivity() {
     private lateinit var viewModel: AuthViewModel
     private  lateinit var binding : ActivityAuthenticationBinding
@@ -68,7 +79,6 @@ class AuthenticationActivity : AppCompatActivity() {
             binding.button.setOnClickListener {
                 Timber.i("authNegative")
                 launchSignInFlow()
-
             }
         }
 

@@ -166,6 +166,7 @@ class ReminderListFragmentTest : KoinTest {
     @Test
     fun recyclerView_saveReminder_UpdateUI()
     {
+        println(ApplicationProvider.getApplicationContext())
         //Given - A real repository
         //For fake repository use: ServiceLocator.tasksRepository = FakeLocalRepository
 
