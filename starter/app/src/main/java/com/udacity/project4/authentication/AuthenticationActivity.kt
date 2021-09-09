@@ -30,6 +30,8 @@ import java.util.zip.Inflater
  * This class should be the starting point of the app, It asks the users to sign in / register, and redirects the
  * signed in users to the RemindersActivity.
  */
+//TODO Create new firebase since I changed the package name from "com.udacity.project4.authentication"
+// to "com.udacity.project4"
 class AuthenticationActivity : AppCompatActivity() {
     private lateinit var viewModel: AuthViewModel
     private  lateinit var binding : ActivityAuthenticationBinding
