@@ -199,10 +199,11 @@ class ReminderListFragmentTest : KoinTest {
         onView(withId(R.id.reminderTitle)).perform(setTextInTextView("Title"))
         onView(withId(R.id.reminderDescription)).perform(setTextInTextView("Description"))
         onView(withId(R.id.selectedLocation)).perform(setTextInTextView("City"))
-        onView(withId(R.id.reminderTitle)).perform(setTextInTextView("Title"))
 
         //verify(navController.navigate(ReminderListFragmentDirections.))
         onView(withId(R.id.coordinates)).perform(setTextInTextView("2.0,3.0"))
+
+        onView(withId(R.id.saveReminder)).perform(click())
 
         //TODO: How to get assert that an intent has a given action on commented out code directly below?
         //assertThat(Intents.getIntents(), `is`("RemindersActivity.savereminder.action.ACTION_GEOFENCE_EVENT"))

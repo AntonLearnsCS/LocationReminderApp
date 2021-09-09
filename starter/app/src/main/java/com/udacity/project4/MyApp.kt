@@ -2,6 +2,7 @@ package com.udacity.project4
 
 import android.app.Application
 import androidx.databinding.library.BuildConfig
+import androidx.test.core.app.ApplicationProvider
 import com.udacity.project4.base.BaseViewModel
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.local.LocalDB
@@ -44,7 +45,7 @@ class MyApp : Application() {
             //Declare a ViewModel - be later inject into Fragment with dedicated injector using by viewModel()
             viewModel {
                 RemindersListViewModel(
-                    get(), get()
+                    get(), get() as ReminderDataSource
                 )
             }
             //Declare singleton definitions to be later injected using by inject()
@@ -52,14 +53,13 @@ class MyApp : Application() {
             single {
                 //This view model is declared singleton to be used across multiple fragments
                 SaveReminderViewModel(
-                    get(),get()
+                    get(),get() as ReminderDataSource
                 )
             }
-
+            //single{ApplicationProvider.getApplicationContext()}
             single {ServiceLocator.provideTasksRepository(applicationContext)}
             //single { RemindersLocalRepository(get()) as ReminderDataSource } //replaced by ServiceLocator
             single { LocalDB.createRemindersDao(this@MyApp) }
-
         }
 
         startKoin {
