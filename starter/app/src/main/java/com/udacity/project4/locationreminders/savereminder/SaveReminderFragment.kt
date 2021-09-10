@@ -26,6 +26,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.test.core.app.ApplicationProvider
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
+import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.authentication.AuthenticationActivity.Companion.TAG
@@ -145,11 +146,11 @@ class SaveReminderFragment : BaseFragment() {
 //             1) add a geofencing request
 //             2) save the reminder to the local db
 
-            checkDeviceLocationSettingsAndStartGeofence()
 
             if (_viewModel.validateAndSaveReminder(reminderDataItem) && _viewModel.latLng.value != null )
             {
-                //checkDeviceLocationSettingsAndStartGeofence()
+
+                checkDeviceLocationSettingsAndStartGeofence()
                 Timber.i("testValidate")
                 findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
             //findNavController().popBackStack()

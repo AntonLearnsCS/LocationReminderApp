@@ -17,6 +17,7 @@ import org.koin.android.ext.android.inject
 import timber.log.Timber
 import kotlin.coroutines.CoroutineContext
 
+//Recall: "CoroutineScope" determines the lifecycle of coroutines
 class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
 /*
     Users can add the reminders and then close the app, So our app has to run in the background

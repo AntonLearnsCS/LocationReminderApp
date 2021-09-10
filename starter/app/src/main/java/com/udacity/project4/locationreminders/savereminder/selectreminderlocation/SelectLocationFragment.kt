@@ -166,6 +166,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
              other Activities or Fragment
              Source: https://stackoverflow.com/questions/54871649/mutablelivedata-sets-value-but-getvalue-returns-null
              */
+
             _viewModel.latLng.value = latLng
             println("SelectLocation:" + latLng.latitude.toString() + ", " + latLng.longitude.toString())
             Timber.i("locationSingle: " + _viewModel.locationSingle.value?.get(0)?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude

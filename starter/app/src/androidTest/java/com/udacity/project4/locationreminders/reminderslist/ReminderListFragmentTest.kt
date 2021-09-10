@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.fragment.app.testing.launchFragment
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -214,6 +215,7 @@ class ReminderListFragmentTest : KoinTest {
         //verify(navController.navigate(ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity()))
         //Then - the selected task should be gone from ReminderListFragment
     }
+
 
     @Test
     fun ReminderListFragment_ClickItem_NavigateDetailFragment()
