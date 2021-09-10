@@ -8,6 +8,7 @@ import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
+import android.os.Build
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
@@ -15,7 +16,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -69,6 +72,8 @@ fun ReminderDataItem.asDatabaseModel(): ReminderDTO {
 
 class SaveReminderFragment : BaseFragment() {
     private var counter = 0
+    private val REQUEST_LOCATION_PERMISSION = 1
+
     //Get the view model this time as a single to be shared with the another fragment, note the "override" tag
     //Note: We don't use "override val _viewModel: SaveReminderViewModel = get<SaveReminderViewModel>()"
     //because we are setting up our code in a fragment, if it was in an activity it would be allowed
@@ -80,7 +85,7 @@ class SaveReminderFragment : BaseFragment() {
     val GEOFENCE_EXPIRATION_IN_MILLISECONDS: Long = TimeUnit.HOURS.toMillis(1)
 
     private lateinit var geofencingClient: GeofencingClient
-    //private val runningQOrLater : Boolean = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
+    private val runningQOrLater : Boolean = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
     private lateinit var reminderDataItem : ReminderDataItem
     private var intent = Intent()
 
@@ -118,6 +123,43 @@ class SaveReminderFragment : BaseFragment() {
         return binding.root
     }
 
+    /*
+     override fun onStart() {
+        super.onStart()
+        checkPermissionsAndStartGeofencing()
+    }
+
+    /*
+ *  When we get the result from asking the user to turn on device location, we call
+ *  checkDeviceLocationSettingsAndStartGeofence again to make sure it's actually on, but
+ *  we don't resolve the check to keep the user from seeing an endless loop.
+ */
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
+            // We don't rely on the result code, but just check the location setting again
+            checkDeviceLocationSettingsAndStartGeofence(false)
+        }
+    }
+
+    /*
+     *  When the user clicks on the notification, this method will be called, letting us know that
+     *  the geofence has been triggered, and it's time to move to the next one in the treasure
+     *  hunt.
+     */
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        val extras = intent?.extras
+        if(extras != null){
+            if(extras.containsKey(GeofencingConstants.EXTRA_GEOFENCE_INDEX)){
+                viewModel.updateHint(extras.getInt(GeofencingConstants.EXTRA_GEOFENCE_INDEX))
+                checkPermissionsAndStartGeofencing()
+            }
+        }
+    }
+     */
+
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.lifecycleOwner = requireActivity()
@@ -145,12 +187,10 @@ class SaveReminderFragment : BaseFragment() {
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
 //             2) save the reminder to the local db
-
-
+                Timber.i("Latlng: " + _viewModel.latLng.value?.latitude )
             if (_viewModel.validateAndSaveReminder(reminderDataItem) && _viewModel.latLng.value != null )
             {
                 checkDeviceLocationSettingsAndStartGeofence()
-                Timber.i("testValidate")
                 findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
                 //findNavController().popBackStack()
                 /*_viewModel.navigationCommand.value =
@@ -168,6 +208,7 @@ class SaveReminderFragment : BaseFragment() {
      * current hint isn't yet active.
      */
 
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun checkDeviceLocationSettingsAndStartGeofence(resolve: Boolean = true) {
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
@@ -202,6 +243,7 @@ class SaveReminderFragment : BaseFragment() {
                 }.show()
             }
         }
+
         locationSettingsResponseTask.addOnCompleteListener {
             if ( it.isSuccessful ) {
                 Timber.i("Success")
@@ -210,6 +252,7 @@ class SaveReminderFragment : BaseFragment() {
         }
     }
     //call only once permission is granted
+    @RequiresApi(Build.VERSION_CODES.Q)
     private fun addGeofenceForClue() {
         val id = getUniqueId()
         //Build the geofence using the geofence builder
@@ -251,39 +294,101 @@ class SaveReminderFragment : BaseFragment() {
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
             //return
-            Timber.i("CheckSelfNotPassed")
-        }
-        //to add a geofence, you add the actual geofence location (geofenceRequest) as well as where you want the
-        //activity to start once the geofence is triggered (geofencePendingIntent), which in our case is BroadcastReceiver
-        geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
-            addOnSuccessListener {
-                // Geofences added.
-                Toast.makeText(
-                    requireActivity(), "Geofence Added",
-                    Toast.LENGTH_SHORT
-                )
-                    .show()
-                Log.e("Add Geofence", geofenceList[counter].requestId)
+            Toast.makeText(context,"Permission Granted",Toast.LENGTH_SHORT).show()
 
-                counter++
+            Timber.i("CheckSelfPassed")
+            //to add a geofence, you add the actual geofence location (geofenceRequest) as well as where you want the
+            //activity to start once the geofence is triggered (geofencePendingIntent), which in our case is BroadcastReceiver
+            geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
+                addOnSuccessListener {
+                    // Geofences added.
+                    Toast.makeText(
+                        requireActivity(), "Geofence Added",
+                        Toast.LENGTH_SHORT
+                    )
+                        .show()
+                    Log.e("Add Geofence", geofenceList[counter].requestId)
 
-                // Tell the viewmodel that we've reached the end of the game and
-                // activated the last "geofence" --- by removing the Geofence.
+                    counter++
 
-            //viewModel.geofenceActivated()
-            }
-            addOnFailureListener {
-                // Failed to add geofences.
-                Toast.makeText(
-                    requireActivity(), R.string.geofences_not_added,
-                    Toast.LENGTH_SHORT
-                ).show()
-                if ((it.message != null)) {
-                    Log.w(TAG, it.message!!)
+                    // Tell the viewmodel that we've reached the end of the game and
+                    // activated the last "geofence" --- by removing the Geofence.
+
+                    //viewModel.geofenceActivated()
+                }
+                addOnFailureListener {
+                    // Failed to add geofences.
+                    Toast.makeText(
+                        requireActivity(), R.string.geofences_not_added,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    if ((it.message != null)) {
+                        Log.w(TAG, it.message!!)
+                    }
                 }
             }
         }
+        else {
+            //Toast.makeText(context,"Permission Denied",Toast.LENGTH_SHORT).show()
+
+            if (runningQOrLater) {
+                ActivityCompat.requestPermissions(
+                    requireActivity(),
+                    arrayOf<String>(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    ),
+                    REQUEST_LOCATION_PERMISSION
+                )
+            }
+            else
+            {
+                //Toast.makeText(context,"belowQ",Toast.LENGTH_SHORT).show()
+
+                ActivityCompat.requestPermissions(
+                    requireActivity(),
+                    arrayOf<String>(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ),
+                    REQUEST_LOCATION_PERMISSION
+                )
+            }
+        }
     }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        // Check if location permissions are granted and if so enable the
+        // location data layer.
+
+        Toast.makeText(context,"ResultsRequest",Toast.LENGTH_SHORT).show()
+
+        if (runningQOrLater)
+            {
+                if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    && (grantResults[1] == PackageManager.PERMISSION_GRANTED) && (grantResults[2] == PackageManager.PERMISSION_GRANTED))
+                {
+                    Toast.makeText(context,"Q>=SuccessRequest",Toast.LENGTH_SHORT).show()
+                }
+            }
+            else
+            {
+                if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                    && (grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
+                    Toast.makeText(context,"Q<=SuccessRequest",Toast.LENGTH_SHORT).show()
+                }
+                Toast.makeText(context,"MissingRequest",Toast.LENGTH_SHORT).show()
+            }
+    }
+
+
+
     //remove current geofences pending intent before sending new pending intent
     private fun removeGeofences() {
        /* if (!foregroundAndBackgroundLocationPermissionApproved()) {

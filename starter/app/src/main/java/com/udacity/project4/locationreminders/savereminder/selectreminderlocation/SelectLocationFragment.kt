@@ -232,7 +232,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun enableMyLocation() {
-        if (isPermissionGranted()) {
+        if (!isPermissionGranted()) {
             if (runningQOrLater) {
                 if (ActivityCompat.checkSelfPermission(
                         requireActivity(),
@@ -293,7 +293,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION,
                             Manifest.permission.ACCESS_COARSE_LOCATION),
                         REQUEST_LOCATION_PERMISSION
-
                     )
                     Timber.i("RequestSuccess2")
                 }
@@ -323,10 +322,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             }
             else
             {
-                if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                enableMyLocation()
+                /*if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
                     && (grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
                     enableMyLocation()
-                }
+                }*/
             }
         }
     }
