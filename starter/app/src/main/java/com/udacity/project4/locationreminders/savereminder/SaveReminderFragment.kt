@@ -149,12 +149,11 @@ class SaveReminderFragment : BaseFragment() {
 
             if (_viewModel.validateAndSaveReminder(reminderDataItem) && _viewModel.latLng.value != null )
             {
-
                 checkDeviceLocationSettingsAndStartGeofence()
                 Timber.i("testValidate")
                 findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
-            //findNavController().popBackStack()
-             /*_viewModel.navigationCommand.value =
+                //findNavController().popBackStack()
+                /*_viewModel.navigationCommand.value =
                     NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())*/
             }
             else
