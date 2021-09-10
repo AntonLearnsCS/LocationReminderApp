@@ -188,10 +188,14 @@ class SaveReminderFragment : BaseFragment() {
 //             1) add a geofencing request
 //             2) save the reminder to the local db
                 Timber.i("Latlng: " + _viewModel.latLng.value?.latitude )
-            if (_viewModel.validateAndSaveReminder(reminderDataItem) && _viewModel.latLng.value != null )
+            println("Latlng: " + _viewModel.latLng.value?.latitude)
+            if (_viewModel.validateAndSaveReminder(reminderDataItem))
             {
+                println("Passed validate and latLng")
                 checkDeviceLocationSettingsAndStartGeofence()
-                findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+                _viewModel.navigationCommand.value =
+                    NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+                //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
                 //findNavController().popBackStack()
                 /*_viewModel.navigationCommand.value =
                     NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())*/
@@ -246,6 +250,7 @@ class SaveReminderFragment : BaseFragment() {
 
         locationSettingsResponseTask.addOnCompleteListener {
             if ( it.isSuccessful ) {
+                println("success on location settings response task")
                 Timber.i("Success")
                 addGeofenceForClue()
             }

@@ -34,12 +34,15 @@
     <string name="err_enter_title">Please enter title</string>
     <string name="err_select_location">Please select location</string>
 
+
     <!-- Error strings -->
     <string name="geofence_unknown_error">Unknown error: the Geofence service is not available now.</string>
     <string name="geofence_not_available">Geofence service is not available now. Go to Settings>Location>Mode and choose High accuracy.</string>
     <string name="geofence_too_many_geofences">Your app has registered too many geofences.</string>
     <string name="geofence_too_many_pending_intents">You have provided too many PendingIntents to the addGeofences() call.</string>
     <string name="error_adding_geofence">Error Happened, Can\'t Add Geofence</string>
+    <string name="missing_coordinates">missing_coordinates</string>
+
     <!-- Set placeholders for the String resource values-->
     <string name="location">%1$s, %2$s</string>
 

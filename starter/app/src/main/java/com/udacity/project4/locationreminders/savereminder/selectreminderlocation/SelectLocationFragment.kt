@@ -124,7 +124,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         //can dictate the difference between two cities
         val latitude = 33.8447593
         val longitude = -118.1480706
-        val zoomLevel = 15f
+        val zoomLevel = 4f
 
         val homeLatLng = LatLng(latitude, longitude)
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(homeLatLng, zoomLevel))

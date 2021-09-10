@@ -29,6 +29,11 @@ class RemindersListViewModel(
      * Get all the reminders from the DataSource and add them to the remindersList to be shown on the UI,
      * or show error if any
      */
+    fun setSelectedReminderToNull()
+    {
+        selectedReminder.value = null
+    }
+
     fun loadReminders() {
         //showLoading is of type "SingleLiveEvent" - This LiveData only calls the observable if there's an
         //explicit call to setValue() or call().

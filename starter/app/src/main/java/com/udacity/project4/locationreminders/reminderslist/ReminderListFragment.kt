@@ -96,6 +96,7 @@ class ReminderListFragment : BaseFragment() {
 
                 findNavController().navigate(ReminderListFragmentDirections.
                 actionReminderListFragmentToReminderDescriptionActivity(_viewModel.selectedReminder.value!!))
+                _viewModel.setSelectedReminderToNull()
             }
         })
     }

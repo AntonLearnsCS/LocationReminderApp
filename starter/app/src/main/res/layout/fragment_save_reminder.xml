@@ -87,12 +87,15 @@ the property and listen to user updates at the same time.-->
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/margin_normal"
+            android:layout_marginBottom="76dp"
             android:fadeVisible="@{!viewModel.showLoading.booleanValue()}"
             android:src="@drawable/ic_save"
             app:fabSize="normal"
             app:layout_anchorGravity="bottom|right|end"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/coordinates" />
 
         <ProgressBar
             android:id="@+id/progressBar"
