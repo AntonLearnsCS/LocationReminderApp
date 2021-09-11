@@ -236,13 +236,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 if (ActivityCompat.checkSelfPermission(
                         requireActivity(),
                         Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                         requireActivity(),
                         Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                         requireActivity(),
                         Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
+                    ) == PackageManager.PERMISSION_GRANTED
                 ) {
                     // TODO: Consider calling
                     //    ActivityCompat#requestPermissions
@@ -252,7 +252,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     // to handle the case where the user grants the permission. See the documentation
                     // for ActivityCompat#requestPermissions for more details.
                     //return
-                    Timber.i("RequestFailed1")
+                    Timber.i("RequestSuccess1")
                 }
                 else
                 {
@@ -262,17 +262,17 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                             Manifest.permission.ACCESS_COARSE_LOCATION),
                         REQUEST_LOCATION_PERMISSION
                     )
-                    Timber.i("RequestSuccess1")
+                    Timber.i("RequestFailed1")
                 }
             }
             else {
                 if (ActivityCompat.checkSelfPermission(
                         requireActivity(),
                         Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                         requireActivity(),
                         Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
+                    ) == PackageManager.PERMISSION_GRANTED
                 ) {
                     // TODO: Consider calling
                     //    ActivityCompat#requestPermissions
@@ -282,7 +282,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     // to handle the case where the user grants the permission. See the documentation
                     // for ActivityCompat#requestPermissions for more details.
                     //return
-                    Timber.i("RequestFailed2")
+                    Timber.i("RequestSuccess2")
 
                 }
                 else
@@ -293,7 +293,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                             Manifest.permission.ACCESS_COARSE_LOCATION),
                         REQUEST_LOCATION_PERMISSION
                     )
-                    Timber.i("RequestSuccess2")
+                    Timber.i("RequestFailed2")
                 }
             }
             map.setMyLocationEnabled(true)
@@ -313,19 +313,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (requestCode == REQUEST_LOCATION_PERMISSION) {
             if (runningQOrLater)
             {
-                if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    && (grantResults[1] == PackageManager.PERMISSION_GRANTED) && (grantResults[2] == PackageManager.PERMISSION_GRANTED))
+                if (grantResults.size > 0 && (grantResults[0] != PackageManager.PERMISSION_GRANTED)
+                    && (grantResults[1] != PackageManager.PERMISSION_GRANTED) && (grantResults[2] != PackageManager.PERMISSION_GRANTED))
                     {
                     enableMyLocation()
                     }
             }
             else
             {
-                enableMyLocation()
-                /*if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    && (grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
+                if (grantResults.size > 0 && (grantResults[0] != PackageManager.PERMISSION_GRANTED)
+                    && (grantResults[1] != PackageManager.PERMISSION_GRANTED)) {
+                    println("Location permission not granted")
                     enableMyLocation()
-                }*/
+                }
+                else
+                    println("Location permission granted")
             }
         }
     }

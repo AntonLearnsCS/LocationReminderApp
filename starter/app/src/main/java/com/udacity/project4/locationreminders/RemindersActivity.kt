@@ -60,36 +60,8 @@ class RemindersActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-    @RequiresApi(Build.VERSION_CODES.Q)
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Check if location permissions are granted and if so enable the
-        // location data layer.
 
-        Toast.makeText(this,"ResultsRequest", Toast.LENGTH_SHORT).show()
 
-        if (runningQOrLater)
-        {
-            if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                && (grantResults[1] == PackageManager.PERMISSION_GRANTED) && (grantResults[2] == PackageManager.PERMISSION_GRANTED))
-            {
-                Toast.makeText(this,"Q>=SuccessRequest", Toast.LENGTH_SHORT).show()
-            }
-        }
-        else
-        {
-            if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                && (grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
-                println("Results for < Q granted")
-            }
-            else
-            println("Results for < Q not granted")
-        }
-    }
     //triggers request permission display
     /*
      ActivityCompat.requestPermissions(
