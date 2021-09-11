@@ -166,16 +166,30 @@ class SaveReminderFragment : BaseFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        //Timber.tag("coord").i( _viewModel.latLng.value?.latitude + _viewModel.latLng.value?.longitude)
-        println("SaveReminder: " + _viewModel.latLng.value?.latitude + ", " + _viewModel.latLng.value?.longitude)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+
+
+    }
+    /*
+    According to Fragment lifecycle in Android OS, you cannot get the Activity associated with the fragment in the onCreateView,
+    because the Activity with which the Fragment is associated will not be created at that stage.
+     */
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    override fun onStart() {
+        super.onStart()
         binding.selectLocation.setOnClickListener {
             //Navigate to another fragment to get the user location
             _viewModel.navigationCommand.value =
                 NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
             //findNavController().popBackStack()
         }
-       /* reminderDataItem = ReminderDataItem(_viewModel.reminderTitle.value,_viewModel.reminderDescription.value,
-            _viewModel.reminderSelectedLocationStr,_viewModel.latitude.value,_viewModel.longitude.value)*/
+        /* reminderDataItem = ReminderDataItem(_viewModel.reminderTitle.value,_viewModel.reminderDescription.value,
+             _viewModel.reminderSelectedLocationStr,_viewModel.latitude.value,_viewModel.longitude.value)*/
 
         binding.saveReminder.setOnClickListener {
             //two-way data binding
@@ -191,17 +205,16 @@ class SaveReminderFragment : BaseFragment() {
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
 //             2) save the reminder to the local db
-            println("saveReminder onClick Latlng: " + _viewModel.latLng.value?.latitude)
             if (_viewModel.validateAndSaveReminder(reminderDataItem))
             {
                 println("Passed validate and latLng: " + _viewModel.latLng.value?.latitude)
-                    checkDeviceLocationSettingsAndStartGeofence()
+                checkDeviceLocationSettingsAndStartGeofence()
                 //_viewModel.navigationCommand.value =
                 //NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
                 //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
-            //TODO: Why if I pop the backstack here then onDestroy is called before "checkDeviceLocationSettingsAndStartGeofence()"
-            // is finished? This is evident in latLng being reverted to null value.
-            //findNavController().popBackStack()
+                //TODO: Why if I pop the backstack here then onDestroy is called before "checkDeviceLocationSettingsAndStartGeofence()"
+                // is finished? This is evident in latLng being reverted to null value.
+                //findNavController().popBackStack()
                 /*_viewModel.navigationCommand.value =
                     NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())*/
             }
@@ -223,13 +236,19 @@ class SaveReminderFragment : BaseFragment() {
             priority = LocationRequest.PRIORITY_LOW_POWER
         }
         val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+        println("checkDeviceLocationBeforeSettingsCheck0: " + isDetached)
 
         val settingsClient = LocationServices.getSettingsClient(requireActivity())
+        println("checkDeviceLocationBeforeSettingsCheck1: " + isDetached)
+
         val locationSettingsResponseTask =
             settingsClient.checkLocationSettings(builder.build())
+        println("checkDeviceLocationBeforeSettingsCheck2: " + isDetached)
 
         locationSettingsResponseTask.addOnFailureListener { exception ->
+            println("LocationSettingsResponseOnFailure")
             if (exception is ResolvableApiException && resolve){
+
                 // Location settings are not satisfied, but this can be fixed
                 // by showing the user a dialog.
                 try {
@@ -265,19 +284,6 @@ class SaveReminderFragment : BaseFragment() {
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun addGeofenceForClue() {
         println("addGeofence latLng: " + latLng?.latitude)
-        //Build the geofence using the geofence builder
-        /*val geofence = _viewModel.latLng.value?.let {
-            Geofence.Builder()
-                .setRequestId(_viewModel.reminderSelectedLocationStr + _viewModel.latLng.value!!.latitude.toString())
-                .setCircularRegion(
-                    it.latitude,
-                    it.longitude,
-                    GEOFENCE_RADIUS_IN_METERS
-                )
-                .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
-                .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
-                .build()
-        }*/
 
         // Build the Geofence Object
         val geofence = latLng?.latitude?.let {
@@ -309,16 +315,17 @@ class SaveReminderFragment : BaseFragment() {
 
         println("AddGeofence Detached? : "  + isDetached)
 
+        //TODO: Why is checkSelfPermission failing here when it was approved in SelectLocationFragment?
         if (ActivityCompat.checkSelfPermission(
                 requireActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
                 requireActivity(),
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
                 requireActivity(),
                 Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -328,22 +335,32 @@ class SaveReminderFragment : BaseFragment() {
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
             //return
+            //Toast.makeText(context,"Permission Denied",Toast.LENGTH_SHORT).show()
+            println("First try is no permission")
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
+                REQUEST_LOCATION_PERMISSION
+            )
+        }
+        else {
+
             Toast.makeText(context,"Permission Granted",Toast.LENGTH_SHORT).show()
 
-            Timber.i("CheckSelfPassed")
             //to add a geofence, you add the actual geofence location (geofenceRequest) as well as where you want the
             //activity to start once the geofence is triggered (geofencePendingIntent), which in our case is BroadcastReceiver
             println("Detached? : " + isDetached)
             geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
                 addOnSuccessListener {
                     // Geofences added.
-                    Toast.makeText(
-                        requireActivity(), "Geofence Added",
-                        Toast.LENGTH_SHORT).show()
+                    //Toast.makeText(requireActivity(), "Geofence Added", Toast.LENGTH_SHORT).show()
 
                     findNavController().popBackStack()
                     //Log.e("Add Geofence", geofenceList[counter].requestId)
-
                     counter++
 
                     // Tell the viewmodel that we've reached the end of the game and
@@ -363,32 +380,6 @@ class SaveReminderFragment : BaseFragment() {
                 }
             }
         }
-        else {
-            //Toast.makeText(context,"Permission Denied",Toast.LENGTH_SHORT).show()
-            if (runningQOrLater) {
-                ActivityCompat.requestPermissions(
-                    requireActivity(),
-                    arrayOf<String>(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                    ),
-                    REQUEST_LOCATION_PERMISSION
-                )
-            }
-            else
-            {
-                println("Below Q")
-                Toast.makeText(context,"belowQ",Toast.LENGTH_SHORT).show()
-                ActivityCompat.requestPermissions(
-                    requireActivity(),
-                    arrayOf<String>(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ),
-                    REQUEST_LOCATION_PERMISSION
-                )
-            }
-        }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -403,26 +394,15 @@ class SaveReminderFragment : BaseFragment() {
         println("Permission Result: ResultsRequest")
         Toast.makeText(requireContext(),"ResultsRequest", Toast.LENGTH_SHORT).show()
 
-        if (runningQOrLater)
-        {
+
             if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
                 && (grantResults[1] == PackageManager.PERMISSION_GRANTED) && (grantResults[2] == PackageManager.PERMISSION_GRANTED))
             {
                 //Toast.makeText(requireContext(),"Q>=SuccessRequest", Toast.LENGTH_SHORT).show()
-                println("Passed permission > Q")
                     checkDeviceLocationSettingsAndStartGeofence()
             }
-        }
         else
-        {
-            if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                && (grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
-                println("Results for < Q granted")
-                checkDeviceLocationSettingsAndStartGeofence()
-            }
-            else
-                println("Results for < Q not granted")
-        }
+                println("Permission still not granted")
     }
 
     //remove current geofences pending intent before sending new pending intent
