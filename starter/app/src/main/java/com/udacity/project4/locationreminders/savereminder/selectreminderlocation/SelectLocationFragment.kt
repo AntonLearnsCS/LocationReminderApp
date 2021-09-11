@@ -44,7 +44,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var mapFragment: SupportMapFragment
-
     private lateinit var map : GoogleMap
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -118,7 +117,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (googleMap != null) {
             map = googleMap
         }
-        onLocationSelected()
+        //onLocationSelected()
 
         // Add a marker in Lakewood/Long Beach CA and move the camera, note that coordinates have a wide range, which is why decimals
         //can dictate the difference between two cities
@@ -168,7 +167,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
              */
 
             _viewModel.latLng.value = latLng
-            println("SelectLocation:" + latLng.latitude.toString() + ", " + latLng.longitude.toString())
+            println("SelectLocation: " + latLng.latitude.toString() + ", " + latLng.longitude.toString())
             Timber.i("locationSingle: " + _viewModel.locationSingle.value?.get(0)?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude
                     + ", " + _viewModel.latLng.value?.longitude)
             findNavController().popBackStack()

@@ -3,21 +3,16 @@ package com.udacity.project4.locationreminders.savereminder
 import android.app.Application
 import android.location.Address
 import android.location.Geocoder
-import androidx.core.content.ContentProviderCompat
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.test.core.app.ApplicationProvider
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.PointOfInterest
-import com.udacity.project4.MyApp
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseViewModel
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
-import com.udacity.project4.testClass
 import kotlinx.coroutines.launch
 
 class SaveReminderViewModel(val app: Application, private val dataSource: ReminderDataSource) : BaseViewModel(app) {
@@ -27,8 +22,7 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
     val geocoder = Geocoder(this.app)
 
 
-    @Synchronized
-    fun getSynchronizedLatLngAddress(LatLng : LatLng) : List<Address>
+    fun getLatLngAddress(LatLng : LatLng) : List<Address>
     {
        return geocoder.getFromLocation(LatLng.latitude, LatLng.longitude,1)
     }
@@ -39,10 +33,11 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
     //val locationMutable : MutableLiveData<location> = MutableLiveData(initialLocation)
 
     //TODO: Unchanging even though latLng changes value
-    val locationSingle = MutableLiveData(latLng.value?.let { getSynchronizedLatLngAddress(it) })
+    val locationSingle = MutableLiveData(latLng.value?.let { getLatLngAddress(it) })
         //latLng.value?.let { geocoder.getFromLocation(it.latitude, latLng.value!!.longitude,1) }
 
-    val reminderSelectedLocationStr : String? = if (locationSingle.value != null || locationSingle.value?.size != 0) locationSingle.value?.get(0)?.locality
+    val reminderSelectedLocationStr : String? = if (locationSingle.value != null || locationSingle.value?.size != 0)
+        locationSingle.value?.get(0)?.locality
     else null
 
     val cityNameForTwoWayBinding = MutableLiveData(reminderSelectedLocationStr)
@@ -117,7 +112,7 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
             showSnackBarInt.value = R.string.err_select_location
             return false
         }
-        if (reminderData.latitude == 33.8)
+        if (reminderData.latitude == 33.8 && reminderData.longitude == -118.1)
         {
             showSnackBarInt.value = R.string.missing_coordinates
             return false

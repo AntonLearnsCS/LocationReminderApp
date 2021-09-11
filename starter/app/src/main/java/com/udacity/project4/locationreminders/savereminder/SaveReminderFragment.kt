@@ -20,11 +20,8 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
+import androidx.lifecycle.*
 import androidx.lifecycle.Transformations.map
-import androidx.lifecycle.map
 import androidx.navigation.fragment.findNavController
 import androidx.test.core.app.ApplicationProvider
 import com.google.android.gms.common.api.ResolvableApiException
@@ -44,6 +41,7 @@ import com.udacity.project4.utils.getUniqueId
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import timber.log.Timber
@@ -84,6 +82,7 @@ class SaveReminderFragment : BaseFragment() {
     private var geofenceList = mutableListOf<Geofence>()
     val GEOFENCE_EXPIRATION_IN_MILLISECONDS: Long = TimeUnit.HOURS.toMillis(1)
 
+    private var latLng: LatLng? = LatLng(33.0,-118.1)
     private lateinit var geofencingClient: GeofencingClient
     private val runningQOrLater : Boolean = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
     private lateinit var reminderDataItem : ReminderDataItem
@@ -162,13 +161,16 @@ class SaveReminderFragment : BaseFragment() {
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        //Q: Culprit?
+        //references the fragment instead of activity
         binding.lifecycleOwner = requireActivity()
         //Timber.tag("coord").i( _viewModel.latLng.value?.latitude + _viewModel.latLng.value?.longitude)
-        println("SaveReminder" + _viewModel.latLng.value?.latitude + ", " + _viewModel.latLng.value?.longitude)
+        println("SaveReminder: " + _viewModel.latLng.value?.latitude + ", " + _viewModel.latLng.value?.longitude)
         binding.selectLocation.setOnClickListener {
             //Navigate to another fragment to get the user location
             _viewModel.navigationCommand.value =
                 NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
+            //findNavController().popBackStack()
         }
        /* reminderDataItem = ReminderDataItem(_viewModel.reminderTitle.value,_viewModel.reminderDescription.value,
             _viewModel.reminderSelectedLocationStr,_viewModel.latitude.value,_viewModel.longitude.value)*/
@@ -178,7 +180,7 @@ class SaveReminderFragment : BaseFragment() {
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription.value
             val location = _viewModel.reminderSelectedLocationStr
-            val latLng = _viewModel.latLng.value
+            latLng = _viewModel.latLng.value
             //no id for clicked location b/c ReminderDataItem will automatically generate one for us, id only for geofence
             reminderDataItem = ReminderDataItem(title,description,location,latLng?.latitude,latLng?.longitude)
 
@@ -187,16 +189,17 @@ class SaveReminderFragment : BaseFragment() {
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
 //             2) save the reminder to the local db
-                Timber.i("Latlng: " + _viewModel.latLng.value?.latitude )
-            println("Latlng: " + _viewModel.latLng.value?.latitude)
+            println("saveReminder onClick Latlng: " + _viewModel.latLng.value?.latitude)
             if (_viewModel.validateAndSaveReminder(reminderDataItem))
             {
-                println("Passed validate and latLng")
-                checkDeviceLocationSettingsAndStartGeofence()
-                _viewModel.navigationCommand.value =
-                    NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+                println("Passed validate and latLng: " + _viewModel.latLng.value?.latitude)
+                    checkDeviceLocationSettingsAndStartGeofence()
+                //_viewModel.navigationCommand.value =
+                //NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
                 //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
-                //findNavController().popBackStack()
+            //TODO: Why if I pop the backstack here then onDestroy is called before "checkDeviceLocationSettingsAndStartGeofence()"
+            // is finished? This is evident in latLng being reverted to null value.
+            //findNavController().popBackStack()
                 /*_viewModel.navigationCommand.value =
                     NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())*/
             }
@@ -259,29 +262,50 @@ class SaveReminderFragment : BaseFragment() {
     //call only once permission is granted
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun addGeofenceForClue() {
-        val id = getUniqueId()
+        println("addGeofence latLng: " + latLng?.latitude)
         //Build the geofence using the geofence builder
-        _viewModel.latLng.value?.let {
+        /*val geofence = _viewModel.latLng.value?.let {
             Geofence.Builder()
-                .setRequestId(_viewModel.reminderSelectedLocationStr + _viewModel.latLng.value!!.latitude.toString()) //so we can reference the geofences built
+                .setRequestId(_viewModel.reminderSelectedLocationStr + _viewModel.latLng.value!!.latitude.toString())
                 .setCircularRegion(
                     it.latitude,
-                    _viewModel.latLng.value!!.longitude,
+                    it.longitude,
                     GEOFENCE_RADIUS_IN_METERS
                 )
                 .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
                 .build()
-        }?.let { geofenceList.add(it) }
+        }*/
+        // Build the Geofence Object
+        val geofence = latLng?.latitude?.let {
+            latLng?.longitude?.let { it1 ->
+                Geofence.Builder()
+                    // Set the request ID, string to identify the geofence.
+                    .setRequestId(_viewModel.latLng.value?.latitude.toString())
+                    // Set the circular region of this geofence.
+                    .setCircularRegion(
+                        it,
+                        it1,
+                        GEOFENCE_RADIUS_IN_METERS
+                    )
+                    // Set the expiration duration of the geofence. This geofence gets
+                    // automatically removed after this period of time.
+                    .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                    // Set the transition types of interest. Alerts are only generated for these
+                    // transition. We track entry and exit transitions in this sample.
+                    .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+                    .build()
+            }
+        }
 
         //Build the geofence request
         val geofencingRequest = GeofencingRequest.Builder()
             .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-            .addGeofences(geofenceList)
+            .addGeofence(geofence)
             .build()
 
         if (ActivityCompat.checkSelfPermission(
-                requireActivity(),
+                requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                 requireActivity(),
@@ -309,9 +333,9 @@ class SaveReminderFragment : BaseFragment() {
                     // Geofences added.
                     Toast.makeText(
                         requireActivity(), "Geofence Added",
-                        Toast.LENGTH_SHORT
-                    )
-                        .show()
+                        Toast.LENGTH_SHORT).show()
+
+                    //findNavController().popBackStack()
                     Log.e("Add Geofence", geofenceList[counter].requestId)
 
                     counter++
@@ -348,7 +372,7 @@ class SaveReminderFragment : BaseFragment() {
             }
             else
             {
-                //Toast.makeText(context,"belowQ",Toast.LENGTH_SHORT).show()
+                Toast.makeText(context,"belowQ",Toast.LENGTH_SHORT).show()
 
                 ActivityCompat.requestPermissions(
                     requireActivity(),
@@ -361,38 +385,6 @@ class SaveReminderFragment : BaseFragment() {
             }
         }
     }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Check if location permissions are granted and if so enable the
-        // location data layer.
-
-        Toast.makeText(context,"ResultsRequest",Toast.LENGTH_SHORT).show()
-
-        if (runningQOrLater)
-            {
-                if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    && (grantResults[1] == PackageManager.PERMISSION_GRANTED) && (grantResults[2] == PackageManager.PERMISSION_GRANTED))
-                {
-                    Toast.makeText(context,"Q>=SuccessRequest",Toast.LENGTH_SHORT).show()
-                }
-            }
-            else
-            {
-                if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    && (grantResults[1] == PackageManager.PERMISSION_GRANTED)) {
-                    Toast.makeText(context,"Q<=SuccessRequest",Toast.LENGTH_SHORT).show()
-                }
-                Toast.makeText(context,"MissingRequest",Toast.LENGTH_SHORT).show()
-            }
-    }
-
-
 
     //remove current geofences pending intent before sending new pending intent
     private fun removeGeofences() {
@@ -422,6 +414,7 @@ class SaveReminderFragment : BaseFragment() {
 
     override fun onDestroy() {
         super.onDestroy()
+        println("Destroyed")
         //make sure to clear the view model after destroy, as it's a single view model.
         _viewModel.onClear()
 
