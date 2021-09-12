@@ -3,6 +3,7 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 import android.Manifest
 import android.app.Application
+import android.content.Context
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
@@ -37,6 +38,7 @@ import java.util.*
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private val TAG = "SelectLocationFragment"
     private val REQUEST_LOCATION_PERMISSION = 1
+    private lateinit var contxt: Context
 
     private val runningQOrLater = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
 
@@ -96,6 +98,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
 
         return binding.root
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        contxt = context
     }
 
 /*    override fun onAttachFragment(childFragment: Fragment) {
@@ -207,13 +214,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun isPermissionGranted() : Boolean {
             return ContextCompat.checkSelfPermission(
-                requireActivity(),
+                contxt,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                requireActivity(),
+                contxt,
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION
             ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                requireActivity(),
+                contxt,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
     }
@@ -252,8 +259,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
         else
         {
+            //https://stackoverflow.com/questions/32714787/android-m-permissions-onrequestpermissionsresult-not-being-called
             println("Requesting permission")
-            requestPermissions(arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+            requestPermissions(arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION),
                 REQUEST_LOCATION_PERMISSION)
         }
@@ -269,15 +277,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         // Check if location permissions are granted and if so enable the
         // location data layer.
-        println("OnRequestPermission called")
+
+        //"0" means permission granted for grantResults
+        println("OnRequestPermission called: " + grantResults.size + " , " + grantResults[0] +
+                " , " + grantResults[1])
+
+        println("Permissions: " + permissions[0] + ", " + permissions[1])
+
             if (requestCode == REQUEST_LOCATION_PERMISSION && grantResults.size > 0 && (grantResults[0] ==
                         PackageManager.PERMISSION_GRANTED) && (grantResults[1] == PackageManager.PERMISSION_GRANTED)
-                && (grantResults[2] == PackageManager.PERMISSION_GRANTED))
+               )
                 {
                     println("Location: Request permission successful")
-            enableMyLocation()
+                    enableMyLocation()
                 }
-        else
+            else
                 println("Location: Request permission failed")
     }
 
