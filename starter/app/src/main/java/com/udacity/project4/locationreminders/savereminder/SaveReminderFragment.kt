@@ -336,6 +336,7 @@ class SaveReminderFragment : BaseFragment() {
             // for ActivityCompat#requestPermissions for more details.
             //return
             //Toast.makeText(context,"Permission Denied",Toast.LENGTH_SHORT).show()
+            //TODO: Why is onDestroy() being called?
             println("First try is no permission")
             ActivityCompat.requestPermissions(
                 requireActivity(),
@@ -388,12 +389,11 @@ class SaveReminderFragment : BaseFragment() {
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        //super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         // Check if location permissions are granted and if so enable the
         // location data layer.
         println("Permission Result: ResultsRequest")
         Toast.makeText(requireContext(),"ResultsRequest", Toast.LENGTH_SHORT).show()
-
 
             if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
                 && (grantResults[1] == PackageManager.PERMISSION_GRANTED) && (grantResults[2] == PackageManager.PERMISSION_GRANTED))
