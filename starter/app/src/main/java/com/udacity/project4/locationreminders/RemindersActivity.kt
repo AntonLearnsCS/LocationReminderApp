@@ -49,6 +49,7 @@ class RemindersActivity : AppCompatActivity() {
         //ServiceLocator.tasksRepository = FakeLocalRepository
     }
 
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {

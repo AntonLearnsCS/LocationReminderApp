@@ -206,8 +206,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun isPermissionGranted() : Boolean {
-        if (runningQOrLater)
-        {
             return ContextCompat.checkSelfPermission(
                 requireActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -218,17 +216,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 requireActivity(),
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
-        }
-        else
-        {
-            return ContextCompat.checkSelfPermission(
-                requireActivity(),
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED  && ContextCompat.checkSelfPermission(
-                requireActivity(),
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -238,10 +225,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             if (ActivityCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.ACCESS_BACKGROUND_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED
@@ -259,20 +246,19 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             else
             {
                 map.setMyLocationEnabled(true)
-                println("Enabled location successfully")
+                println("Location: Enabled location successfully")
                 _viewModel.successfuPermissionGranted.value = true
             }
         }
         else
         {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION),
-                REQUEST_LOCATION_PERMISSION
-            )
+            println("Requesting permission")
+            requestPermissions(arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION),
+                REQUEST_LOCATION_PERMISSION)
         }
     }
+
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onRequestPermissionsResult(
@@ -283,13 +269,16 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         // Check if location permissions are granted and if so enable the
         // location data layer.
-
-            if (requestCode == REQUEST_LOCATION_PERMISSION && grantResults.size > 0 && (grantResults[0] !=
-                        PackageManager.PERMISSION_GRANTED) && (grantResults[1] != PackageManager.PERMISSION_GRANTED)
-                && (grantResults[2] != PackageManager.PERMISSION_GRANTED))
+        println("OnRequestPermission called")
+            if (requestCode == REQUEST_LOCATION_PERMISSION && grantResults.size > 0 && (grantResults[0] ==
+                        PackageManager.PERMISSION_GRANTED) && (grantResults[1] == PackageManager.PERMISSION_GRANTED)
+                && (grantResults[2] == PackageManager.PERMISSION_GRANTED))
                 {
+                    println("Location: Request permission successful")
             enableMyLocation()
                 }
+        else
+                println("Location: Request permission failed")
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

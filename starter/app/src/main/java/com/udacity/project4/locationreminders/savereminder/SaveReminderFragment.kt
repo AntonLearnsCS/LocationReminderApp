@@ -1,6 +1,7 @@
 package com.udacity.project4.locationreminders.savereminder
 
 import android.Manifest
+import android.app.Activity
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -71,6 +72,8 @@ fun ReminderDataItem.asDatabaseModel(): ReminderDTO {
 class SaveReminderFragment : BaseFragment() {
     private var counter = 0
     private val REQUEST_LOCATION_PERMISSION = 1
+    private lateinit var contxt: Context
+
 
     //Get the view model this time as a single to be shared with the another fragment, note the "override" tag
     //Note: We don't use "override val _viewModel: SaveReminderViewModel = get<SaveReminderViewModel>()"
@@ -89,7 +92,7 @@ class SaveReminderFragment : BaseFragment() {
     private var intent = Intent()
 
     private val geofencePendingIntent: PendingIntent by lazy {
-         intent = Intent(requireActivity(), GeofenceBroadcastReceiver::class.java)
+         intent = Intent(contxt, GeofenceBroadcastReceiver::class.java)
         intent.action = ACTION_GEOFENCE_EVENT
         //intent.putExtra()
         PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
@@ -115,7 +118,7 @@ class SaveReminderFragment : BaseFragment() {
 
         binding.viewModel = _viewModel
 
-        geofencingClient = LocationServices.getGeofencingClient(requireActivity())
+        geofencingClient = LocationServices.getGeofencingClient(contxt)
         //TODO: Strange, pressing add button after save button calls onCreateView
         Timber.i("testingNull" + _viewModel.reminderTitle.value)
 
@@ -161,6 +164,13 @@ class SaveReminderFragment : BaseFragment() {
         }
     }
      */
+    //onAttach is a callback that is called when the fragment is attached to its host activity
+    //"context" refers to the Activity that the fragment is attached to
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        contxt = context
+
+    }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -238,7 +248,7 @@ class SaveReminderFragment : BaseFragment() {
         val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
         println("checkDeviceLocationBeforeSettingsCheck0: " + isDetached)
 
-        val settingsClient = LocationServices.getSettingsClient(requireActivity())
+        val settingsClient = LocationServices.getSettingsClient(contxt)
         println("checkDeviceLocationBeforeSettingsCheck1: " + isDetached)
 
         val locationSettingsResponseTask =
@@ -255,14 +265,15 @@ class SaveReminderFragment : BaseFragment() {
                     // Show the dialog by calling startResolutionForResult(),
                     // and check the result in onActivityResult().
                     exception.startResolutionForResult(
-                        requireActivity(),
+                        contxt as Activity,
                         REQUEST_TURN_DEVICE_LOCATION_ON
                     )
                 } catch (sendEx: IntentSender.SendIntentException) {
                 Timber.i("Error getting location settings resolution:" + sendEx.message)
                 //Log.d(TAG, "Error geting location settings resolution: " + sendEx.message)
                 }
-            } else {
+            }
+            else {
                 Snackbar.make(
                     binding.saveReminderLayout,
                     R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
@@ -317,13 +328,13 @@ class SaveReminderFragment : BaseFragment() {
 
         //TODO: Why is checkSelfPermission failing here when it was approved in SelectLocationFragment?
         if (ActivityCompat.checkSelfPermission(
-                requireActivity(),
+                contxt,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
-                requireActivity(),
+                contxt,
                 Manifest.permission.ACCESS_BACKGROUND_LOCATION
             ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
-                requireActivity(),
+                contxt,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
@@ -339,7 +350,7 @@ class SaveReminderFragment : BaseFragment() {
             //TODO: Why is onDestroy() being called?
             println("First try is no permission")
             ActivityCompat.requestPermissions(
-                requireActivity(),
+                contxt as Activity,
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
                     Manifest.permission.ACCESS_BACKGROUND_LOCATION,
@@ -350,7 +361,7 @@ class SaveReminderFragment : BaseFragment() {
         }
         else {
 
-            Toast.makeText(context,"Permission Granted",Toast.LENGTH_SHORT).show()
+            Toast.makeText(contxt,"Permission Granted",Toast.LENGTH_SHORT).show()
 
             //to add a geofence, you add the actual geofence location (geofenceRequest) as well as where you want the
             //activity to start once the geofence is triggered (geofencePendingIntent), which in our case is BroadcastReceiver
@@ -372,7 +383,7 @@ class SaveReminderFragment : BaseFragment() {
                 addOnFailureListener {
                     // Failed to add geofences.
                     Toast.makeText(
-                        requireActivity(), R.string.geofences_not_added,
+                        contxt, R.string.geofences_not_added,
                         Toast.LENGTH_SHORT
                     ).show()
                     if ((it.message != null)) {
@@ -393,7 +404,7 @@ class SaveReminderFragment : BaseFragment() {
         // Check if location permissions are granted and if so enable the
         // location data layer.
         println("Permission Result: ResultsRequest")
-        Toast.makeText(requireContext(),"ResultsRequest", Toast.LENGTH_SHORT).show()
+        Toast.makeText(contxt,"ResultsRequest", Toast.LENGTH_SHORT).show()
 
             if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
                 && (grantResults[1] == PackageManager.PERMISSION_GRANTED) && (grantResults[2] == PackageManager.PERMISSION_GRANTED))
@@ -414,7 +425,7 @@ class SaveReminderFragment : BaseFragment() {
             addOnSuccessListener {
                 // Geofences removed
                 //Log.d(TAG, getString(R.string.geofences_removed))
-                Toast.makeText(ApplicationProvider.getApplicationContext(),"Geofences removed", Toast.LENGTH_SHORT)
+                Toast.makeText(contxt,"Geofences removed", Toast.LENGTH_SHORT)
                     .show()
             }
             addOnFailureListener {
