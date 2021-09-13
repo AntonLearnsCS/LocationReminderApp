@@ -213,34 +213,44 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun isPermissionGranted() : Boolean {
+        if (!runningQOrLater) {
             return ContextCompat.checkSelfPermission(
                 contxt,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
                 contxt,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+        else
+        {
+            return ContextCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
                 contxt,
                 Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun enableMyLocation() {
         if (isPermissionGranted()) {
-
             if (ActivityCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.ACCESS_FINE_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                ) != PackageManager.PERMISSION_GRANTED || (runningQOrLater && ActivityCompat.checkSelfPermission(
                     requireContext(),
                     Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-
+                ) != PackageManager.PERMISSION_GRANTED))
+             {
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
                 // here to request the missing permissions, and then overriding
@@ -259,15 +269,26 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
         else
         {
-            //https://stackoverflow.com/questions/32714787/android-m-permissions-onrequestpermissionsresult-not-being-called
-            println("Requesting permission")
-            requestPermissions(arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION),
-                REQUEST_LOCATION_PERMISSION)
-        }
+            if (runningQOrLater)
+            {
+                requestPermissions(arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                    REQUEST_LOCATION_PERMISSION)
+            }
+            else {
+                //https://stackoverflow.com/questions/32714787/android-m-permissions-onrequestpermissionsresult-not-being-called
+                println("Requesting permission")
+                requestPermissions(
+                    arrayOf<String>(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ),
+                    REQUEST_LOCATION_PERMISSION
+                )
+            }
+            }
     }
-
-
+    //TODO: Why is this method still being called when I am running API 28 and Q is API 29?
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onRequestPermissionsResult(
         requestCode: Int,

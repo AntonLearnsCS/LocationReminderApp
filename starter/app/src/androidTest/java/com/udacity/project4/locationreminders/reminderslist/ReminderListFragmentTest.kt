@@ -210,7 +210,7 @@ class ReminderListFragmentTest : KoinTest {
         //assertThat(Intents.getIntents(), `is`("RemindersActivity.savereminder.action.ACTION_GEOFENCE_EVENT"))
         //TODO: Why is my intent showing as null/not matching?
 
-        intended(toPackage("com.udacity.project4.geofence.GeofenceBroadcastReceiver"))
+        intended(toPackage("com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver"))//"com.udacity.project4.geofence.GeofenceBroadcastReceiver"))
 
         //verify(navController.navigate(ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity()))
         //Then - the selected task should be gone from ReminderListFragment
