@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -20,28 +21,22 @@ import com.udacity.project4.locationreminders.ReminderDescriptionActivity
 import com.udacity.project4.locationreminders.ReminderDescriptionActivityArgs
 //import com.udacity.project4.locationreminders.ReminderDescriptionActivityArgs
 import com.udacity.project4.locationreminders.RemindersActivity
+import com.udacity.project4.locationreminders.savereminder.selectreminderlocation.DetailFragmentViewModel
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 
 class ReminderDetailFragment() : BaseFragment() {
     override val _viewModel: RemindersListViewModel by inject()
     private lateinit var binding: ReminderDescriptionFragmentBinding
-
-    //val args = ReminderDescriptionActivityArgs.fromBundle(arguments!!).ReminderDataItem
+    private lateinit var passedInReminderItem : ReminderDataItem
+    private val viewModel: DetailFragmentViewModel by lazy {
+        ViewModelProvider(this).get(DetailFragmentViewModel::class.java)
+    }    //val args = ReminderDescriptionActivityArgs.fromBundle(arguments!!).ReminderDataItem
     //val args = this.arguments
 
-    val args : ReminderDetailFragmentArgs by navArgs()
+    val args : ReminderDescriptionActivityArgs by navArgs()
 
-    companion object {
-        private const val EXTRA_ReminderDataItem = "EXTRA_ReminderDataItem"
 
-        // receive the reminder object after the user clicks on the notification
-        fun newIntent(context: Context, reminderDataItem: ReminderDataItem): Intent {
-            val intent = Intent(context, ReminderDescriptionActivity::class.java)
-            intent.putExtra(EXTRA_ReminderDataItem, reminderDataItem)
-            return intent
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,7 +46,25 @@ class ReminderDetailFragment() : BaseFragment() {
         binding = DataBindingUtil.inflate(layoutInflater,R.layout.reminder_description_fragment,container,false)
         //Timber.i("test",args.ReminderDataItem.title)
 
-        val passedInReminderItem = args.ReminderDataItem
+        /* when (args.ReminderDataItem)
+        {
+            null -> passedInReminderItem = args.ReminderDataItem
+
+            else -> passedInReminderItem = ReminderDataItem("Title","Description","Location",2.0,3.0)
+        }*/
+       /* if (viewModel.reminderDataItem.value != null)
+        {
+
+            passedInReminderItem = viewModel.reminderDataItem.value!!//args.ReminderDataItem
+        }
+        else
+        {
+            passedInReminderItem = args.ReminderDataItem!!
+        }*/
+        //TODO: Unable to retrieve argument from sendNotification() since the extra of the intent is not recognize as a
+        // safe-args argument
+        passedInReminderItem = args.ReminderDataItem
+
         //val args = intent.getSerializableExtra(EXTRA_ReminderDataItem) as ReminderDataItem?
         binding.reminderDataItem = passedInReminderItem
         //TODO: Add the implementation of the reminder details
@@ -66,9 +79,14 @@ class ReminderDetailFragment() : BaseFragment() {
             // Here, we just need the context of the fragment, doing so results in the error:
             //java.lang.IllegalStateException: No instrumentation registered! Must run under a registering instrumentation.
             val intent = Intent(context, RemindersActivity::class.java)
-            intent.putExtra("finishedTask", passedInReminderItem.id)
+            intent.putExtra("finishedTask", passedInReminderItem?.id)
             startActivity(intent)
         }
         return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        viewModel.reminderDataItem.value = null
     }
 }

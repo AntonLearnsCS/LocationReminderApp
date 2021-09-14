@@ -9,14 +9,10 @@
         android:id="@+id/ReminderDescriptionActivity"
         android:name="com.udacity.project4.locationreminders.ReminderDescriptionActivity"
     >
-
-    <argument
-        android:name="ReminderDataItem"
-        app:argType="com.udacity.project4.locationreminders.reminderslist.ReminderDataItem"
-        />
-
-
-</activity>
+        <argument
+            android:name="ReminderDataItem"
+            app:argType="com.udacity.project4.locationreminders.reminderslist.ReminderDataItem" />
+    </activity>
 
     <fragment
         android:id="@+id/reminderListFragment"

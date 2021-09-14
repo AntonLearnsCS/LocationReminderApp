@@ -1,5 +1,6 @@
 package com.udacity.project4.locationreminders.reminderslist
 
+import androidx.annotation.Nullable
 import java.io.Serializable
 import java.util.*
 
@@ -13,4 +14,4 @@ data class ReminderDataItem(
     var latitude: Double?,
     var longitude: Double?,
     val id: String = UUID.randomUUID().toString() //generates random id
-) : Serializable
+) : Serializable //Serializable is use for passing object through Intent
