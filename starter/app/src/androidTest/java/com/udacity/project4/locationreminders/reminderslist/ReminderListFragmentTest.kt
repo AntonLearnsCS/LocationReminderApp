@@ -41,6 +41,7 @@ import com.udacity.project4.locationreminders.savereminder.SaveReminderFragment
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers.*
 import org.hamcrest.Description
 import org.hamcrest.Matcher
@@ -161,7 +162,10 @@ class ReminderListFragmentTest : KoinTest {
     @After
     fun After()
     {
-
+        //If I dont call this in the @After then the data I saved during testing will persist in the local Database
+        runBlockingTest {
+            realRepo.deleteAllReminders()
+        }
       //  Intents.release()
     }
 

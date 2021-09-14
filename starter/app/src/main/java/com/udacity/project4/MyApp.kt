@@ -23,10 +23,10 @@ class MyApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-
+        //TODO: Timber statements not printing, why?
         if(BuildConfig.DEBUG)
         {
-            Timber.plant(Timber.DebugTree());
+            Timber.plant(Timber.DebugTree())
         }
         /**
          * use Koin Library as a service locator

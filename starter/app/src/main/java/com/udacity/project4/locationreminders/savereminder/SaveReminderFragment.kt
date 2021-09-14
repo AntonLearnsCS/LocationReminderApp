@@ -36,7 +36,7 @@ import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 
-const val GEOFENCE_RADIUS_IN_METERS = 1000f
+const val GEOFENCE_RADIUS_IN_METERS = 100000f
 
 //following structure from DevByte domain -> DTO conversion
 //create a dataclass
@@ -158,7 +158,6 @@ class SaveReminderFragment : BaseFragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         contxt = context
-
     }
 
     /*
@@ -194,6 +193,7 @@ class SaveReminderFragment : BaseFragment() {
 //             2) save the reminder to the local db
             if (_viewModel.validateAndSaveReminder(reminderDataItem))
             {
+                Timber.tag("test").i("test","testing")
                 println("Passed validate and latLng: " + _viewModel.latLng.value?.latitude)
                 checkDeviceLocationSettingsAndStartGeofence()
                 //_viewModel.navigationCommand.value =
@@ -278,7 +278,7 @@ class SaveReminderFragment : BaseFragment() {
             latLng?.longitude?.let { it1 ->
                 Geofence.Builder()
                     // Set the request ID, string to identify the geofence.
-                    .setRequestId(_viewModel.latLng.value?.latitude.toString())
+                    .setRequestId(reminderDataItem.id)//_viewModel.latLng.value?.latitude.toString())
                     // Set the circular region of this geofence.
                     .setCircularRegion(
                         it,

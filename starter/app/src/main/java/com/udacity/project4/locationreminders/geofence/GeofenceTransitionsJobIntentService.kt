@@ -7,6 +7,7 @@ import androidx.core.app.JobIntentService
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
 import com.udacity.project4.R
+import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
@@ -87,6 +88,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
 
             // triggeringGeofences - Returns a list of geofences that triggered this geofence transition alert.
             val numberOfTriggers = geofencingEvent.triggeringGeofences.size
+            println("num triggers: " + numberOfTriggers)
             var i = 0
             while (i < numberOfTriggers)
             {
@@ -98,10 +100,11 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
 
     //TODO: get the request id of the current geofence
     private fun sendNotification(triggeringGeofences: Geofence) {
+        println("notification sent")
         val requestId = triggeringGeofences.requestId
 
         //Get the local repository instance
-        val remindersLocalRepository: RemindersLocalRepository by inject()
+        val remindersLocalRepository: ReminderDataSource by inject()
 //        Interaction to the repository has to be through a coroutine scope
         CoroutineScope(coroutineContext).launch(SupervisorJob()) {
             //get the reminder with the request id

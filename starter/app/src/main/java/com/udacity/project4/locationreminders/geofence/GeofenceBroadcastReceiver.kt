@@ -41,7 +41,7 @@ override fun onReceive(context: Context, intent: Intent) {
     //if (intent.action == ACTION_GEOFENCE_EVENT) {
             //source: https://stackoverflow.com/questions/47593205/how-to-pass-custom-object-via-intent-in-kotlin
             Toast.makeText(context,"Broadcast Received",Toast.LENGTH_LONG).show()
-        Timber.i("Timber","Broadcast Received")
+            Timber.i("Timber","Broadcast Received")
             GeofenceTransitionsJobIntentService.enqueueWork(context, intent)
 
     }

@@ -30,12 +30,12 @@ class ReminderDetailFragment() : BaseFragment() {
     //val args = ReminderDescriptionActivityArgs.fromBundle(arguments!!).ReminderDataItem
     //val args = this.arguments
 
-    val args: ReminderDescriptionActivityArgs by navArgs()
+    val args : ReminderDetailFragmentArgs by navArgs()
 
     companion object {
         private const val EXTRA_ReminderDataItem = "EXTRA_ReminderDataItem"
 
-        //        receive the reminder object after the user clicks on the notification
+        // receive the reminder object after the user clicks on the notification
         fun newIntent(context: Context, reminderDataItem: ReminderDataItem): Intent {
             val intent = Intent(context, ReminderDescriptionActivity::class.java)
             intent.putExtra(EXTRA_ReminderDataItem, reminderDataItem)
@@ -50,7 +50,9 @@ class ReminderDetailFragment() : BaseFragment() {
     ): View? {
         binding = DataBindingUtil.inflate(layoutInflater,R.layout.reminder_description_fragment,container,false)
         //Timber.i("test",args.ReminderDataItem.title)
-        val passedInReminderItem = args.ReminderDataItem //intent.getSerializableExtra(EXTRA_ReminderDataItem) as ReminderDataItem?
+
+        val passedInReminderItem = args.ReminderDataItem
+        //val args = intent.getSerializableExtra(EXTRA_ReminderDataItem) as ReminderDataItem?
         binding.reminderDataItem = passedInReminderItem
         //TODO: Add the implementation of the reminder details
         //get allow user to navigate to DescriptionActivity
@@ -66,7 +68,6 @@ class ReminderDetailFragment() : BaseFragment() {
             val intent = Intent(context, RemindersActivity::class.java)
             intent.putExtra("finishedTask", passedInReminderItem.id)
             startActivity(intent)
-
         }
         return binding.root
     }
