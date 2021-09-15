@@ -55,8 +55,15 @@ class AuthenticationActivity : AppCompatActivity() {
 
         //DataBindingUtil - Utility class to create ViewDataBinding from layouts.
         //setContentView - Set the Activity's content view to the given layout and return the associated binding.
+        //You need DataBindingUtil since we are using ViewDataBinding and DataBindingUtil is a "Utility class to create
+        // ViewDataBinding from layouts."
+
         binding = DataBindingUtil.setContentView(
             this, R.layout.activity_authentication)
+        //Alternatively, you can do:
+        /* binding = com.udacity.project4.databinding.ActivityReminderDescriptionBinding.inflate(layoutInflater)
+         val view : View = binding.root
+         setContentView(view)*/
 
         //setContentView(R.layout.activity_authentication)
        // binding = ActivityAuthenticationBinding.inflate(getLayoutInflater())

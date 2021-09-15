@@ -94,10 +94,13 @@ class ReminderListFragment : BaseFragment() {
 
                 Timber.i("selected Reminder: " + _viewModel.selectedReminder.value?.title)
 
-                val intent = Intent(context,ReminderDescriptionActivity::class.java)
+                /*val intent = Intent(context,ReminderDescriptionActivity::class.java)
                 val bundle = Bundle()
                 bundle.putSerializable("ReminderDataItem",it)
-                intent.putExtras(bundle)
+                intent.putExtras(bundle)*/
+
+                val intent = Intent(context,ReminderDescriptionActivity::class.java)
+                intent.putExtra("ReminderDataItem",it)
                 startActivity(intent)
 
                 _viewModel.setSelectedReminderToNull()

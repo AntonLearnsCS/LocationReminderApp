@@ -54,14 +54,13 @@
             android:id="@+id/taskTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="236dp"
             android:gravity="center"
             android:text="@{reminderDataItem.title}"
             app:layout_constraintBottom_toTopOf="@+id/coordinates"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/DetailScreenHeader"
-            app:layout_constraintVertical_bias="0.186" />
+            app:layout_constraintStart_toStartOf="parent" />
 
         <ImageView
             android:id="@+id/googleMapsScreenshot"

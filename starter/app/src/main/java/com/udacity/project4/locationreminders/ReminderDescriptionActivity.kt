@@ -4,11 +4,12 @@ package com.udacity.project4.locationreminders
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.udacity.project4.R
 import com.udacity.project4.databinding.ActivityReminderDescriptionBinding
-import com.udacity.project4.databinding.ReminderDescriptionFragmentBinding
+//import com.udacity.project4.databinding.ReminderDescriptionFragmentBinding
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 
 /**
@@ -25,11 +26,21 @@ class ReminderDescriptionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminder_description)
 
-        binding = ActivityReminderDescriptionBinding.inflate(layoutInflater)
-        //val bundleItem = intent.getSerializableExtra("ReminderDataItem") as ReminderDataItem
-        val intent = this.intent
+        //Note: Inflating an activity that has a binding view using the commented method directly below will not result in creation
+        //of correct xml. Instead, use "DataBindingUtil.setContentView(...)"
+        //binding = ActivityReminderDescriptionBinding.inflate(layoutInflater)
+        binding = DataBindingUtil.setContentView(
+            this, R.layout.activity_reminder_description)
+        //Alternatively, you can do:
+       /* binding = com.udacity.project4.databinding.ActivityReminderDescriptionBinding.inflate(layoutInflater)
+        val view : View = binding.root
+        setContentView(view)*/
+
+        val bundleItem = intent.getSerializableExtra("ReminderDataItem") as ReminderDataItem
+        println("Title: " + bundleItem.title)
+        /*val intent = this.intent
         val bundle = intent.extras
-        val bundleItem = bundle?.getSerializable("ReminderDataItem") as ReminderDataItem
+        val bundleItem = bundle?.getSerializable("ReminderDataItem") as ReminderDataItem*/
         binding.reminderDataItem = bundleItem
 
         binding.lifecycleOwner = this
@@ -39,6 +50,8 @@ class ReminderDescriptionActivity : AppCompatActivity() {
             intentFinished.putExtra("finishedTask", bundleItem.id)
             startActivity(intentFinished)
         }
+
+    //return binding.root
     }
     companion object {
         private const val EXTRA_ReminderDataItem = "EXTRA_ReminderDataItem"

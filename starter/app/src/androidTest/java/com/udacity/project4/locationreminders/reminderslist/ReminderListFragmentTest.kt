@@ -253,11 +253,12 @@ class ReminderListFragmentTest : KoinTest {
                 )
             )
 
-        verify(mNavController).navigate(
+        intended(toPackage("com.udacity.project4.locationreminders.ReminderDescriptionActivity"))
+    /*    verify(mNavController).navigate(
             ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity(
                 returnReminderDataItemFromDb(reminderZ_id)
             )
-        )
+        )*/
         //check if a view exists
         //onView(withId(R.id.taskTitle)).check(matches(isDisplayed()))
 
