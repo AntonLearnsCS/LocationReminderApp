@@ -199,7 +199,11 @@ class SaveReminderFragment : BaseFragment() {
                 checkDeviceLocationSettingsAndStartGeofence()
                 //_viewModel.navigationCommand.value =
                 //NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
-
+                val intent = Intent()
+                val bundle = Bundle()
+                bundle.putSerializable("ReminderDataItem",reminderDataItem)
+                intent.putExtras(bundle)
+                startActivity(intent)
                 //TODO If I include navigation from here to reminderListFragment then save button persist
                 //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
                 //TODO: Why if I pop the backstack here then onDestroy is called before "checkDeviceLocationSettingsAndStartGeofence()"

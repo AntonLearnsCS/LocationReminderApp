@@ -1,26 +1,15 @@
 package com.udacity.project4.locationreminders
 
+//import com.udacity.project4.databinding.ActivityReminderDescriptionBinding
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.os.PersistableBundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.NavController
-import androidx.navigation.Navigation
-import androidx.navigation.findNavController
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.fragment.NavHostFragment.findNavController
-import androidx.navigation.fragment.navArgs
-import androidx.navigation.navArgs
-import com.google.android.gms.location.GeofencingClient
 import com.udacity.project4.R
-//import com.udacity.project4.databinding.ActivityReminderDescriptionBinding
+import com.udacity.project4.databinding.ActivityReminderDescriptionBinding
+import com.udacity.project4.databinding.ReminderDescriptionFragmentBinding
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
-import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
-import com.udacity.project4.locationreminders.savereminder.selectreminderlocation.DetailFragmentViewModel
-import timber.log.Timber
 
 /**
  * Activity that displays the reminder details after the user clicks on the notification
@@ -28,50 +17,28 @@ import timber.log.Timber
 //Note: We have to designate an activity as the detail screen since we cannot navigate to a fragment from a pending intent of the
 //notification
 class ReminderDescriptionActivity : AppCompatActivity() {
-    private val viewModel: DetailFragmentViewModel by lazy {
-        ViewModelProvider(this).get(DetailFragmentViewModel::class.java)
-    }
+
+    private lateinit var binding : ActivityReminderDescriptionBinding
 
     //source: https://developer.android.com/guide/navigation/navigation-migrate#add
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminder_description)
-        //Source: https://stackoverflow.com/questions/57682209/exception-view-does-not-have-a-navcontroller-set
-            //val args : ReminderDescriptionActivityArgs by navArgs()
-         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_detail) as NavHostFragment
 
-        //Pass activity destination args to a start destination fragment
-        //To do this, you need a reference to the NavHostFragment and set that fragment's navController's graph
+        binding = ActivityReminderDescriptionBinding.inflate(layoutInflater)
+        //val bundleItem = intent.getSerializableExtra("ReminderDataItem") as ReminderDataItem
+        val intent = this.intent
+        val bundle = intent.extras
+        val bundleItem = bundle?.getSerializable("ReminderDataItem") as ReminderDataItem
+        binding.reminderDataItem = bundleItem
 
-        //NavController manages app navigation within a NavHost.
-        //The navGraph shows the relationship between fragments
-        //Navigation flows and destinations are determined by the navigation graph owned by the controller
-        //2) navHostFragment.navController.setGraph(R.navigation.nav_graph_detail, intent.extras)
+        binding.lifecycleOwner = this
 
-        //You need to explicitly mention the NavHostFragment
-        Navigation.findNavController(findViewById(R.id.nav_host_fragment_detail)).setGraph(
-            R.navigation.nav_graph_detail,intent.extras)
-
-        //NavController manages app navigation within a NavHost.
-  /*      Navigation.findNavController(this, R.id.activity_reminder_description)
-            .setGraph(R.navigation.nav_graph_detail, intent.extras)*/
-
-        //An intent opens an activity and since we can't set the navGraph as above for notifications, we have to get the intent
-        //extra here in the activity
-/*
-        if (intent.getSerializableExtra("EXTRA_ReminderDataItem") != null)
-        {
-            println("extra found")
-            viewModel.reminderDataItem.value = intent.getSerializableExtra("EXTRA_ReminderDataItem") as ReminderDataItem
+        binding.finishedTask.setOnClickListener {
+            val intentFinished = Intent(this, RemindersActivity::class.java)
+            intentFinished.putExtra("finishedTask", bundleItem.id)
+            startActivity(intentFinished)
         }
-        else
-        {
-            println("Extra not found")
-            viewModel.reminderDataItem.value = args.ReminderDataItem
-        }
-*/
-
-
     }
     companion object {
         private const val EXTRA_ReminderDataItem = "EXTRA_ReminderDataItem"

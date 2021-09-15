@@ -94,8 +94,12 @@ class ReminderListFragment : BaseFragment() {
 
                 Timber.i("selected Reminder: " + _viewModel.selectedReminder.value?.title)
 
-                findNavController().navigate(ReminderListFragmentDirections.
-                actionReminderListFragmentToReminderDescriptionActivity(_viewModel.selectedReminder.value!!))
+                val intent = Intent(context,ReminderDescriptionActivity::class.java)
+                val bundle = Bundle()
+                bundle.putSerializable("ReminderDataItem",it)
+                intent.putExtras(bundle)
+                startActivity(intent)
+
                 _viewModel.setSelectedReminderToNull()
             }
         })
