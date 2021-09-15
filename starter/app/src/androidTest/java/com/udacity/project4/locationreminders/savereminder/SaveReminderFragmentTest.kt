@@ -57,9 +57,8 @@ fun saveReminder_SaveButtonClicked_SaveButtonNotVisible()
     onView(withId(R.id.saveReminder)).perform(click())
 
     //Then - SaveButton is not visible
-    onView(withId(R.id.saveReminder)).check(matches((isDisplayed())))
-
-    verify(navController).navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+    onView(withId(R.id.saveReminder)).check(matches(not(isDisplayed())))
+    //verify(navController).navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
 }
     //Source: https://stackoverflow.com/questions/32846738/android-testing-how-to-change-text-of-a-textview-using-espresso
     fun setTextInTextView(value: String?): ViewAction? {

@@ -14,4 +14,7 @@ data class ReminderDataItem(
     var latitude: Double?,
     var longitude: Double?,
     val id: String = UUID.randomUUID().toString() //generates random id
-) : Serializable //Serializable is use for passing object through Intent
+) : Serializable //This process of converting Non primitive types to primitives and sending across
+// to other application over some communication channel is called as Serialization. This is so the Android OS can recognize
+//the ReminderDataItem objects when processing it through system applications like NotificationManager.
+// Serializable is use for passing object through Intent

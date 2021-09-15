@@ -163,7 +163,7 @@ class ReminderListFragmentTest : KoinTest {
     fun After()
     {
         //If I dont call this in the @After then the data I saved during testing will persist in the local Database
-        runBlockingTest {
+        runBlocking {
             realRepo.deleteAllReminders()
         }
       //  Intents.release()
@@ -188,6 +188,8 @@ class ReminderListFragmentTest : KoinTest {
         onView(withId(R.id.reminderssRecyclerView)).check(matches(hasItem(hasDescendant(withText("TitleZ")))))
     }
     //can be used to test notification
+    //We don't actually use Espresso to test pending intent. If you want to test the intent used by the notification, see:
+    // https://stackoverflow.com/questions/34467310/espresso-test-for-notification-to-showing-up
     @Test
     fun saveReminderFragment_saveReminder_PendingIntentCalled()
     {
@@ -210,6 +212,8 @@ class ReminderListFragmentTest : KoinTest {
         onView(withId(R.id.coordinates)).perform(setTextInTextView("2.0,3.0"))
 
         onView(withId(R.id.saveReminder)).perform(click())
+
+        //TODO: test that view contains info written above i.e "Title"
 
         //TODO: How to get assert that an intent has a given action on commented out code directly below?
         //assertThat(Intents.getIntents(), `is`("RemindersActivity.savereminder.action.ACTION_GEOFENCE_EVENT"))

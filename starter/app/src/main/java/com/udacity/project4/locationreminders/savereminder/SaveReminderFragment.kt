@@ -18,6 +18,8 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.*
+import androidx.navigation.fragment.NavHostFragment.findNavController
+import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
@@ -94,7 +96,6 @@ class SaveReminderFragment : BaseFragment() {
             container,
             false
         )
-
         setDisplayHomeAsUpEnabled(true)
 
         //Q: Culprit?
@@ -198,6 +199,8 @@ class SaveReminderFragment : BaseFragment() {
                 checkDeviceLocationSettingsAndStartGeofence()
                 //_viewModel.navigationCommand.value =
                 //NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+
+                //TODO If I include navigation from here to reminderListFragment then save button persist
                 //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
                 //TODO: Why if I pop the backstack here then onDestroy is called before "checkDeviceLocationSettingsAndStartGeofence()"
                 // is finished? This is evident in latLng being reverted to null value.
@@ -222,6 +225,7 @@ class SaveReminderFragment : BaseFragment() {
         val locationRequest = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
         }
+
         val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
         println("checkDeviceLocationBeforeSettingsCheck0: " + isDetached)
 
@@ -379,9 +383,9 @@ class SaveReminderFragment : BaseFragment() {
                     }
                 }
             }
-
         }
     }
+
     fun is_Q_Or_Lower() : Boolean
     {
         if (runningQOrLater && ActivityCompat.checkSelfPermission(
