@@ -31,4 +31,8 @@ class FakeRepository : ReminderDataSource {
     override suspend fun deleteAllReminders() {
         tasksServiceData.clear()
     }
+
+    override suspend fun deleteTaskReminder(reminderId: String) {
+        tasksServiceData.remove(reminderId)
+    }
 }

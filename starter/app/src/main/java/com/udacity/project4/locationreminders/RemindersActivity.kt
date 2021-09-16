@@ -47,6 +47,7 @@ class RemindersActivity : AppCompatActivity() {
         //_viewModel.idFound.value = arg
         }
         //ServiceLocator.tasksRepository = FakeLocalRepository
+        println("ReminderActivity Created")
     }
 
 

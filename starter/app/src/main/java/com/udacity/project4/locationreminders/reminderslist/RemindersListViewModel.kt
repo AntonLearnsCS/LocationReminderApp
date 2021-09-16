@@ -1,8 +1,10 @@
 package com.udacity.project4.locationreminders.reminderslist
 
 import android.app.Application
+import android.app.usage.UsageEvents
 import android.content.ContentProvider
 import android.content.Context
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.MutableLiveData
@@ -14,6 +16,7 @@ import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
 import kotlinx.coroutines.launch
+import org.jetbrains.annotations.TestOnly
 
 class RemindersListViewModel(
      app: Application,
@@ -68,6 +71,7 @@ class RemindersListViewModel(
             //check if no data has to be shown
             invalidateShowNoData()
         }
+        Toast.makeText(ApplicationProvider.getApplicationContext(),"Loaded Reminders",Toast.LENGTH_SHORT).show()
     }
 
     fun removeTaskFromList(id : String)
