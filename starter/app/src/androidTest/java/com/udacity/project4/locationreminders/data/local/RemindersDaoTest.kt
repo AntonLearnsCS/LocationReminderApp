@@ -4,12 +4,14 @@ import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
 import com.udacity.project4.locationreminders.data.dto.succeeded
+import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import kotlinx.coroutines.Dispatchers
@@ -41,9 +43,10 @@ import org.koin.test.inject
 //Unit test the DAO
 @SmallTest
 class RemindersDaoTest : AutoCloseKoinTest() {
-//Not
 //    TODO: Add testing implementation to the RemindersDao.kt
 
+    //Note: If you want to test the DAO, you must first create an instance of the database since Room will generate the DAO object
+    //from the database in which it is defined in.
     //private lateinit var localDataSource : ReminderDataSource
     private lateinit var database : RemindersDatabase
 
@@ -52,76 +55,55 @@ class RemindersDaoTest : AutoCloseKoinTest() {
 
     private val localDataSource by inject<ReminderDataSource>()
 
+    @Before
+    fun init() {
+        // Using an in-memory database so that the information stored here disappears when the
+        // process is killed.
+        database = Room.inMemoryDatabaseBuilder(
+            getApplicationContext(),
+            RemindersDatabase::class.java
+        ).allowMainThreadQueries().build()
+    }
+    @After
+    fun after() = database.close()
+
     @Test
-    fun LocalSourceSet_AddRemoveItem_Empty(): Unit = runBlocking {
+    fun RemindersDatabase_InsertItem_GetById() = runBlockingTest {
+        // GIVEN - Insert a ReminderDTO.
+        val reminderDataItem = ReminderDTO("title", "description","Location",2.0,3.0)
+        database.reminderDao().saveReminder(reminderDataItem)
 
-        //Given - Adding an item to LocalSourceSet
-        val myReminder = ReminderDTO("Title", "Description", "Location", 2.0, 3.0)
-        localDataSource.saveReminder(myReminder)
+        // WHEN - Get the ReminderDTO by id from the database.
+        val loaded = database.reminderDao().getReminderById(reminderDataItem.id)
 
-        //When - Removing an item
-        localDataSource.deleteTaskReminder(myReminder.id)
-        //Then - That item should return null upon retrieval
-        val returnItem = localDataSource.getReminder(myReminder.id)
+        // THEN - The loaded data contains the expected values.
+        assertThat(loaded as ReminderDTO, notNullValue())
+        assertThat(loaded.id, `is`(reminderDataItem.id))
+        assertThat(loaded.title, `is`(reminderDataItem.title))
+        assertThat(loaded.description, `is`(reminderDataItem.description))
+        assertThat(loaded.latitude, `is`(reminderDataItem.latitude))
+        assertThat(loaded.longitude, `is`(reminderDataItem.longitude))
+        assertThat(loaded.location, `is`(reminderDataItem.location))
 
-
-        //assertThat(returnItem.d)
     }
 
     @Test
     fun updateTaskAndGetById() {
-        runBlocking {
+        runBlockingTest {
             // 1. Insert a task into the DAO.
-            val task = ReminderDTO("Title", "Description", "Location", 2.0, 3.0)
-            localDataSource.saveReminder(task)
-            //database.taskDao().insertTask(task)
+            val reminderItem = ReminderDTO("mTitle","mDescription","mLocation",2.0,4.0)
+            database.reminderDao().saveReminder(reminderItem)
             // 2. Update the task by creating a new task with the same ID but different attributes.
-            val newTask = ReminderDTO("Title1", "Description1", "Location1", 2.1, 3.1)
-            newTask.id = task.id
-
-            localDataSource.saveReminder(newTask)
+            val newReminderItem = ReminderDTO("newTitle","newDescription","newLocation",3.0,5.0)
+            newReminderItem.id = reminderItem.id
+            database.reminderDao().saveReminder(newReminderItem)
             // 3. Check that when you get the task by its ID, it has the updated values.
-            val updatedTask = localDataSource.getReminder(task.id)
-            assertThat(updatedTask.succeeded,`is`(true))
-            updatedTask as Result.Success
-            assertThat(updatedTask.data.title,`is`("Title1"))
+            val updatedReminderItem = database.reminderDao().getReminderById(reminderItem.id)
+
+            assertThat(updatedReminderItem?.title,`is`("newTitle"))
         }
     }
 
-    @Before
-    fun init() {
-        stopKoin()//stop the original app koin
-        appContext = ApplicationProvider.getApplicationContext()
-        val myModule = module {
-            viewModel {
-                RemindersListViewModel(
-                    appContext,
-                    get() as ReminderDataSource
-                )
-            }
-            single {
-                SaveReminderViewModel(
-                    appContext,
-                    get() as ReminderDataSource
-                )
-            }
-            single { RemindersLocalRepository(get()) as ReminderDataSource }
-            single { LocalDB.createRemindersDao(appContext) }
-        }
-        //declare a new koin module
-        startKoin {
-            //androidLogger()
-            androidContext(appContext)
-            modules(listOf(myModule))
-        }
-        //Get our real repository
-        repository = get()
-
-        //clear the data to start fresh
-        runBlocking {
-            repository.deleteAllReminders()
-        }
-    }
 /*
 Testing uses Room.inMemoryDatabaseBuilder to create a Room DB instance.
 

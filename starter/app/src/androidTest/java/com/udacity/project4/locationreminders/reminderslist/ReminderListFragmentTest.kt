@@ -90,6 +90,7 @@ class ReminderListFragmentTest : KoinTest {
 //    TODO: test the displayed data on the UI.
 //    TODO: add testing for the error messages.
 
+
     //Needs coordinates
     /*@Test
     fun addReminder_ClickReminder_NavigateToDetail() = runBlocking {
@@ -141,7 +142,6 @@ class ReminderListFragmentTest : KoinTest {
     fun init()
     {
        //Intents.init()
-        //Intents.init()
         ServiceLocator.resetRepository()
         //Note: We set ServiceLocator.provideTaskRepository() to a variable instead of calling saveReminder on
         // ServiceLocator.taskRepository.saveReminder() b/c "ServiceLocator.provideTaskRepository()" returns an instance

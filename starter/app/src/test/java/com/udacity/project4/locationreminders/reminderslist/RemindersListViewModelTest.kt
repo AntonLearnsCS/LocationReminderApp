@@ -11,6 +11,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
+import org.hamcrest.core.Is
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -65,6 +67,18 @@ class RemindersListViewModelTest {
 
         val list = viewModel.remindersList.value
         assertThat(list,`is`(emptyList()))
+    }
+
+    @Test
+    fun ReminderViewModel_RetrieveData_DataNotAvailableErrorDisplayed() {
+
+        // Make the repository return errors.
+        repository.setReturnError(true)
+        viewModel.loadReminders()
+
+        // Then empty and error are true (which triggers an error message to be shown).
+        Assert.assertThat(viewModel.empty, `is`(true))
+        Assert.assertThat(viewModel.error, `is`(true))
     }
 
    /* @Test

@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
+import com.udacity.project4.locationreminders.FakeDataSource
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
@@ -48,12 +49,16 @@ class RemindersLocalRepositoryTest : AutoCloseKoinTest() {
     //Creating own localDataSource/RoomDatabase
 private lateinit var localDataSource : ReminderDataSource
 private lateinit var database : RemindersDatabase
-
+private val reminder1 = ReminderDTO("Title1","Description1","Location1",1.0,2.0)
+    private val reminder2 = ReminderDTO("Title2","Description2","Location2",3.0,4.0)
+    private val reminder3 = ReminderDTO("Title3","Description3","Location3",5.0,6.0)
+    private val localTasks = listOf(reminder1,reminder2,reminder3).sortedBy { it.id }
 //Using Koin, inject a ReminderDataSource instead of a RemindersLocalRepository b/c RemindersLocalRepository
 // is cast as a ReminderDataSource
 // Source: https://knowledge.udacity.com/questions/647267
 private val repo by inject<ReminderDataSource>()
 
+    //TODO:
 
 @Test
 fun saveTask_RetrieveTask() : Unit = runBlocking {
@@ -74,14 +79,6 @@ fun saveTask_RetrieveTask() : Unit = runBlocking {
     assertThat(savedDTO.data.description, `is`("Description"))
     assertThat(savedDTO.data.id, `is`(myDTO.id))
 
-    /*when (savedDTO) {
-        is Result.Success<*> -> {
-            (savedDTO.data as List<*>).map { reminder ->
-                //map the reminder data from the DB to the be ready to be displayed on the UI
-                assertThat(myDTO.description,`is`(equals(reminder)))
-            }
-        }
-    }*/
 }
     private lateinit var repository: ReminderDataSource
     private lateinit var appContext: Application
@@ -92,6 +89,8 @@ fun saveTask_RetrieveTask() : Unit = runBlocking {
      */
     @Before
     fun init() {
+        localDataSource = FakeDataSource(localDataSource.toMutableList())
+
         stopKoin()//stop the original app koin
         appContext = ApplicationProvider.getApplicationContext()
         val myModule = module {
@@ -124,54 +123,4 @@ fun saveTask_RetrieveTask() : Unit = runBlocking {
             repository.deleteAllReminders()
         }
     }
-
-
-    /*
-    runBlocking - runBlocking is a coroutine function. By not providing any context, it will get run on the main thread.
-    Runs a new coroutine and blocks the current thread interruptible until its completion.
-
-    We use runBlockingTest to make our results consistent so that we know all tasks are completed (synchronous)
-     */
-    /*@Before
-    fun initDB()
-    {
-        database = Room.inMemoryDatabaseBuilder(ApplicationProvider.getApplicationContext(),RemindersDatabase::class.java)
-            .allowMainThreadQueries() //allows you to query database from UI thread, don't do this for production code
-            .build()
-
-        localDataSource =
-            RemindersLocalRepository(
-                database.reminderDao(),
-                Dispatchers.Main
-            )
-    } */
-
-    /*@Test
-    fun saveTask_RetrieveTask() : Unit = runBlocking {
-
-        //Given - A new DTO
-        val myDTO = ReminderDTO("Title","Description","Location",2.0,3.0)
-
-        //When - saved to local repo
-        localDataSource.saveReminder(myDTO)
-
-        //Then - will return the saved DTO
-        val savedDTO = localDataSource.getReminder(myDTO.id)
-
-        //"savedDTO" is wrapped in "Result"
-        assertThat(savedDTO.succeeded,`is`(true))
-        savedDTO as Result.Success
-        assertThat(savedDTO.data.title, `is`("Title"))
-        assertThat(savedDTO.data.description, `is`("Description"))
-        assertThat(savedDTO.data.id, `is`(myDTO.id))
-
-        *//*when (savedDTO) {
-            is Result.Success<*> -> {
-                (savedDTO.data as List<*>).map { reminder ->
-                    //map the reminder data from the DB to the be ready to be displayed on the UI
-                    assertThat(myDTO.description,`is`(equals(reminder)))
-                }
-            }
-        }*//*
-    }*/
 }

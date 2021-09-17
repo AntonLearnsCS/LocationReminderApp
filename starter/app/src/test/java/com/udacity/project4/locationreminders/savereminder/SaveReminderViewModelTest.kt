@@ -3,11 +3,13 @@ package com.udacity.project4.locationreminders.savereminder
 import android.location.Geocoder
 import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.android.gms.maps.model.LatLng
+import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.testClass
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -34,7 +36,7 @@ Instead of trying to configure Android Studio to use Java 9, we're keeping our t
 class SaveReminderViewModelTest : KoinTest { //extend KoinTest to be able to use "by inject()"
 
     //Q: How can I inject a fake Repository using Koin
-    //As it stands, this is an integrated test since Koin is providing the actual repository
+    //A: As it stands, this is an integrated test since Koin is providing the actual repository
     //val viewModel by inject<SaveReminderViewModel>()
 
 

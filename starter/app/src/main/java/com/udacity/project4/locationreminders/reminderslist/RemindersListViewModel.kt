@@ -7,7 +7,9 @@ import android.content.Context
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.map
 import androidx.lifecycle.viewModelScope
 import androidx.test.core.app.ApplicationProvider
 import com.udacity.project4.MyApp
@@ -15,7 +17,9 @@ import com.udacity.project4.base.BaseViewModel
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
-import kotlinx.coroutines.launch
+import com.udacity.project4.locationreminders.data.dto.succeeded
+import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers.IO
 import org.jetbrains.annotations.TestOnly
 
 class RemindersListViewModel(
@@ -25,13 +29,19 @@ class RemindersListViewModel(
     //private val dataSource: ReminderDataSource
     val selectedReminder = MutableLiveData<ReminderDataItem>()
     // list that holds the reminder data to be displayed on the UI
-    val remindersList = MutableLiveData<List<ReminderDataItem>>()
+    var remindersList = MutableLiveData<List<ReminderDataItem>>()
+
+    //private lateinit var reminderListTest : Result<List<ReminderDTO>>
     //TODO: Receiving error: "No instrumentation registered!"
     //private val dataSource: ReminderDataSource = (requireContext(ApplicationProvider.getApplicationContext()).applicationContext as MyApp).taskRepository
     /**
      * Get all the reminders from the DataSource and add them to the remindersList to be shown on the UI,
      * or show error if any
      */
+
+    val error: LiveData<Boolean> = remindersList.map { it is Error } //expected: MutableLiveData<List<ReminderDataItem>>
+    val empty: LiveData<Boolean> = remindersList.map { it.isNullOrEmpty()}
+
     fun setSelectedReminderToNull()
     {
         selectedReminder.value = null
@@ -71,7 +81,7 @@ class RemindersListViewModel(
             //check if no data has to be shown
             invalidateShowNoData()
         }
-        Toast.makeText(ApplicationProvider.getApplicationContext(),"Loaded Reminders",Toast.LENGTH_SHORT).show()
+        //check UI from UnitTest: Toast.makeText(ApplicationProvider.getApplicationContext(),"Loaded Reminders",Toast.LENGTH_SHORT).show()
     }
 
     fun removeTaskFromList(id : String)
