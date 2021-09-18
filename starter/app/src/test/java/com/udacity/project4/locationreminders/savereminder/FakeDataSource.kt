@@ -6,7 +6,7 @@ import com.udacity.project4.locationreminders.data.dto.Result
 import kotlinx.coroutines.withContext
 import java.util.LinkedHashMap
 
-class FakeRepository : ReminderDataSource {
+class FakeDataSource : ReminderDataSource {
 
     private var shouldReturnError: Boolean = false
 

@@ -3,6 +3,7 @@ package com.udacity.project4.locationreminders.savereminder
 import android.app.Application
 import android.location.Address
 import android.location.Geocoder
+import android.location.Geocoder.isPresent
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.model.LatLng
@@ -14,30 +15,33 @@ import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import kotlinx.coroutines.launch
+import java.util.*
 
-class SaveReminderViewModel(val app: Application, private val dataSource: ReminderDataSource) : BaseViewModel(app) {
+class SaveReminderViewModel(val app: Application, private val dataSource: ReminderDataSource) : BaseViewModel(
+    app
+) {
 //, val dataSource: ReminderDataSource
 
     //idea of geocoder: https://stackoverflow.com/questions/59095837/convert-from-latlang-to-address-using-geocoding-not-working-android-kotlin
-    val geocoder = Geocoder(this.app)
+    val geocoder = Geocoder(this.app, Locale.ENGLISH)
 
-
-    fun getLatLngAddress(LatLng : LatLng) : List<Address>
+    fun getLatLngAddress(LatLng: LatLng) : Address?
     {
-       return geocoder.getFromLocation(LatLng.latitude, LatLng.longitude,1)
+            val list =  geocoder.getFromLocation(LatLng.latitude, LatLng.longitude, 1)
+            if (!list.isEmpty() && isPresent()) {
+                println(list[0].locality)
+                return list[0]
+            }
+            else
+                return null
     }
 
-    val latLng : MutableLiveData<LatLng> = MutableLiveData(LatLng(33.8,-118.1))
-    //MutableLiveData<LatLng>().apply { postValue(LatLng(33.8,-118.1)) }
-    //val initialLocation = latLng.value?.let { location(it) }
-    //val locationMutable : MutableLiveData<location> = MutableLiveData(initialLocation)
+    val latLng : MutableLiveData<LatLng> = MutableLiveData(LatLng(33.842342, -118.1523526))
 
-    //TODO: Unchanging even though latLng changes value
     val locationSingle = MutableLiveData(latLng.value?.let { getLatLngAddress(it) })
-        //latLng.value?.let { geocoder.getFromLocation(it.latitude, latLng.value!!.longitude,1) }
 
-    val reminderSelectedLocationStr : String? = if (locationSingle.value != null || locationSingle.value?.size != 0)
-        locationSingle.value?.get(0)?.locality
+    var reminderSelectedLocationStr : String? = if (locationSingle.value != null) {
+        locationSingle.value?.locality }
     else null
 
     val cityNameForTwoWayBinding = MutableLiveData(reminderSelectedLocationStr)

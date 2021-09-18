@@ -109,7 +109,7 @@ class SaveReminderFragment : BaseFragment() {
         Timber.i("testingNull" + _viewModel.reminderTitle.value)
 
         //observe locationSingle variable
-        Timber.i("locationSingle: " + _viewModel.locationSingle.value?.get(0)?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude
+        Timber.i("locationSingle: " + _viewModel.locationSingle.value?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude
          + ", " + _viewModel.latLng.value?.longitude)
 
         return binding.root

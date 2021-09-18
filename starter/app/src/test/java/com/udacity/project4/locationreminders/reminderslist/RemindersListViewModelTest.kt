@@ -2,16 +2,14 @@ package com.udacity.project4.locationreminders.reminderslist
 
 import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.recyclerview.widget.ListAdapter
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
-import com.udacity.project4.locationreminders.savereminder.FakeRepository
+import com.udacity.project4.locationreminders.savereminder.FakeDataSource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
-import org.hamcrest.core.Is
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -24,7 +22,7 @@ import org.robolectric.annotation.Config
 @RunWith(AndroidJUnit4::class)
 class RemindersListViewModelTest {
     private lateinit var viewModel: RemindersListViewModel
-    private lateinit var repository: FakeRepository
+    private lateinit var repository: FakeDataSource
     /*
     InstantTaskExecutorRule - A JUnit Test Rule that swaps the background executor used by the Architecture
      Components with a different one which executes each task synchronously.
@@ -35,7 +33,7 @@ class RemindersListViewModelTest {
     @Before
     fun init()
     {
-        repository = FakeRepository()
+        repository = FakeDataSource()
         //Given a view model with one data item
         viewModel = RemindersListViewModel(ApplicationProvider.getApplicationContext(),repository)
 
