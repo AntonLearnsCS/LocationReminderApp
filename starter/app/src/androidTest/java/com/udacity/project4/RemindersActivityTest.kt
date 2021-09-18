@@ -1,6 +1,8 @@
 package com.udacity.project4
 
 import android.app.Application
+import android.view.InputDevice
+import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
 import androidx.test.core.app.ActivityScenario
@@ -9,6 +11,10 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
+import androidx.test.espresso.action.CoordinatesProvider
+import androidx.test.espresso.action.GeneralClickAction
+import androidx.test.espresso.action.Press
+import androidx.test.espresso.action.Tap
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.longClick
 import androidx.test.espresso.assertion.ViewAssertions.matches
@@ -115,7 +121,7 @@ class RemindersActivityTest :
 fun editTask() = runBlocking {
 
     // Set initial state.
-    repository.saveReminder(ReminderDTO("TITLE1", "DESCRIPTION","LOCATION",2.0,5.0))
+    repository.saveReminder(ReminderDTO("TITLE1", "DESCRIPTION", "LOCATION", 2.0, 5.0))
     // Start up Tasks screen.
     val activityScenario = ActivityScenario.launch(AuthenticationActivity::class.java)
 
@@ -131,12 +137,34 @@ fun editTask() = runBlocking {
     onView(withId(R.id.coordinates)).check(matches(withText("0.0,0.0")))
     onView(withId(R.id.selectedLocation)).perform(click())
 
-    onView(withId(R.id.map)).perform(longClick())
-
+    //TODO: https://stackoverflow.com/questions/33382344/espresso-test-click-x-y-coordinates
+    onView(withId(R.id.map)).perform(clickIn(2, 3))
+    onView(withId(R.id.save_reminder_layout)).check(matches(withText("Title")))
 
 
     activityScenario.close()
 }
+
+
+        //source: https://stackoverflow.com/questions/22177590/click-by-bounds-coordinates/22798043#22798043
+        fun clickIn(x: Int, y: Int): ViewAction {
+            return GeneralClickAction(
+                Tap.LONG,
+                CoordinatesProvider { view ->
+                    val screenPos = IntArray(2)
+                    view?.getLocationOnScreen(screenPos)
+
+                    val screenX = (screenPos[0] + x).toFloat()
+                    val screenY = (screenPos[1] + y).toFloat()
+
+                    floatArrayOf(screenX, screenY)
+                },
+                Press.PINPOINT,
+                InputDevice.SOURCE_ANY,
+                MotionEvent.BUTTON_PRIMARY
+            )
+        }
+
 
     //Source: https://stackoverflow.com/questions/32846738/android-testing-how-to-change-text-of-a-textview-using-espresso
     fun setTextInTextView(value: String?): ViewAction? {
