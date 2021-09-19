@@ -18,10 +18,14 @@ import androidx.test.espresso.action.Tap
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.longClick
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.intent.Intents.intended
+import androidx.test.espresso.intent.matcher.IntentMatchers.toPackage
+import androidx.test.espresso.intent.rule.IntentsTestRule
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.udacity.project4.authentication.AuthenticationActivity
+import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.local.LocalDB
@@ -36,6 +40,7 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.junit.After
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -52,6 +57,8 @@ import org.koin.test.get
 class RemindersActivityTest :
     AutoCloseKoinTest() { // Extended Koin Test - embed autoclose @after method to close Koin after every test
 
+    @get:Rule
+    val intentsTestRule = IntentsTestRule(AuthenticationActivity::class.java)
     private lateinit var repository: ReminderDataSource
     private lateinit var appContext: Application
     private val dataBindingIdlingResource = DataBindingIdlingResource()
@@ -129,10 +136,13 @@ fun editTask() = runBlocking {
     dataBindingIdlingResource.monitorActivity(activityScenario)
 
     onView(withText("Login")).perform(click())
+    intended(toPackage("com.udacity.project4.locationreminders.RemindersActivity"))
+
+    //onView(withId(R.id.refreshLayout)).perform()
     onView(withText("TITLE1")).check(matches(isDisplayed()))
 
     onView(withId(R.id.addReminderFAB)).perform(click())
-    onView(withId(R.id.reminderTitle)).perform(setTextInTextView("Title"))
+    onView(withId(R.id.reminderTitle)).perform(setTextInTextView("TITLE1"))
     onView(withId(R.id.reminderDescription)).perform(setTextInTextView("Description"))
     onView(withId(R.id.coordinates)).check(matches(withText("0.0,0.0")))
     onView(withId(R.id.selectedLocation)).perform(click())
