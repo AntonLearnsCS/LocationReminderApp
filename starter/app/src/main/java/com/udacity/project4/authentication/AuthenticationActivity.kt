@@ -20,6 +20,7 @@ import com.udacity.project4.databinding.ActivityAuthenticationBinding
 //import com.udacity.project4.databinding.ActivityAuthenticationBinding
 import com.udacity.project4.databinding.ItReminderBinding.inflate
 import com.udacity.project4.locationreminders.RemindersActivity
+import com.udacity.project4.utils.wrapEspressoIdlingResource
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.util.zip.Inflater
@@ -84,7 +85,9 @@ class AuthenticationActivity : AppCompatActivity() {
             binding.button.setText("Login")
             binding.button.setOnClickListener {
                 Timber.i("authNegative")
-                launchSignInFlow()
+                wrapEspressoIdlingResource {
+                    launchSignInFlow()
+                }
             }
         }
 
