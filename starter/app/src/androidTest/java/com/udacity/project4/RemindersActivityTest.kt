@@ -52,6 +52,7 @@ import com.udacity.project4.util.monitorActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers
+import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.Matcher
 import org.junit.After
 import org.junit.Before
@@ -149,6 +150,7 @@ fun editTask() = runBlocking {
     startActivity(ApplicationProvider.getApplicationContext(),(activity.intent),Bundle())}//, Bundle()))*/
 
         // Set initial state.
+    repository.saveReminder(ReminderDTO("TITLE1", "DESCRIPTION", "LOCATION", 2.0, 5.0))
 
         // Start up Tasks screen.
         val activityScenario = ActivityScenario.launch(AuthenticationActivity::class.java)
@@ -164,8 +166,12 @@ fun editTask() = runBlocking {
         //onView(withText("Sign In")).check(matches(isDisplayed()))
 
     //need to delay because of auto-sign in?
-    //delay(3000)
-    repository.saveReminder(ReminderDTO("TITLE1", "DESCRIPTION", "LOCATION", 2.0, 5.0))
+    delay(3000)
+
+    onView(withText("TITLE1")).check(matches(isDisplayed()))
+
+    /*
+    //trying to use fragments to test navigation
     val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
 
     val navController = mock(NavController::class.java)
@@ -180,21 +186,28 @@ fun editTask() = runBlocking {
     onView(withId(R.id.addReminderFAB)).perform(click())
 
     verify(navController).navigate(ReminderListFragmentDirections.toSaveReminder()) // actionReminderListFragmentToSaveReminderFragment())
+*/
+    onView(withId(R.id.addReminderFAB)).perform(click())
 
-        onView(withId(R.id.reminderTitle)).check(matches(isDisplayed()))
+    onView(withId(R.id.reminderTitle)).check(matches(isDisplayed()))
 
         onView(withId(R.id.reminderTitle)).perform(replaceText("TITLE1"))
         onView(withId(R.id.reminderDescription)).perform(setTextInTextView("Description"))
         onView(withId(R.id.coordinates)).check(matches(withText("33.842342, -118.1523526")))
         onView(withId(R.id.selectedLocation)).perform(click())
 
-    verify(navController).navigate(
-        SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
+    //verify(navController).navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
 
 
         //TODO: https://stackoverflow.com/questions/33382344/espresso-test-click-x-y-coordinates
-        //onView(withId(R.id.map)).perform(clickIn(2, 3))
-        //onView(withId(R.id.save_reminder_layout)).check(matches(withText("TITLE1")))
+    delay(2000)
+        onView(withId(R.id.map)).perform(clickIn(2, 3))
+    delay(3000)
+        //onView(allOf(withId(R.id.save_reminder_layout)).check(matches(withText("TITLE1")))
+    //Not sure why comment above does not work but below code does
+    //source: https://developer.android.com/training/testing/espresso/basics
+    onView(allOf(withId(R.id.save_reminder_layout), withText("TITLE1")))
+
 
     activityScenario.close()
 }
