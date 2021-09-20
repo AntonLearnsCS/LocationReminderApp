@@ -29,6 +29,7 @@ import com.udacity.project4.authentication.AuthenticationActivity.Companion.TAG
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSaveReminderBinding
+import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
@@ -199,7 +200,7 @@ class SaveReminderFragment : BaseFragment() {
                 checkDeviceLocationSettingsAndStartGeofence()
                 //_viewModel.navigationCommand.value =
                 //NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
-                val intent = Intent()
+                val intent = Intent(requireContext(),RemindersActivity::class.java)
                 val bundle = Bundle()
                 bundle.putSerializable("ReminderDataItem",reminderDataItem)
                 intent.putExtras(bundle)

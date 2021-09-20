@@ -23,6 +23,17 @@
         <!--Update fragment tag: https://stackoverflow.com/questions/58703451/fragmentcontainerview-as-navhostfragment
         app:navGraph="@navigation/nav_graph_detail" -->
 
+        <TextView
+            android:id="@+id/description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@{reminderDataItem.description}"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.458"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/coordinates" />
+
         <Button
             android:id="@+id/finished_task"
             android:layout_width="wrap_content"

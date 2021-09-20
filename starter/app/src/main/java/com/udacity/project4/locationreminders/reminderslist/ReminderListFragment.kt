@@ -19,6 +19,7 @@ import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentD
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import com.udacity.project4.utils.setTitle
 import com.udacity.project4.utils.setup
+import com.udacity.project4.utils.wrapEspressoIdlingResource
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import timber.log.Timber
@@ -56,7 +57,7 @@ class ReminderListFragment : BaseFragment() {
 */
         //setOnRefreshListener - Classes that wish to be notified when the swipe gesture correctly
         // triggers a refresh should implement this interface.
-        binding.refreshLayout.setOnRefreshListener { _viewModel.loadReminders() }
+        binding.refreshLayout.setOnRefreshListener { wrapEspressoIdlingResource {  _viewModel.loadReminders() }}
 
 
         return binding.root
@@ -110,7 +111,7 @@ class ReminderListFragment : BaseFragment() {
     override fun onResume() {
         super.onResume()
         //load the reminders list on the ui
-        _viewModel.loadReminders()
+        wrapEspressoIdlingResource {  _viewModel.loadReminders()}
     }
 
     private fun navigateToAddReminder() {

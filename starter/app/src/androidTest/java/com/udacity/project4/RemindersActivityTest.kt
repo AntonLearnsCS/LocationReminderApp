@@ -1,21 +1,15 @@
 package com.udacity.project4
 
 import android.app.Application
-import android.content.Intent
-import android.os.Bundle
 import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.View
 import android.widget.TextView
-import androidx.core.content.ContextCompat.startActivity
-import androidx.fragment.app.testing.launchFragmentInContainer
-import androidx.navigation.NavController
-import androidx.navigation.Navigation
+import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ActivityScenario
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
-import androidx.test.core.app.launchActivity
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.Espresso.pressBack
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.UiController
 import androidx.test.espresso.ViewAction
@@ -26,12 +20,9 @@ import androidx.test.espresso.action.Tap
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.intent.Intents.intended
-import androidx.test.espresso.intent.matcher.IntentMatchers.toPackage
+import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.intent.rule.IntentsTestRule
 import androidx.test.espresso.matcher.ViewMatchers.*
-import androidx.test.ext.junit.rules.ActivityScenarioRule
-import androidx.test.ext.junit.rules.activityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.udacity.project4.authentication.AuthenticationActivity
@@ -40,11 +31,7 @@ import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
-import com.udacity.project4.locationreminders.reminderslist.ReminderListFragment
-import com.udacity.project4.locationreminders.reminderslist.ReminderListFragmentDirections
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
-import com.udacity.project4.locationreminders.savereminder.SaveReminderFragment
-import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.util.DataBindingIdlingResource
 import com.udacity.project4.util.EspressoIdlingResource
@@ -65,8 +52,6 @@ import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
-import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 
 
 @RunWith(AndroidJUnit4::class)
@@ -145,16 +130,15 @@ class RemindersActivityTest :
 //    TODO: add End to End testing to the app
 @LargeTest
 @Test
-fun editTask() = runBlocking {
+fun endToEndTest() = runBlocking {
 /*    scenario.onActivity { activity ->
     startActivity(ApplicationProvider.getApplicationContext(),(activity.intent),Bundle())}//, Bundle()))*/
 
         // Set initial state.
-    repository.saveReminder(ReminderDTO("TITLE1", "DESCRIPTION", "LOCATION", 2.0, 5.0))
+        repository.saveReminder(ReminderDTO("TITLE1", "DESCRIPTIONq", "LOCATION", 2.0, 5.0))
 
         // Start up Tasks screen.
         val activityScenario = ActivityScenario.launch(AuthenticationActivity::class.java)
-
 
         //So espresso knows which activity to monitor
         dataBindingIdlingResource.monitorActivity(activityScenario)
@@ -165,11 +149,22 @@ fun editTask() = runBlocking {
         //onView(withId(R.id.refreshLayout)).perform()
         //onView(withText("Sign In")).check(matches(isDisplayed()))
 
-    //need to delay because of auto-sign in?
+    //need to delay because of auto-sign in
+    //TODO: Uncomment the delay(3000) below to generate the "Activity Not Found" error
     delay(3000)
 
+    //TODO: Do I need to make a new activityScenario here to tell Espresso to track RemindersActivity's databinding?
+    val reminderScenario = ActivityScenario.launch(RemindersActivity::class.java)
+    dataBindingIdlingResource.monitorActivity(reminderScenario)
     onView(withText("TITLE1")).check(matches(isDisplayed()))
 
+    onView(withId(R.id.reminderssRecyclerView)).perform(
+        RecyclerViewActions.actionOnItem<RecyclerView.ViewHolder>(
+        hasDescendant(withText("TITLE1")), click()))
+
+    delay(3000)
+        onView(withText("DESCRIPTIONq")).check(matches(isDisplayed()))
+        pressBack()
     /*
     //trying to use fragments to test navigation
     val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
@@ -187,8 +182,6 @@ fun editTask() = runBlocking {
 
     verify(navController).navigate(ReminderListFragmentDirections.toSaveReminder()) // actionReminderListFragmentToSaveReminderFragment())
 */
-   /* val reminderScenario = ActivityScenario.launch(RemindersActivity::class.java)
-    dataBindingIdlingResource.monitorActivity(reminderScenario)*/
 
     onView(withId(R.id.addReminderFAB)).perform(click())
 
@@ -201,31 +194,25 @@ fun editTask() = runBlocking {
 
     //verify(navController).navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
 
-
         //TODO: https://stackoverflow.com/questions/33382344/espresso-test-click-x-y-coordinates
-    delay(2000)
-        onView(withId(R.id.map)).perform(clickIn(2, 3))
-    delay(3000)
+        onView(withId(R.id.map)).perform(clickIn(37.7529, -122.4232))
         //onView(allOf(withId(R.id.save_reminder_layout)).check(matches(withText("TITLE1")))
     //Not sure why comment above does not work but below code does
     //source: https://developer.android.com/training/testing/espresso/basics
     onView(allOf(withId(R.id.save_reminder_layout), withText("TITLE1")))
+    delay(3000)
     onView(withId(R.id.saveReminder)).perform(click())
     onView(allOf(withId(R.id.refreshLayout), withText("TITLE2")))
 
+
     activityScenario.close()
+    reminderScenario.close()
 }
 
-    @Test
-    fun endToEndContinued()
-    {
-        val navController = mock(NavController::class.java)
-
-    }
 
 
         //source: https://stackoverflow.com/questions/22177590/click-by-bounds-coordinates/22798043#22798043
-        fun clickIn(x: Int, y: Int): ViewAction {
+        fun clickIn(x: Double, y: Double): ViewAction {
             return GeneralClickAction(
                 Tap.LONG,
                 CoordinatesProvider { view ->

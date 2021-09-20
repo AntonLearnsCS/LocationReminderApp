@@ -18,6 +18,7 @@ import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
 import com.udacity.project4.locationreminders.data.dto.succeeded
+import com.udacity.project4.utils.wrapEspressoIdlingResource
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import org.jetbrains.annotations.TestOnly
@@ -48,46 +49,50 @@ class RemindersListViewModel(
     }
 
     fun loadReminders() {
-        //showLoading is of type "SingleLiveEvent" - This LiveData only calls the observable if there's an
-        //explicit call to setValue() or call().
+        wrapEspressoIdlingResource {
+            //showLoading is of type "SingleLiveEvent" - This LiveData only calls the observable if there's an
+            //explicit call to setValue() or call().
 
-        showLoading.value = true
-        viewModelScope.launch {
-            //interacting with the dataSource has to be through a coroutine
-            //returns a list of database items
-            val result  = dataSource.getReminders()
-            showLoading.postValue(false)
+            showLoading.value = true
+            viewModelScope.launch {
+                //interacting with the dataSource has to be through a coroutine
+                //returns a list of database items
+                val result = dataSource.getReminders()
+                showLoading.postValue(false)
 
-            when (result) {
-                is Result.Success<*> -> {
-                    val dataList = ArrayList<ReminderDataItem>()
-                    dataList.addAll((result.data as List<ReminderDTO>).map { reminder ->
-                        //map the reminder data from the DB to the be ready to be displayed on the UI
-                        ReminderDataItem(
-                            reminder.title,
-                            reminder.description,
-                            reminder.location,
-                            reminder.latitude,
-                            reminder.longitude,
-                            reminder.id
-                        )
-                    })
-                    remindersList.value = dataList
+                when (result) {
+                    is Result.Success<*> -> {
+                        val dataList = ArrayList<ReminderDataItem>()
+                        dataList.addAll((result.data as List<ReminderDTO>).map { reminder ->
+                            //map the reminder data from the DB to the be ready to be displayed on the UI
+                            ReminderDataItem(
+                                reminder.title,
+                                reminder.description,
+                                reminder.location,
+                                reminder.latitude,
+                                reminder.longitude,
+                                reminder.id
+                            )
+                        })
+                        remindersList.value = dataList
+                    }
+                    is Result.Error ->
+                        showSnackBar.value = result.message
                 }
-                is Result.Error ->
-                    showSnackBar.value = result.message
-            }
 
-            //check if no data has to be shown
-            invalidateShowNoData()
+                //check if no data has to be shown
+                invalidateShowNoData()
+            }
         }
         //check UI from UnitTest: Toast.makeText(ApplicationProvider.getApplicationContext(),"Loaded Reminders",Toast.LENGTH_SHORT).show()
     }
 
     fun removeTaskFromList(id : String)
     {
-        viewModelScope.launch {
-            dataSource.deleteTaskReminder(id)
+        wrapEspressoIdlingResource {
+            viewModelScope.launch {
+                dataSource.deleteTaskReminder(id)
+            }
         }
     }
 

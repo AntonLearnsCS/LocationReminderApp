@@ -3,6 +3,7 @@ package com.udacity.project4.authentication
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.FirebaseAuth
 import androidx.lifecycle.LiveData
+import com.udacity.project4.utils.wrapEspressoIdlingResource
 
 /**
  * This class observes the current FirebaseUser. If there is no logged in user, FirebaseUser will
@@ -31,12 +32,16 @@ class FirebaseUserLiveData : LiveData<FirebaseUser?>() {
     // When this object has an active observer, start observing the FirebaseAuth state to see if
     // there is currently a logged in user.
     override fun onActive() {
-        firebaseAuth.addAuthStateListener(authStateListener)
+        wrapEspressoIdlingResource {
+            firebaseAuth.addAuthStateListener(authStateListener)
+        }
     }
 
     // When this object no longer has an active observer, stop observing the FirebaseAuth state to
     // prevent memory leaks.
     override fun onInactive() {
-        firebaseAuth.removeAuthStateListener(authStateListener)
+        wrapEspressoIdlingResource {
+            firebaseAuth.removeAuthStateListener(authStateListener)
+        }
     }
 }

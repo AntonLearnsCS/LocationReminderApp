@@ -76,7 +76,9 @@ class AuthenticationActivity : AppCompatActivity() {
             binding.button.setOnClickListener {
                 Timber.i("authPositive")
                 binding.button.setText("Login")
-                AuthUI.getInstance().signOut(this)
+                wrapEspressoIdlingResource {
+                    AuthUI.getInstance().signOut(this)
+                }
             }
 
             //Tip: Don't start activity from here, do it from onActivityResult
@@ -85,9 +87,7 @@ class AuthenticationActivity : AppCompatActivity() {
             binding.button.setText("Login")
             binding.button.setOnClickListener {
                 Timber.i("authNegative")
-                wrapEspressoIdlingResource {
                     launchSignInFlow()
-                }
             }
         }
 
@@ -106,39 +106,44 @@ class AuthenticationActivity : AppCompatActivity() {
 
 
     private fun launchSignInFlow() {
-        // Give users the option to sign in / register with their email
-        // If users choose to register with their email,
-        // they will need to create a password as well
-        val providers = arrayListOf(
-            AuthUI.IdpConfig.EmailBuilder().build(), AuthUI.IdpConfig.GoogleBuilder().build()
-        )
+        wrapEspressoIdlingResource {
+            // Give users the option to sign in / register with their email
+            // If users choose to register with their email,
+            // they will need to create a password as well
+            val providers = arrayListOf(
+                AuthUI.IdpConfig.EmailBuilder().build(), AuthUI.IdpConfig.GoogleBuilder().build()
+            )
 
-        // Create and launch sign-in intent.
-        // We listen to the response of this activity with the
-        // SIGN_IN_RESULT_CODE code
-        startActivityForResult(
-            AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(providers).build(), SIGN_IN_RESULT_CODE
-        )
+            // Create and launch sign-in intent.
+            // We listen to the response of this activity with the
+            // SIGN_IN_RESULT_CODE code
+            startActivityForResult(
+                AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(providers)
+                    .build(), SIGN_IN_RESULT_CODE
+            )
+        }
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == SIGN_IN_RESULT_CODE) {
-            val response = IdpResponse.fromResultIntent(data)
-            if (resultCode == Activity.RESULT_OK) {
-                // Successfully signed in user.
-                Log.i(
-                    TAG,
-                    "Successfully signed in user " +
-                            "${FirebaseAuth.getInstance().currentUser?.displayName}!"
-                )
-                // I wouldn't use navController here since we are dealing with activities and not fragments
-                val remindersIntent = Intent(this, RemindersActivity::class.java)
-                startActivity(remindersIntent)
-            } else {
-                // Sign in failed. If response is null the user canceled the sign-in flow using
-                // the back button. Otherwise check response.getError().getErrorCode() and handle
-                // the error.
-                Log.i(TAG, "Sign in unsuccessful ${response?.error?.errorCode}")
+        wrapEspressoIdlingResource {
+            super.onActivityResult(requestCode, resultCode, data)
+            if (requestCode == SIGN_IN_RESULT_CODE) {
+                val response = IdpResponse.fromResultIntent(data)
+                if (resultCode == Activity.RESULT_OK) {
+                    // Successfully signed in user.
+                    Log.i(
+                        TAG,
+                        "Successfully signed in user " +
+                                "${FirebaseAuth.getInstance().currentUser?.displayName}!"
+                    )
+                    // I wouldn't use navController here since we are dealing with activities and not fragments
+                    val remindersIntent = Intent(this, RemindersActivity::class.java)
+                    startActivity(remindersIntent)
+                } else {
+                    // Sign in failed. If response is null the user canceled the sign-in flow using
+                    // the back button. Otherwise check response.getError().getErrorCode() and handle
+                    // the error.
+                    Log.i(TAG, "Sign in unsuccessful ${response?.error?.errorCode}")
+                }
             }
         }
     }
