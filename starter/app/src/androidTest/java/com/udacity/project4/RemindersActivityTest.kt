@@ -160,7 +160,7 @@ fun editTask() = runBlocking {
         dataBindingIdlingResource.monitorActivity(activityScenario)
 
         onView(withText("Login")).perform(click())
-        intended(toPackage("com.google.android.gms"))
+        //intended(toPackage("com.google.android.gms"))
 
         //onView(withId(R.id.refreshLayout)).perform()
         //onView(withText("Sign In")).check(matches(isDisplayed()))
@@ -187,11 +187,14 @@ fun editTask() = runBlocking {
 
     verify(navController).navigate(ReminderListFragmentDirections.toSaveReminder()) // actionReminderListFragmentToSaveReminderFragment())
 */
+   /* val reminderScenario = ActivityScenario.launch(RemindersActivity::class.java)
+    dataBindingIdlingResource.monitorActivity(reminderScenario)*/
+
     onView(withId(R.id.addReminderFAB)).perform(click())
 
     onView(withId(R.id.reminderTitle)).check(matches(isDisplayed()))
 
-        onView(withId(R.id.reminderTitle)).perform(replaceText("TITLE1"))
+        onView(withId(R.id.reminderTitle)).perform(replaceText("TITLE2"))
         onView(withId(R.id.reminderDescription)).perform(setTextInTextView("Description"))
         onView(withId(R.id.coordinates)).check(matches(withText("33.842342, -118.1523526")))
         onView(withId(R.id.selectedLocation)).perform(click())
@@ -207,7 +210,8 @@ fun editTask() = runBlocking {
     //Not sure why comment above does not work but below code does
     //source: https://developer.android.com/training/testing/espresso/basics
     onView(allOf(withId(R.id.save_reminder_layout), withText("TITLE1")))
-
+    onView(withId(R.id.saveReminder)).perform(click())
+    onView(allOf(withId(R.id.refreshLayout), withText("TITLE2")))
 
     activityScenario.close()
 }
