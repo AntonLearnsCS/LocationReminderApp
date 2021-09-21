@@ -34,6 +34,7 @@ class FakeDataSource : ReminderDataSource {
         }
         return Result.Success(tasksServiceData.get(id)!!)
     }
+
     //TODO: implement
     /* if(tasksServiceData.containsKey(id))
         return Result.Success(tasksServiceData.get(id)!!)*/
@@ -46,6 +47,7 @@ class FakeDataSource : ReminderDataSource {
     override suspend fun deleteTaskReminder(reminderId: String) {
         tasksServiceData.remove(reminderId)
     }
+
     fun setReturnError(value: Boolean) {
         shouldReturnError = value
     }

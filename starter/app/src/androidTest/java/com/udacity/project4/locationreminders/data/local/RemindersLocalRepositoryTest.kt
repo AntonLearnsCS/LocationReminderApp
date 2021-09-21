@@ -1,41 +1,28 @@
 package com.udacity.project4.locationreminders.data.local
 
 import android.app.Application
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
-import com.udacity.project4.locationreminders.FakeDataSource
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
 import com.udacity.project4.locationreminders.data.dto.succeeded
-import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers
-import org.junit.After
 import org.junit.Before
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.android.ext.koin.androidContext
-import org.koin.android.ext.koin.androidLogger
 import org.koin.androidx.viewmodel.dsl.viewModel
-import org.koin.core.context.loadKoinModules
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
-import org.koin.test.KoinTest
 import org.koin.test.get
 import org.koin.test.inject
 
@@ -46,13 +33,14 @@ import org.koin.test.inject
 class RemindersLocalRepositoryTest : AutoCloseKoinTest() {
 
 //TODO: Add testing implementation to the RemindersLocalRepository.kt
-    //Creating own localDataSource/RoomDatabase
+/*    //Creating own localDataSource/RoomDatabase
 private lateinit var localDataSource : ReminderDataSource
 private lateinit var database : RemindersDatabase
 private val reminder1 = ReminderDTO("Title1","Description1","Location1",1.0,2.0)
     private val reminder2 = ReminderDTO("Title2","Description2","Location2",3.0,4.0)
     private val reminder3 = ReminderDTO("Title3","Description3","Location3",5.0,6.0)
-    private val localTasks = listOf(reminder1,reminder2,reminder3).sortedBy { it.id }
+    private val localTasks = listOf(reminder1,reminder2,reminder3).sortedBy { it.id }*/
+
 //Using Koin, inject a ReminderDataSource instead of a RemindersLocalRepository b/c RemindersLocalRepository
 // is cast as a ReminderDataSource
 // Source: https://knowledge.udacity.com/questions/647267

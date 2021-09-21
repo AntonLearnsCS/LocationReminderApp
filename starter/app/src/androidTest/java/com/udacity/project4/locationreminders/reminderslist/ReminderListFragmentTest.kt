@@ -87,33 +87,6 @@ class ReminderListFragmentTest : KoinTest {
 //    TODO: add testing for the error messages.
 
 
-    //Needs coordinates
-    /*@Test
-    fun addReminder_ClickReminder_NavigateToDetail() = runBlocking {
-
-        //Given - The ReminderList fragment and a mock NavController; added a Reminder
-        mRepo.saveReminder(ReminderDTO("Title", "Description", "Location", 2.0, 3.0))
-
-        val scenario = launchFragmentInContainer<SaveReminderFragment>(Bundle(), R.style.AppTheme)
-        val navController = mock(NavController::class.java)
-
-        scenario.onFragment {
-            onView(withId(R.id.reminderTitle)).perform(setTextInTextView("Title"))//.perform(replaceText("Title"))
-            onView(withId(R.id.reminderDescription)).perform(setTextInTextView("Description"))//.perform(replaceText("Description"))
-            Navigation.setViewNavController(it.view!!, navController)
-        }
-            //Need to get coordinates to pass verification and save to Database, SaveReminderFragment does not coordinates
-        //by default
-
-        //WHEN - Click on the first list item; uses Espresso
-        onView(withId(R.id.saveReminder)).perform(click())
-
-        //Then - Navigate back to ReminderListFragment; uses Espresso
-        verify(navController).navigate(
-            SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment()
-        )
-    }*/
-
     @Test
     fun SaveReminderFragment_LocationClick_NavigateToMap()
     {
@@ -165,24 +138,6 @@ class ReminderListFragmentTest : KoinTest {
       //  Intents.release()
     }
 
-    @Test
-    fun recyclerView_saveReminder_UpdateUI()
-    {
-        println(ApplicationProvider.getApplicationContext())
-        //Given - A real repository
-        //For fake repository use: ServiceLocator.tasksRepository = FakeLocalRepository
-
-        //Note: runBlocking is different from synchronized b/c synchronized ensures that only one thread can access a function
-        // or code while runBlocking ensures that all suspend functions are completed before signaling the test execution as completed
-
-
-        //When - Launching ListFragment, you don't actually need to launch this since we are not modifying the view
-        //val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
-
-        //Then - Items in repository is displayed
-        //"withText" is the Matcher to be passed into "hasItem()"
-        onView(withId(R.id.reminderssRecyclerView)).check(matches(hasItem(hasDescendant(withText("TitleZ")))))
-    }
     //can be used to test notification
     //We don't actually use Espresso to test pending intent. If you want to test the intent used by the notification, see:
     // https://stackoverflow.com/questions/34467310/espresso-test-for-notification-to-showing-up
@@ -340,6 +295,35 @@ class ReminderListFragmentTest : KoinTest {
             }
         }
     }
+
+
+    //Needs coordinates
+    /*@Test
+    fun addReminder_ClickReminder_NavigateToDetail() = runBlocking {
+
+        //Given - The ReminderList fragment and a mock NavController; added a Reminder
+        mRepo.saveReminder(ReminderDTO("Title", "Description", "Location", 2.0, 3.0))
+
+        val scenario = launchFragmentInContainer<SaveReminderFragment>(Bundle(), R.style.AppTheme)
+        val navController = mock(NavController::class.java)
+
+        scenario.onFragment {
+            onView(withId(R.id.reminderTitle)).perform(setTextInTextView("Title"))//.perform(replaceText("Title"))
+            onView(withId(R.id.reminderDescription)).perform(setTextInTextView("Description"))//.perform(replaceText("Description"))
+            Navigation.setViewNavController(it.view!!, navController)
+        }
+            //Need to get coordinates to pass verification and save to Database, SaveReminderFragment does not coordinates
+        //by default
+
+        //WHEN - Click on the first list item; uses Espresso
+        onView(withId(R.id.saveReminder)).perform(click())
+
+        //Then - Navigate back to ReminderListFragment; uses Espresso
+        verify(navController).navigate(
+            SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment()
+        )
+    }*/
+
 
 
 }

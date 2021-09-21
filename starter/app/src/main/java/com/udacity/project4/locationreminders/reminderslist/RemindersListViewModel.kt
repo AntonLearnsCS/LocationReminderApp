@@ -22,6 +22,7 @@ import com.udacity.project4.utils.wrapEspressoIdlingResource
 import kotlinx.coroutines.*
 import kotlinx.coroutines.Dispatchers.IO
 import org.jetbrains.annotations.TestOnly
+import java.lang.Error
 
 class RemindersListViewModel(
      app: Application,

@@ -45,9 +45,6 @@ import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.Matcher
 import org.hamcrest.Matchers
-import org.hamcrest.Matchers.`is`
-import org.hamcrest.core.Is.`is`
-import org.hamcrest.CoreMatchers.`is`
 
 import org.junit.After
 import org.junit.Before
@@ -67,7 +64,8 @@ import org.koin.test.get
 //END TO END test to black box test the app
 //Note that to use Koin in an integrated test we had to create our own class seperate from the MyApp class
 class RemindersActivityTest :
-    AutoCloseKoinTest() { // Extended Koin Test - embed autoclose @after method to close Koin after every test
+    AutoCloseKoinTest() {
+    // Extended Koin Test - embed autoclose @after method to close Koin after every test
 
     @get:Rule
     val intentsTestRule = IntentsTestRule(AuthenticationActivity::class.java)
@@ -80,6 +78,7 @@ class RemindersActivityTest :
      * As we use Koin as a Service Locator Library to develop our code, we'll also use Koin to test our code.
      * at this step we will initialize Koin related code to be able to use it in out testing.
      */
+
     @Before
     fun init() {
         stopKoin()//stop the original app koin
@@ -172,7 +171,9 @@ fun endToEndTest() = runBlocking {
 
     delay(3000)
         onView(withText("DESCRIPTIONq")).check(matches(isDisplayed()))
-        pressBack()
+        onView(withId(R.id.finished_task)).perform(click())
+    onView(withText("Removed")).inRoot(RootMatchers.withDecorView(Matchers.not(`is`(getActivity(reminderScenario)?.window?.decorView))))
+        .check(matches(isDisplayed()))
     /*
     //trying to use fragments to test navigation
     val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
@@ -212,8 +213,7 @@ fun endToEndTest() = runBlocking {
     onView(withId(R.id.saveReminder)).perform(click())
     onView(allOf(withId(R.id.refreshLayout), withText("TITLE2")))
 
-    onView(withText("Removed")).inRoot(RootMatchers.withDecorView(Matchers.not(`is`(getActivity(reminderScenario).window.decorView))))
-        .check(matches(isDisplayed()))
+
 
     //TODO: Try deleting pending intent before launching a new one:
     // https://stackoverflow.com/questions/13596422/android-notification-pendingintent-extras-null

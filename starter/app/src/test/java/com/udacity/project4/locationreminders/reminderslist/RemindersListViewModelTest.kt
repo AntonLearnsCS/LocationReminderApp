@@ -6,11 +6,9 @@ import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.matcher.RootMatchers.withDecorView
-import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
-import androidx.test.espresso.matcher.ViewMatchers.withText
+
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.udacity.project4.getOrAwaitValue
 import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.savereminder.FakeDataSource
@@ -23,10 +21,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.ArgumentMatchers.matches
 import org.robolectric.annotation.Config
-import androidx.test.espresso.assertion.ViewAssertions.matches
-import com.udacity.project4.locationreminders.RemindersActivity
+
 
 
 @Config(sdk = [Build.VERSION_CODES.O_MR1])
@@ -51,7 +47,6 @@ class RemindersListViewModelTest {
         repository = FakeDataSource()
         //Given a view model with one data item
         viewModel = RemindersListViewModel(ApplicationProvider.getApplicationContext(), repository)
-
     }
 
     //TODO: provide testing to the RemindersListViewModel and its live data objects
@@ -78,7 +73,7 @@ class RemindersListViewModelTest {
         viewModel.removeTaskFromList(testReminderData.id)
         //Then loaded list does not contain the deleted data item; also assert that toast message is shown
         viewModel.loadReminders()
-
+        assertThat(viewModel.remindersList.value, `is`(empty()))
     }
 
     @Test
@@ -86,17 +81,12 @@ class RemindersListViewModelTest {
 
         // Make the repository return errors.
         repository.setReturnError(true)
+        println("Repository data size: " + repository.tasksServiceData.size)
         viewModel.loadReminders()
 
         // Then empty and error are true (which triggers an error message to be shown).
-        Assert.assertThat(viewModel.empty, `is`(true))
-        Assert.assertThat(viewModel.error, `is`(true))
+        println("ReminderList.size : " + viewModel.remindersList.value?.size)
+        Assert.assertThat(viewModel.empty.value, `is`(true))
+        Assert.assertThat(viewModel.error.value, `is`(true))
     }
-
-   /* @Test
-    fun reminderListAdapter_CheckCallbackValue_NonNull()
-    {
-        //Given a ListAdapter
-        val myAdapter = ListAdapter<>
-    }*/
 }

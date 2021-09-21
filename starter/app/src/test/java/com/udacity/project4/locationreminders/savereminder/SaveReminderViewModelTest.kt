@@ -7,8 +7,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.android.gms.maps.model.LatLng
+import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
-import com.udacity.project4.testClass
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
@@ -33,7 +33,8 @@ class SaveReminderViewModelTest : KoinTest { //extend KoinTest to be able to use
     //Q: How can I inject a fake Repository using Koin
     //A: As it stands, this is an integrated test since Koin is providing the actual repository
     //val viewModel by inject<SaveReminderViewModel>()
-
+    @get : Rule
+    val mainCoroutineRule = MainCoroutineRule()
 
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
@@ -42,14 +43,7 @@ class SaveReminderViewModelTest : KoinTest { //extend KoinTest to be able to use
     //convention in naming testing functions: subjectUnderTest_actionOrInput_resultState
 
     @Test
-    fun quickTest()
-    {
-        val testClass by inject<testClass>()
-        testClass.testClass.testClassFun()
-    }
-
-    @Test
-    fun SaveReminderViewModel_ValidateFunction_Pass() = runBlockingTest {
+    fun SaveReminderViewModel_ValidateFunction_Pass() = mainCoroutineRule.runBlockingTest {
         //Given - A fresh viewModel
         val testRepo = FakeDataSource()
 
@@ -65,6 +59,5 @@ class SaveReminderViewModelTest : KoinTest { //extend KoinTest to be able to use
 
         //can't run logs b/c logs are Android features, not Junit features
         //Timber.i()
-    //println("TestLat" + viewModel.latLng.value!!.latitude.toString())
     }
 }
