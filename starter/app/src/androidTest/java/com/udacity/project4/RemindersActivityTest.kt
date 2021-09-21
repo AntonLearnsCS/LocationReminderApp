@@ -204,7 +204,8 @@ fun endToEndTest() = runBlocking {
     onView(withId(R.id.saveReminder)).perform(click())
     onView(allOf(withId(R.id.refreshLayout), withText("TITLE2")))
 
-
+    //TODO: Try deleting pending intent before launching a new one:
+    // https://stackoverflow.com/questions/13596422/android-notification-pendingintent-extras-null
     activityScenario.close()
     reminderScenario.close()
 }

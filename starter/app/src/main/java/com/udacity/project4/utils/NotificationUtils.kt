@@ -31,7 +31,7 @@ fun sendNotification(context: Context, reminderDataItem: ReminderDataItem) {
         notificationManager.createNotificationChannel(channel)
     }
     //interesting way to create an intent; returns an intent that has a reminderDataItem
-    val intent = ReminderDescriptionActivity.newIntent(context.applicationContext, reminderDataItem)
+    val intent = ReminderDescriptionActivity.newIntent(context, reminderDataItem)
     //intent.putExtra("EXTRA_ReminderDataItem",reminderDataItem)
 
     //create a pending intent that opens ReminderDescriptionActivity when the user clicks on the notification
@@ -49,6 +49,7 @@ fun sendNotification(context: Context, reminderDataItem: ReminderDataItem) {
         .setContentIntent(notificationPendingIntent)
         .setAutoCancel(true)
         .build()
+    println("Extra Item: " + reminderDataItem.title)
 
     notificationManager.notify(getUniqueId(), notification)
 }

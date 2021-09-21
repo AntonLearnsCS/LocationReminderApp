@@ -35,12 +35,12 @@ class ReminderDescriptionActivity : AppCompatActivity() {
        /* binding = com.udacity.project4.databinding.ActivityReminderDescriptionBinding.inflate(layoutInflater)
         val view : View = binding.root
         setContentView(view)*/
-
-        val bundleItem = intent.getSerializableExtra("ReminderDataItem") as ReminderDataItem
+        val bundleItem = intent.getSerializableExtra("EXTRA_ReminderDataItem") as ReminderDataItem
         println("Title: " + bundleItem.title)
         /*val intent = this.intent
         val bundle = intent.extras
-        val bundleItem = bundle?.getSerializable("ReminderDataItem") as ReminderDataItem*/
+        val bundleItem = bundle?.getSerializable("EXTRA_ReminderDataItem") as ReminderDataItem*/
+
         binding.reminderDataItem = bundleItem
 
         binding.lifecycleOwner = this
@@ -50,9 +50,14 @@ class ReminderDescriptionActivity : AppCompatActivity() {
             intentFinished.putExtra("finishedTask", bundleItem.id)
             startActivity(intentFinished)
         }
-
     //return binding.root
     }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+    }
+
     companion object {
         private const val EXTRA_ReminderDataItem = "EXTRA_ReminderDataItem"
 
