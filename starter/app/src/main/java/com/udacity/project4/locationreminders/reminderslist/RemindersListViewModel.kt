@@ -29,6 +29,7 @@ class RemindersListViewModel(
     private val dataSource: ReminderDataSource
 ) : BaseViewModel(app) {
     //private val dataSource: ReminderDataSource
+
     val selectedReminder = MutableLiveData<ReminderDataItem>()
     // list that holds the reminder data to be displayed on the UI
     var remindersList = MutableLiveData<List<ReminderDataItem>>()
@@ -41,8 +42,10 @@ class RemindersListViewModel(
      * or show error if any
      */
 
-    val error: LiveData<Boolean> = remindersList.map { it is Error } //expected: MutableLiveData<List<ReminderDataItem>>
-    val empty: LiveData<Boolean> = remindersList.map { it.isNullOrEmpty()}
+        val error = remindersList.map { it is Error } //expected: MutableLiveData<List<ReminderDataItem>>
+        val empty = remindersList.map { it.isNullOrEmpty()}
+
+
 
     fun setSelectedReminderToNull()
     {
@@ -76,9 +79,12 @@ class RemindersListViewModel(
                             )
                         })
                         remindersList.value = dataList
+                        println("ReminderList value: " + remindersList.value)
                     }
-                    is Result.Error ->
+                    is Result.Error -> {
+                        println("Error in loading")
                         showSnackBar.value = result.message
+                    }
                 }
 
                 //check if no data has to be shown

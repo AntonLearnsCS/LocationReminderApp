@@ -16,6 +16,7 @@ class FakeDataSource : ReminderDataSource {
     override suspend fun getReminders(): Result<List<ReminderDTO>> {
         if (shouldReturnError)
         {
+            println("Returns error")
             return Result.Error("Could not find reminder",1)
         }
         //The "Success" will cast the resulting list as a Result of type "Success"

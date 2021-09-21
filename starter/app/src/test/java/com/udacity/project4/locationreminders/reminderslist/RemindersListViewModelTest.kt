@@ -82,11 +82,15 @@ class RemindersListViewModelTest {
         // Make the repository return errors.
         repository.setReturnError(true)
         println("Repository data size: " + repository.tasksServiceData.size)
-        viewModel.loadReminders()
+        mainCoroutineRule.runBlockingTest {
+            viewModel.loadReminders()
+        }
 
         // Then empty and error are true (which triggers an error message to be shown).
         println("ReminderList.size : " + viewModel.remindersList.value?.size)
-        Assert.assertThat(viewModel.empty.value, `is`(true))
-        Assert.assertThat(viewModel.error.value, `is`(true))
+
+        //TODO: LiveData  value was never set
+        Assert.assertThat(viewModel.empty.getOrAwaitValue(), `is`(true))
+        Assert.assertThat(viewModel.error.getOrAwaitValue(), `is`(true))
     }
 }
