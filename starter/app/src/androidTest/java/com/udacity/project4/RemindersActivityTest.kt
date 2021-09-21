@@ -1,5 +1,6 @@
 package com.udacity.project4
 
+import android.app.Activity
 import android.app.Application
 import android.view.InputDevice
 import android.view.MotionEvent
@@ -22,6 +23,7 @@ import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.intent.rule.IntentsTestRule
+import androidx.test.espresso.matcher.RootMatchers
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -39,8 +41,14 @@ import com.udacity.project4.util.monitorActivity
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers
+import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.Matcher
+import org.hamcrest.Matchers
+import org.hamcrest.Matchers.`is`
+import org.hamcrest.core.Is.`is`
+import org.hamcrest.CoreMatchers.`is`
+
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -204,13 +212,23 @@ fun endToEndTest() = runBlocking {
     onView(withId(R.id.saveReminder)).perform(click())
     onView(allOf(withId(R.id.refreshLayout), withText("TITLE2")))
 
+    onView(withText("Removed")).inRoot(RootMatchers.withDecorView(Matchers.not(`is`(getActivity(reminderScenario).window.decorView))))
+        .check(matches(isDisplayed()))
+
     //TODO: Try deleting pending intent before launching a new one:
     // https://stackoverflow.com/questions/13596422/android-notification-pendingintent-extras-null
     activityScenario.close()
     reminderScenario.close()
 }
 
-
+    // get activity context
+    private fun getActivity(activityScenario: ActivityScenario<RemindersActivity>): Activity? {
+        var activity: Activity? = null
+        activityScenario.onActivity {
+            activity = it
+        }
+        return activity
+    }
 
         //source: https://stackoverflow.com/questions/22177590/click-by-bounds-coordinates/22798043#22798043
         fun clickIn(x: Double, y: Double): ViewAction {

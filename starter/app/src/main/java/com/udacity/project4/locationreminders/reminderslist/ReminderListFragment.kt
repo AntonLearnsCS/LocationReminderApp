@@ -100,7 +100,7 @@ class ReminderListFragment : BaseFragment() {
                 intent.putExtras(bundle)*/
 
                 val intent = Intent(context,ReminderDescriptionActivity::class.java)
-                intent.putExtra("ReminderDataItem",it)
+                intent.putExtra("EXTRA_ReminderDataItem",it)
                 startActivity(intent)
 
                 _viewModel.setSelectedReminderToNull()

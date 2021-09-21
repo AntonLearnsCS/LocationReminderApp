@@ -1,9 +1,17 @@
 package com.udacity.project4.locationreminders.reminderslist
 
+import android.R
+import android.app.Activity
 import android.os.Build
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
+import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.savereminder.FakeDataSource
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -15,7 +23,11 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.matches
 import org.robolectric.annotation.Config
+import androidx.test.espresso.assertion.ViewAssertions.matches
+import com.udacity.project4.locationreminders.RemindersActivity
+
 
 @Config(sdk = [Build.VERSION_CODES.O_MR1])
 @ExperimentalCoroutinesApi
@@ -27,6 +39,9 @@ class RemindersListViewModelTest {
     InstantTaskExecutorRule - A JUnit Test Rule that swaps the background executor used by the Architecture
      Components with a different one which executes each task synchronously.
      */
+    @get: Rule
+    val mainCoroutineRule = MainCoroutineRule()
+
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
 
@@ -35,18 +50,20 @@ class RemindersListViewModelTest {
     {
         repository = FakeDataSource()
         //Given a view model with one data item
-        viewModel = RemindersListViewModel(ApplicationProvider.getApplicationContext(),repository)
+        viewModel = RemindersListViewModel(ApplicationProvider.getApplicationContext(), repository)
 
     }
 
     //TODO: provide testing to the RemindersListViewModel and its live data objects
 
+
+
     @Test
-    fun ReminderListViewModel_DeleteItem_ListChanges() = runBlockingTest{
+    fun ReminderListViewModel_DeleteItem_ListChanges() = mainCoroutineRule.runBlockingTest {
         //Given a view model with one data item
-        val testReminderData = ReminderDataItem("title","description","location",2.0,3.0)
+        val testReminderData = ReminderDataItem("title", "description", "location", 2.0, 3.0)
         repository.saveReminder(
-             ReminderDTO(
+            ReminderDTO(
                 testReminderData.title,
                 testReminderData.description,
                 testReminderData.location,
@@ -62,9 +79,6 @@ class RemindersListViewModelTest {
         //Then loaded list does not contain the deleted data item; also assert that toast message is shown
         viewModel.loadReminders()
 
-
-        val list = viewModel.remindersList.value
-        assertThat(list,`is`(emptyList()))
     }
 
     @Test

@@ -76,10 +76,6 @@ class ReminderListFragmentTest : KoinTest {
     /*@get : Rule
     var rule: ActivityScenarioRule<RemindersActivity> = ActivityScenarioRule(RemindersActivity::class.java)*/
 
-    val remindersList = MutableLiveData<List<ReminderDataItem>>()
-    private lateinit var reminderDataItem: ReminderDataItem
-    private lateinit var reminderDTO: Result<ReminderDTO>
-    private lateinit var stubDTO : ReminderDataItem
     private lateinit var reminderZ_id : String
     private lateinit var realRepo : ReminderDataSource
     val mRepo by inject<ReminderDataSource>()
