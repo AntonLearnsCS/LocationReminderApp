@@ -163,6 +163,9 @@ fun endToEndTest() = runBlocking {
     //TODO: Do I need to make a new activityScenario here to tell Espresso to track RemindersActivity's databinding?
     val reminderScenario = ActivityScenario.launch(RemindersActivity::class.java)
     dataBindingIdlingResource.monitorActivity(reminderScenario)
+    //Q: Flaky behavior with line below
+    //A: wrap ListAdapter with Espresso wrapper
+    //onView(allOf(withId(R.id.refreshLayout),withText("TITLE1"))).check(matches(isDisplayed()))
     onView(withText("TITLE1")).check(matches(isDisplayed()))
 
     onView(withId(R.id.reminderssRecyclerView)).perform(
@@ -172,8 +175,9 @@ fun endToEndTest() = runBlocking {
     delay(3000)
         onView(withText("DESCRIPTIONq")).check(matches(isDisplayed()))
         onView(withId(R.id.finished_task)).perform(click())
-    onView(withText("Removed")).inRoot(RootMatchers.withDecorView(Matchers.not(`is`(getActivity(reminderScenario)?.window?.decorView))))
-        .check(matches(isDisplayed()))
+
+   onView(withText("Removed")).inRoot(RootMatchers.withDecorView(Matchers.not(`is`(getActivity(reminderScenario)?.window?.decorView))))
+       .check(matches(isDisplayed()))
 
     onView(withId(R.id.addReminderFAB)).perform(click())
 
@@ -187,7 +191,7 @@ fun endToEndTest() = runBlocking {
     //verify(navController).navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
 
         //TODO: https://stackoverflow.com/questions/33382344/espresso-test-click-x-y-coordinates
-        onView(withId(R.id.map)).perform(clickIn(37.7529, -122.4232))
+        onView(withId(R.id.map)).perform(clickIn(33.940829653849526, -118.13559036701918))
         //onView(allOf(withId(R.id.save_reminder_layout)).check(matches(withText("TITLE1")))
     //Not sure why comment above does not work but below code does
     //source: https://developer.android.com/training/testing/espresso/basics
@@ -195,6 +199,7 @@ fun endToEndTest() = runBlocking {
     delay(3000)
     onView(withId(R.id.saveReminder)).perform(click())
     onView(allOf(withId(R.id.refreshLayout), withText("TITLE2")))
+    delay(3000)
 
 
 

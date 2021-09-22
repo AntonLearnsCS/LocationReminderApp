@@ -110,8 +110,7 @@ class SaveReminderFragment : BaseFragment() {
         Timber.i("testingNull" + _viewModel.reminderTitle.value)
 
         //observe locationSingle variable
-        Timber.i("locationSingle: " + _viewModel.locationSingle.value?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude
-         + ", " + _viewModel.latLng.value?.longitude)
+        //Timber.i("locationSingle: " + _viewModel.locationSingle.value?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude + ", " + _viewModel.latLng.value?.longitude)
 
         return binding.root
     }
@@ -153,7 +152,7 @@ class SaveReminderFragment : BaseFragment() {
      */
     //onAttach is a callback that is called when the fragment is attached to its host activity
     //"context" refers to the Activity that the fragment is attached to
-    //Note: I was receiving the "Not attached to an activity" error b/c I the activity had not been created by the time
+    //Note: I was receiving the "Not attached to an activity" error b/c the activity had not been created by the time
     //the fragment was created and initialized. This is why we use "contxt" instead of "requireContext()" since
     // "requireContext" will not have yet been initialized and is defaulted to "IllegalStateException"
     //Source: https://stackoverflow.com/questions/33742646/what-causes-a-fragment-to-get-detached-from-an-activity
@@ -181,10 +180,9 @@ class SaveReminderFragment : BaseFragment() {
 
         binding.saveReminder.setOnClickListener {
             //two-way data binding
-            _viewModel.setListToNull()
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription.value
-            val location = _viewModel.reminderSelectedLocationStr
+            val location = _viewModel.cityNameForTwoWayBinding.value
             latLng = _viewModel.latLng.value
             //no id for clicked location b/c ReminderDataItem will automatically generate one for us, id only for geofence
             reminderDataItem = ReminderDataItem(title,description,location,latLng?.latitude,latLng?.longitude)
@@ -205,6 +203,7 @@ class SaveReminderFragment : BaseFragment() {
                 val bundle = Bundle()
                 bundle.putSerializable("ReminderDataItem",reminderDataItem)
                 intent.putExtras(bundle)
+                _viewModel.cityNameForTwoWayBinding.value = null
                 startActivity(intent)
                 //TODO If I include navigation from here to reminderListFragment then save button persist
                 //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())

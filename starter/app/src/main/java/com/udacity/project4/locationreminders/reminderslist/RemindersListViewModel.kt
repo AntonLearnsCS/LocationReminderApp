@@ -42,8 +42,8 @@ class RemindersListViewModel(
      * or show error if any
      */
 
-        val error : LiveData<Boolean> = remindersList.map { it is Error }
-        val empty : LiveData<Boolean> = remindersList.map { it.isNullOrEmpty()}
+        //val error : LiveData<Boolean> = remindersList.map { it is Error }
+        //val empty : LiveData<Boolean> = remindersList.map { it.isNullOrEmpty()}
 
     fun setSelectedReminderToNull()
     {

@@ -8,6 +8,7 @@ import androidx.databinding.ViewDataBinding
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.RecyclerView
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
+import com.udacity.project4.utils.wrapEspressoIdlingResource
 import timber.log.Timber
 
 abstract class BaseRecyclerViewAdapter<T>(private val callback: ((item: T) -> Unit)? = null) :
@@ -24,25 +25,29 @@ abstract class BaseRecyclerViewAdapter<T>(private val callback: ((item: T) -> Un
     override fun getItemCount() = _items.size
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DataBindingViewHolder<T> {
-        val layoutInflater = LayoutInflater.from(parent.context)
+        wrapEspressoIdlingResource {
+            val layoutInflater = LayoutInflater.from(parent.context)
 
             //ViewDataBinding - Base class for generated data binding classes.
-        val binding = DataBindingUtil
-            .inflate<ViewDataBinding>(layoutInflater, getLayoutRes(viewType), parent, false)
+            val binding = DataBindingUtil
+                .inflate<ViewDataBinding>(layoutInflater, getLayoutRes(viewType), parent, false)
 
-        binding.lifecycleOwner = getLifecycleOwner()
+            binding.lifecycleOwner = getLifecycleOwner()
 
-        return DataBindingViewHolder(binding)
+            return DataBindingViewHolder(binding)
+        }
     }
 
     override fun onBindViewHolder(holder: DataBindingViewHolder<T>, position: Int) {
-        val item = getItem(position)
-        holder.bind(item)
-        holder.itemView.setOnClickListener {
-            //"invoke" is used for operators and is used when a class only has one method and thereby one function. As such,
-            //we can insert the "invoke" modifier in front of the operator so that we can call it without directly from the class
-            //without the operator/method name.
-            callback?.invoke(item)
+        wrapEspressoIdlingResource {
+            val item = getItem(position)
+            holder.bind(item)
+            holder.itemView.setOnClickListener {
+                //"invoke" is used for operators and is used when a class only has one method and thereby one function. As such,
+                //we can insert the "invoke" modifier in front of the operator so that we can call it without directly from the class
+                //without the operator/method name.
+                callback?.invoke(item)
+            }
         }
     }
 
@@ -54,8 +59,10 @@ abstract class BaseRecyclerViewAdapter<T>(private val callback: ((item: T) -> Un
      * @param items to be merged
      */
     fun addData(items: List<T>) {
-        _items.addAll(items)
-        notifyDataSetChanged()
+        wrapEspressoIdlingResource {
+            _items.addAll(items)
+            notifyDataSetChanged()
+        }
     }
 
     /**

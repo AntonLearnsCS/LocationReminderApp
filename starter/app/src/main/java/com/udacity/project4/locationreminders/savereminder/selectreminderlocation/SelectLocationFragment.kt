@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.location.Address
+import android.location.Geocoder
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -39,7 +41,25 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private val TAG = "SelectLocationFragment"
     private val REQUEST_LOCATION_PERMISSION = 1
     private lateinit var contxt: Context
+    private lateinit var geocoder: Geocoder
+    private lateinit var list : List<Address>
 
+    override fun onStart() {
+        super.onStart()
+        geocoder = Geocoder(requireContext(), Locale.ENGLISH)
+    }
+
+
+    fun getLatLngAddress(LatLng: LatLng) : Address?
+    {
+        list =  geocoder.getFromLocation(LatLng.latitude, LatLng.longitude, 1)
+        if (!list.isEmpty() && Geocoder.isPresent()) {
+            println("locality: " + list[0].locality)
+            return list[0]
+        }
+        else
+            return null
+    }
     private val runningQOrLater = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
 
     //Use Koin to get the view model of the SaveReminder
@@ -70,9 +90,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 //        TODO: call this function after the user confirms on the selected location
         //onLocationSelected()
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        //Obtain the SupportMapFragment and get notified when the map is ready to be used.
         //The activity that contains the SupportMapFragment must implement the OnMapReadyCallback
-        // interface and that interface's onMapReady() method.
+        //interface and that interface's onMapReady() method.
         //val mapFragment : MapFragment = childFragmentManager.findFragmentById(R.id.map) as MapFragment
 
         val activity = getActivity()
@@ -160,11 +180,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
              other Activities or Fragment
              Source: https://stackoverflow.com/questions/54871649/mutablelivedata-sets-value-but-getvalue-returns-null
              */
-
-            _viewModel.latLng.value = latLng
+            _viewModel.cityNameForTwoWayBinding.value = getLatLngAddress(latLng)?.locality
+            //_viewModel.latLng.value = latLng
             println("SelectLocation: " + latLng.latitude.toString() + ", " + latLng.longitude.toString())
-            Timber.i("locationSingle: " + _viewModel.locationSingle.value?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude
-                    + ", " + _viewModel.latLng.value?.longitude)
+            //println("locationSingle: " + _viewModel.locationSingle.value?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude
+              //          + ", " + _viewModel.latLng.value?.longitude )
             findNavController().popBackStack()
         }
     }
@@ -325,7 +345,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     override fun onDestroy() {
         super.onDestroy()
-        _viewModel.locationSingle.value = null
     }
 }
 private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
