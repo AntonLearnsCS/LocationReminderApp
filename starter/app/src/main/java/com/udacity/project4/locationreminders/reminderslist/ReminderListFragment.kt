@@ -34,7 +34,7 @@ class ReminderListFragment : BaseFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding =
             DataBindingUtil.inflate(
                 inflater,
@@ -58,7 +58,6 @@ class ReminderListFragment : BaseFragment() {
         //setOnRefreshListener - Classes that wish to be notified when the swipe gesture correctly
         // triggers a refresh should implement this interface.
         binding.refreshLayout.setOnRefreshListener { wrapEspressoIdlingResource {  _viewModel.loadReminders() }}
-
 
         return binding.root
     }

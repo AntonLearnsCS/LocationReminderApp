@@ -48,7 +48,7 @@ class ReminderDescriptionActivity : AppCompatActivity() {
         binding.lifecycleOwner = this
 
         binding.finishedTask.setOnClickListener {
-            Toast.makeText(ApplicationProvider.getApplicationContext(),"Removed",Toast.LENGTH_SHORT).show()
+            Toast.makeText(this,"Removed",Toast.LENGTH_SHORT).show()
             val intentFinished = Intent(this, RemindersActivity::class.java)
             intentFinished.putExtra("finishedTask", bundleItem.id)
             startActivity(intentFinished)

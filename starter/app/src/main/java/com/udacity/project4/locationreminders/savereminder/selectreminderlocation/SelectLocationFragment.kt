@@ -55,7 +55,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         //DataBindingUtil.inflate(inflater, R.layout.fragment_select_location, container, false)
 
-        binding.viewModel = _viewModel
+        //binding.viewModel = _viewModel
         binding.lifecycleOwner = requireActivity()
 
         setHasOptionsMenu(true)
@@ -105,20 +105,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         contxt = context
     }
 
-/*    override fun onAttachFragment(childFragment: Fragment) {
-        super.onAttachFragment(childFragment)
-        Timber.i("testingNullFragmentListener")
-    }*/
-
-    private fun onLocationSelected() {
-        //        TODO: When the user confirms on the selected location,
-        //         send back the selected location details to the view model
-        //         and navigate back to the previous fragment to save the reminder and add the geofence
-            map.setOnMapLongClickListener { latLang ->
-                //_viewModel.locationMutable.value?.latLng = latLang
-                findNavController().popBackStack()
-            }
-    }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onMapReady(googleMap: GoogleMap?) {
@@ -132,7 +118,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         //can dictate the difference between two cities
         val latitude = 33.8447593
         val longitude = -118.1480706
-        val zoomLevel = 4f
+        val zoomLevel = 12f
 
         val homeLatLng = LatLng(latitude, longitude)
         map.moveCamera(CameraUpdateFactory.newLatLngZoom(homeLatLng, zoomLevel))

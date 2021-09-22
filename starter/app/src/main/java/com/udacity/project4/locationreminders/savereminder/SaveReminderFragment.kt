@@ -39,7 +39,7 @@ import timber.log.Timber
 import java.util.concurrent.TimeUnit
 
 
-const val GEOFENCE_RADIUS_IN_METERS = 100000f
+const val GEOFENCE_RADIUS_IN_METERS = 3200f
 
 //following structure from DevByte domain -> DTO conversion
 //create a dataclass
@@ -181,6 +181,7 @@ class SaveReminderFragment : BaseFragment() {
 
         binding.saveReminder.setOnClickListener {
             //two-way data binding
+            _viewModel.setListToNull()
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription.value
             val location = _viewModel.reminderSelectedLocationStr

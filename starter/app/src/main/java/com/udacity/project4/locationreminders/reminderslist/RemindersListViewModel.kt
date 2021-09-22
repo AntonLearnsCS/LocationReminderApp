@@ -33,7 +33,7 @@ class RemindersListViewModel(
     val selectedReminder = MutableLiveData<ReminderDataItem>()
     // list that holds the reminder data to be displayed on the UI
     var remindersList = MutableLiveData<List<ReminderDataItem>>()
-
+    //var remindersList : MutableLiveData<List<ReminderDataItem>>? = null
     //private lateinit var reminderListTest : Result<List<ReminderDTO>>
     //TODO: Receiving error: "No instrumentation registered!"
     //private val dataSource: ReminderDataSource = (requireContext(ApplicationProvider.getApplicationContext()).applicationContext as MyApp).taskRepository
@@ -42,10 +42,8 @@ class RemindersListViewModel(
      * or show error if any
      */
 
-        val error = remindersList.map { it is Error } //expected: MutableLiveData<List<ReminderDataItem>>
-        val empty = remindersList.map { it.isNullOrEmpty()}
-
-
+        val error : LiveData<Boolean> = remindersList.map { it is Error }
+        val empty : LiveData<Boolean> = remindersList.map { it.isNullOrEmpty()}
 
     fun setSelectedReminderToNull()
     {
@@ -82,7 +80,7 @@ class RemindersListViewModel(
                         println("ReminderList value: " + remindersList.value)
                     }
                     is Result.Error -> {
-                        println("Error in loading")
+                        remindersList.value = null
                         showSnackBar.value = result.message
                     }
                 }

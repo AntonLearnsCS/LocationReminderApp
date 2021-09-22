@@ -174,23 +174,6 @@ fun endToEndTest() = runBlocking {
         onView(withId(R.id.finished_task)).perform(click())
     onView(withText("Removed")).inRoot(RootMatchers.withDecorView(Matchers.not(`is`(getActivity(reminderScenario)?.window?.decorView))))
         .check(matches(isDisplayed()))
-    /*
-    //trying to use fragments to test navigation
-    val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
-
-    val navController = mock(NavController::class.java)
-
-    scenario.onFragment {
-        Navigation.setViewNavController(it.view!!, navController)
-    }
-
-    onView(withText("TITLE1")).check(matches(isDisplayed()))
-    delay(3000)
-    onView(withId(R.id.addReminderFAB)).check(matches(isDisplayed()))
-    onView(withId(R.id.addReminderFAB)).perform(click())
-
-    verify(navController).navigate(ReminderListFragmentDirections.toSaveReminder()) // actionReminderListFragmentToSaveReminderFragment())
-*/
 
     onView(withId(R.id.addReminderFAB)).perform(click())
 
