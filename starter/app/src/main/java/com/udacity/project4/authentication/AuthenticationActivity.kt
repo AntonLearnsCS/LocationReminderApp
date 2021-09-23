@@ -64,32 +64,23 @@ class AuthenticationActivity : AppCompatActivity() {
         /* binding = com.udacity.project4.databinding.ActivityReminderDescriptionBinding.inflate(layoutInflater)
          val view : View = binding.root
          setContentView(view)*/
-
-        //setContentView(R.layout.activity_authentication)
-       // binding = ActivityAuthenticationBinding.inflate(getLayoutInflater())
+        if (intent.hasExtra("flag") && intent.getBooleanExtra("flag", false)) {
+            wrapEspressoIdlingResource {
+                AuthUI.getInstance().signOut(this)
+                intent.removeExtra("flag")
+            }
+        }
 
         viewModel = ViewModelProvider(this).get(AuthViewModel::class.java)
-        Timber.i("" + viewModel.authenticationState.value.toString() )
 
-        if (viewModel.authenticationState.value == AuthViewModel.AuthenticationState.AUTHENTICATED) {
-            binding.button.setText("Logout")
-            binding.button.setOnClickListener {
-                Timber.i("authPositive")
-                binding.button.setText("Login")
-                wrapEspressoIdlingResource {
-                    AuthUI.getInstance().signOut(this)
-                }
-            }
+        binding.button.setOnClickListener {
 
             //Tip: Don't start activity from here, do it from onActivityResult
-        }
-        else {
-            binding.button.setText("Login")
-            binding.button.setOnClickListener {
-                Timber.i("authNegative")
-                    launchSignInFlow()
-            }
-        }
+                    wrapEspressoIdlingResource {
+                        launchSignInFlow()
+                    }
+                }
+
 
         //inflating xml layout in activity
         //for inflating xml layout in fragment: DataBindingUtil.inflate(inflater, R.layout.activity_authentication, container, false)

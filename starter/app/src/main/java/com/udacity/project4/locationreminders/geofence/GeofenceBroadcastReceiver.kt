@@ -31,19 +31,17 @@ import java.util.logging.ErrorManager
  * To do that you can use https://developer.android.com/reference/android/support/v4/app/JobIntentService to do that.
  *
  */
-private const val TAG = "GeofenceReceiver"
 
 class GeofenceBroadcastReceiver : BroadcastReceiver() {
-    private lateinit var geofencingClient : GeofencingClient
 
 //TODO: implement the onReceive method to receive the geofencing events at the background
 override fun onReceive(context: Context, intent: Intent) {
-    //if (intent.action == ACTION_GEOFENCE_EVENT) {
+
+    //TODO: Remove Geofence after user clicks notification button or will it expire once enter is triggered?
+
             //source: https://stackoverflow.com/questions/47593205/how-to-pass-custom-object-via-intent-in-kotlin
             Toast.makeText(context,"Broadcast Received",Toast.LENGTH_LONG).show()
-            Timber.i("Timber","Broadcast Received")
             GeofenceTransitionsJobIntentService.enqueueWork(context, intent)
-
     }
 }
 

@@ -73,9 +73,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         binding = DataBindingUtil.inflate(inflater,R.layout.fragment_select_location,container,false)
 
-        //DataBindingUtil.inflate(inflater, R.layout.fragment_select_location, container, false)
 
-        //binding.viewModel = _viewModel
         binding.lifecycleOwner = requireActivity()
 
         setHasOptionsMenu(true)
@@ -88,7 +86,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
 
 //        TODO: call this function after the user confirms on the selected location
-        //onLocationSelected()
 
         //Obtain the SupportMapFragment and get notified when the map is ready to be used.
         //The activity that contains the SupportMapFragment must implement the OnMapReadyCallback
@@ -98,7 +95,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         val activity = getActivity()
         if (activity != null && isAdded)
         {
-            Timber.i("testingNull")
             //Q: Issue caused by navigating away from current fragment to MapFragment? This causes "Fragment not attach to Activity"
             //error
             //childFragmentManager - Return a private FragmentManager for placing and managing Fragments inside of this Fragment.
@@ -217,6 +213,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             Log.e(TAG, "Can't find style. Error: ", e)
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun isPermissionGranted() : Boolean {
         if (!runningQOrLater) {
@@ -326,34 +323,26 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         inflater.inflate(R.menu.map_options, menu)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         // TODO: Change the map type based on the user's selection.
-        R.id.normal_map -> {
-            true
-        }
-        R.id.hybrid_map -> {
-            true
-        }
-        R.id.satellite_map -> {
-            true
-        }
-        R.id.terrain_map -> {
-            true
-        }
-        else -> super.onOptionsItemSelected(item)
-    }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
+    override fun onOptionsItemSelected(item: MenuItem)  : Boolean = when(item.itemId){
+            // Change the map type based on the user's selection.
+            R.id.normal_map -> {
+                map.mapType = GoogleMap.MAP_TYPE_NORMAL
+                true
+            }
+            R.id.hybrid_map -> {
+                map.mapType = GoogleMap.MAP_TYPE_HYBRID
+                true
+            }
+            R.id.satellite_map -> {
+                map.mapType = GoogleMap.MAP_TYPE_SATELLITE
+                true
+            }
+            R.id.terrain_map -> {
+                map.mapType = GoogleMap.MAP_TYPE_TERRAIN
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
 }
-private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
-private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
-private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
-private const val TAG = "HuntMainActivity"
-private const val LOCATION_PERMISSION_INDEX = 0
-private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
-
-/*
-
- */

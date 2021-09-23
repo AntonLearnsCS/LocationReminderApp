@@ -11,6 +11,7 @@ import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.data.DataBufferObserver
 import com.udacity.project4.R
+import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentRemindersBinding
@@ -47,14 +48,6 @@ class ReminderListFragment : BaseFragment() {
         setDisplayHomeAsUpEnabled(false)
         setTitle(getString(R.string.app_name))
 
-        //val arg = arguments?.getString("finishedTask")
-
-       /* if (_viewModel.idFound.value != null)
-        {
-            Timber.i("finishedTaskTest")
-            _viewModel.removeTaskFromList()
-        }
-*/
         //setOnRefreshListener - Classes that wish to be notified when the swipe gesture correctly
         // triggers a refresh should implement this interface.
         binding.refreshLayout.setOnRefreshListener { wrapEspressoIdlingResource {  _viewModel.loadReminders() }}
@@ -85,18 +78,6 @@ class ReminderListFragment : BaseFragment() {
         // for another navigation event.
         _viewModel.selectedReminder.observe(viewLifecycleOwner, Observer {
             if (null != it) {
-                // Must find the NavController from the Fragment
-                /*val intent = Intent(context,ReminderDescriptionActivity::class.java)
-                intent.putExtra("EXTRA_ReminderDataItem",_viewModel.selectedReminder.value)
-                startActivity(intent)*/
-                //Navigation.findNavController(view).navigate(R.id.ReminderDescriptionActivity)
-
-                Timber.i("selected Reminder: " + _viewModel.selectedReminder.value?.title)
-
-                /*val intent = Intent(context,ReminderDescriptionActivity::class.java)
-                val bundle = Bundle()
-                bundle.putSerializable("ReminderDataItem",it)
-                intent.putExtras(bundle)*/
 
                 val intent = Intent(context,ReminderDescriptionActivity::class.java)
                 intent.putExtra("EXTRA_ReminderDataItem",it)
@@ -136,6 +117,9 @@ class ReminderListFragment : BaseFragment() {
         when (item.itemId) {
             R.id.logout -> {
 //                TODO: add the logout implementation
+                val intent = Intent(requireContext(),AuthenticationActivity::class.java)
+                intent.putExtra("flag", true)
+                startActivity(intent)
             }
         }
         return super.onOptionsItemSelected(item)
