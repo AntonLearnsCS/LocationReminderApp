@@ -73,7 +73,7 @@ class SaveReminderFragment : BaseFragment() {
     private var geofenceList = mutableListOf<Geofence>()
     val GEOFENCE_EXPIRATION_IN_MILLISECONDS: Long = TimeUnit.HOURS.toMillis(1)
 
-    private var latLng: LatLng? = LatLng(33.0,-118.1)
+    private var latLng: LatLng = LatLng(33.0,-118.1)
     private lateinit var geofencingClient: GeofencingClient
     private val runningQOrLater : Boolean = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
     private lateinit var reminderDataItem : ReminderDataItem
@@ -183,7 +183,7 @@ class SaveReminderFragment : BaseFragment() {
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription.value
             val location = _viewModel.cityNameForTwoWayBinding.value
-            latLng = _viewModel.latLng.value
+            latLng = _viewModel.latLng.value!!
             //no id for clicked location b/c ReminderDataItem will automatically generate one for us, id only for geofence
             reminderDataItem = ReminderDataItem(title,description,location,latLng?.latitude,latLng?.longitude)
 
@@ -203,7 +203,7 @@ class SaveReminderFragment : BaseFragment() {
                 val bundle = Bundle()
                 bundle.putSerializable("ReminderDataItem",reminderDataItem)
                 intent.putExtras(bundle)
-                _viewModel.cityNameForTwoWayBinding.value = null
+                _viewModel.cityNameForTwoWayBinding.value = "City"
                 startActivity(intent)
                 //TODO If I include navigation from here to reminderListFragment then save button persist
                 //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())

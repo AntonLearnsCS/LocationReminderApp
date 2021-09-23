@@ -181,7 +181,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
              Source: https://stackoverflow.com/questions/54871649/mutablelivedata-sets-value-but-getvalue-returns-null
              */
             _viewModel.cityNameForTwoWayBinding.value = getLatLngAddress(latLng)?.locality
-            //_viewModel.latLng.value = latLng
+            _viewModel.latLng.value = latLng
             println("SelectLocation: " + latLng.latitude.toString() + ", " + latLng.longitude.toString())
             //println("locationSingle: " + _viewModel.locationSingle.value?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude
               //          + ", " + _viewModel.latLng.value?.longitude )
