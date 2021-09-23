@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
+import com.udacity.project4.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
@@ -21,6 +22,7 @@ import org.junit.Rule;
 import org.junit.runner.RunWith;
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi;
+import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers.`is`
@@ -40,7 +42,6 @@ import org.koin.test.inject
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
-//Unit test the DAO
 @SmallTest
 class RemindersDaoTest : AutoCloseKoinTest() {
 //    TODO: Add testing implementation to the RemindersDao.kt
@@ -49,26 +50,27 @@ class RemindersDaoTest : AutoCloseKoinTest() {
     //from the database in which it is defined in.
     //private lateinit var localDataSource : ReminderDataSource
     private lateinit var database : RemindersDatabase
-
-    private lateinit var repository: ReminderDataSource
-    private lateinit var appContext: Application
-
-    private val localDataSource by inject<ReminderDataSource>()
-
+    @get: Rule
+    val mainCoroutineRule = MainCoroutineRule()
     @Before
     fun init() {
         // Using an in-memory database so that the information stored here disappears when the
         // process is killed.
+        //source for setTransactionExecutor: https://medium.com/@eyalg/testing-androidx-room-kotlin-coroutines-2d1faa3e674f
+        //if we don't specify the default dispatchers, a different default dispatcher will be provided, which will create a different scope
+        //that is beyond the ones created in the DAO functions
         database = Room.inMemoryDatabaseBuilder(
             getApplicationContext(),
             RemindersDatabase::class.java
-        ).allowMainThreadQueries().build()
+        ).setTransactionExecutor(mainCoroutineRule.dispatcher.asExecutor())
+            .setQueryExecutor(mainCoroutineRule.dispatcher.asExecutor())
+            .allowMainThreadQueries().build()
     }
     @After
     fun after() = database.close()
 
     @Test
-    fun RemindersDatabase_InsertItem_GetById() = runBlockingTest {
+    fun RemindersDatabase_InsertItem_GetById() = mainCoroutineRule.runBlockingTest {
         // GIVEN - Insert a ReminderDTO.
         val reminderDataItem = ReminderDTO("title", "description","Location",2.0,3.0)
         database.reminderDao().saveReminder(reminderDataItem)
@@ -84,7 +86,6 @@ class RemindersDaoTest : AutoCloseKoinTest() {
         assertThat(loaded.latitude, `is`(reminderDataItem.latitude))
         assertThat(loaded.longitude, `is`(reminderDataItem.longitude))
         assertThat(loaded.location, `is`(reminderDataItem.location))
-
     }
 
     @Test
