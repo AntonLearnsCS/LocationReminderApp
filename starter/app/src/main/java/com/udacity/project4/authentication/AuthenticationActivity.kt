@@ -65,11 +65,8 @@ class AuthenticationActivity : AppCompatActivity() {
          val view : View = binding.root
          setContentView(view)*/
 
-        //setContentView(R.layout.activity_authentication)
-       // binding = ActivityAuthenticationBinding.inflate(getLayoutInflater())
 
         viewModel = ViewModelProvider(this).get(AuthViewModel::class.java)
-        Timber.i("" + viewModel.authenticationState.value.toString() )
 
         if (viewModel.authenticationState.value == AuthViewModel.AuthenticationState.AUTHENTICATED) {
             binding.button.setText("Logout")

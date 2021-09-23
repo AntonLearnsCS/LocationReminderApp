@@ -41,22 +41,6 @@ import java.util.concurrent.TimeUnit
 
 const val GEOFENCE_RADIUS_IN_METERS = 3200f
 
-//following structure from DevByte domain -> DTO conversion
-//create a dataclass
-data class ReminderContainer(val reminder: List<ReminderDataItem>)
-
-fun ReminderDataItem.asDatabaseModel(): ReminderDTO {
-   // val nonLive : ReminderDataItem? = reminder.value
-    return ReminderDTO(
-            title = this.title,
-            description = this.description,
-            location = this.location,
-            latitude = this.latitude,
-            longitude = this.longitude,
-            id = this.id)
-}
-
-
 class SaveReminderFragment : BaseFragment() {
     private var counter = 0
     private val REQUEST_LOCATION_PERMISSION = 1
@@ -70,7 +54,6 @@ class SaveReminderFragment : BaseFragment() {
     override val _viewModel: SaveReminderViewModel by inject()
 
     private lateinit var binding: FragmentSaveReminderBinding
-    private var geofenceList = mutableListOf<Geofence>()
     val GEOFENCE_EXPIRATION_IN_MILLISECONDS: Long = TimeUnit.HOURS.toMillis(1)
 
     private var latLng: LatLng = LatLng(33.0,-118.1)
@@ -107,49 +90,10 @@ class SaveReminderFragment : BaseFragment() {
 
         geofencingClient = LocationServices.getGeofencingClient(contxt)
         //TODO: Strange, pressing add button after save button calls onCreateView
-        Timber.i("testingNull" + _viewModel.reminderTitle.value)
-
-        //observe locationSingle variable
-        //Timber.i("locationSingle: " + _viewModel.locationSingle.value?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude + ", " + _viewModel.latLng.value?.longitude)
 
         return binding.root
     }
 
-    /*
-     override fun onStart() {
-        super.onStart()
-        checkPermissionsAndStartGeofencing()
-    }
-
-    /*
- *  When we get the result from asking the user to turn on device location, we call
- *  checkDeviceLocationSettingsAndStartGeofence again to make sure it's actually on, but
- *  we don't resolve the check to keep the user from seeing an endless loop.
- */
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON) {
-            // We don't rely on the result code, but just check the location setting again
-            checkDeviceLocationSettingsAndStartGeofence(false)
-        }
-    }
-
-    /*
-     *  When the user clicks on the notification, this method will be called, letting us know that
-     *  the geofence has been triggered, and it's time to move to the next one in the treasure
-     *  hunt.
-     */
-    override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        val extras = intent?.extras
-        if(extras != null){
-            if(extras.containsKey(GeofencingConstants.EXTRA_GEOFENCE_INDEX)){
-                viewModel.updateHint(extras.getInt(GeofencingConstants.EXTRA_GEOFENCE_INDEX))
-                checkPermissionsAndStartGeofencing()
-            }
-        }
-    }
-     */
     //onAttach is a callback that is called when the fragment is attached to its host activity
     //"context" refers to the Activity that the fragment is attached to
     //Note: I was receiving the "Not attached to an activity" error b/c the activity had not been created by the time
@@ -173,10 +117,7 @@ class SaveReminderFragment : BaseFragment() {
             //Navigate to another fragment to get the user location
             _viewModel.navigationCommand.value =
                 NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
-            //findNavController().popBackStack()
         }
-        /* reminderDataItem = ReminderDataItem(_viewModel.reminderTitle.value,_viewModel.reminderDescription.value,
-             _viewModel.reminderSelectedLocationStr,_viewModel.latitude.value,_viewModel.longitude.value)*/
 
         binding.saveReminder.setOnClickListener {
             //two-way data binding
@@ -185,7 +126,9 @@ class SaveReminderFragment : BaseFragment() {
             val location = _viewModel.cityNameForTwoWayBinding.value
             latLng = _viewModel.latLng.value!!
             //no id for clicked location b/c ReminderDataItem will automatically generate one for us, id only for geofence
-            reminderDataItem = ReminderDataItem(title,description,location,latLng?.latitude,latLng?.longitude)
+            reminderDataItem = ReminderDataItem(title,description,location, latLng.latitude,
+                latLng.longitude
+            )
 
             intent.putExtra("reminderDataItem", reminderDataItem)
 
@@ -194,11 +137,8 @@ class SaveReminderFragment : BaseFragment() {
 //             2) save the reminder to the local db
             if (_viewModel.validateAndSaveReminder(reminderDataItem))
             {
-                Timber.tag("test").i("test","testing")
-                println("Passed validate and latLng: " + _viewModel.latLng.value?.latitude)
                 checkDeviceLocationSettingsAndStartGeofence()
-                //_viewModel.navigationCommand.value =
-                //NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+
                 val intent = Intent(requireContext(),RemindersActivity::class.java)
                 val bundle = Bundle()
                 bundle.putSerializable("ReminderDataItem",reminderDataItem)
@@ -232,17 +172,13 @@ class SaveReminderFragment : BaseFragment() {
         }
 
         val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
-        println("checkDeviceLocationBeforeSettingsCheck0: " + isDetached)
 
         val settingsClient = LocationServices.getSettingsClient(contxt)
-        println("checkDeviceLocationBeforeSettingsCheck1: " + isDetached)
 
         val locationSettingsResponseTask =
             settingsClient.checkLocationSettings(builder.build())
-        println("checkDeviceLocationBeforeSettingsCheck2: " + isDetached)
 
         locationSettingsResponseTask.addOnFailureListener { exception ->
-            println("LocationSettingsResponseOnFailure")
             if (exception is ResolvableApiException && resolve){
 
                 // Location settings are not satisfied, but this can be fixed
@@ -271,8 +207,6 @@ class SaveReminderFragment : BaseFragment() {
 
         locationSettingsResponseTask.addOnCompleteListener {
             if ( it.isSuccessful && !isDetached) {
-                println("success on location settings response task: " + isDetached)
-                Timber.i("Success")
                 addGeofenceForClue()
             }
         }
@@ -280,7 +214,6 @@ class SaveReminderFragment : BaseFragment() {
     //call only once permission is granted
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun addGeofenceForClue() {
-        println("addGeofence latLng: " + latLng?.latitude)
 
         // Build the Geofence Object
         val geofence = latLng?.latitude?.let {
@@ -310,8 +243,6 @@ class SaveReminderFragment : BaseFragment() {
             .addGeofence(geofence)
             .build()
 
-        println("AddGeofence Detached? : "  + isDetached)
-
         //TODO: Why is checkSelfPermission failing here when it was approved in SelectLocationFragment?
         if ((ActivityCompat.checkSelfPermission(
                 contxt,
@@ -332,7 +263,6 @@ class SaveReminderFragment : BaseFragment() {
             //return
             //Toast.makeText(context,"Permission Denied",Toast.LENGTH_SHORT).show()
             //TODO: Why is onDestroy() being called?
-            println("First try is no permission")
             if (runningQOrLater)
             {
                 ActivityCompat.requestPermissions(
@@ -362,23 +292,12 @@ class SaveReminderFragment : BaseFragment() {
 
             //to add a geofence, you add the actual geofence location (geofenceRequest) as well as where you want the
             //activity to start once the geofence is triggered (geofencePendingIntent), which in our case is BroadcastReceiver
-            println("Detached? : " + isDetached)
             geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
                 addOnSuccessListener {
-                    // Geofences added.
-                    //Toast.makeText(requireActivity(), "Geofence Added", Toast.LENGTH_SHORT).show()
-                    println("geofence added succesfully")
-                    //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
-                    //Log.e("Add Geofence", geofenceList[counter].requestId)
                     counter++
 
-                    // Tell the viewmodel that we've reached the end of the game and
-                    // activated the last "geofence" --- by removing the Geofence.
-
-                    //viewModel.geofenceActivated()
                 }
                 addOnFailureListener {
-                    // Failed to add geofences.
                     Toast.makeText(
                         contxt, R.string.geofences_not_added,
                         Toast.LENGTH_SHORT
@@ -407,10 +326,7 @@ class SaveReminderFragment : BaseFragment() {
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-        //super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Check if location permissions are granted and if so enable the
-        // location data layer.
-        println("Permission Result: ResultsRequest")
+        // Check if location permissions are granted and if so enable the location data layer.
         Toast.makeText(contxt,"ResultsRequest", Toast.LENGTH_SHORT).show()
             if (is_Q_Or_Lower()) {
                 if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
@@ -432,27 +348,6 @@ class SaveReminderFragment : BaseFragment() {
             }
     }
 
-    //call after user enters geofence
-    //Can be used to remove current geofences pending intent before sending new pending intent
-    //Q: Is that necessary here?
-    private fun removeGeofences() {
-       /* if (!foregroundAndBackgroundLocationPermissionApproved()) {
-            return
-        }*/
-        geofencingClient.removeGeofences(geofencePendingIntent)?.run {
-            addOnSuccessListener {
-                // Geofences removed
-                //Log.d(TAG, getString(R.string.geofences_removed))
-                Toast.makeText(contxt,"Geofences removed", Toast.LENGTH_SHORT)
-                    .show()
-            }
-            addOnFailureListener {
-                // Failed to remove geofences
-                Log.d(TAG, "Geofences not removed")
-            }
-        }
-    }
-
     companion object {
         internal const val ACTION_GEOFENCE_EVENT =
             "RemindersActivity.savereminder.action.ACTION_GEOFENCE_EVENT"
@@ -466,25 +361,8 @@ class SaveReminderFragment : BaseFragment() {
         //make sure to clear the view model after destroy, as it's a single view model.
         _viewModel.onClear()
 
-        //TODO: Remove Geofence after user clicks notification button
-        /*geofencingClient?.removeGeofences(geofencePendingIntent)?.run {
-            addOnSuccessListener {
-                // Geofences removed
-                // ...
-            }
-            addOnFailureListener {
-                // Failed to remove geofences
-                // ...
-            }
-        }*/
+
     }
 }
-
-
-
-private const val REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE = 33
-private const val REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE = 34
 private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
-private const val TAG = "HuntMainActivity"
-private const val LOCATION_PERMISSION_INDEX = 0
-private const val BACKGROUND_LOCATION_PERMISSION_INDEX = 1
+

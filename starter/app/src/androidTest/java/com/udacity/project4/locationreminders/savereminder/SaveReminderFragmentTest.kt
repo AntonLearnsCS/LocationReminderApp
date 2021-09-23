@@ -52,15 +52,15 @@ class SaveReminderFragmentTest {
     val mInstantTaskExecutorRule = InstantTaskExecutorRule()
 
 @Test
-fun saveReminder_SaveButtonClicked_SaveButtonNotVisible()
-{
+fun saveReminder_SaveButtonClicked_SaveButtonNotVisible(): Unit = runBlocking{
     //Given - SaveReminder fragment
     val scenario = launchFragmentInContainer<SaveReminderFragment>(Bundle(), R.style.AppTheme)
     //maybe need to populate title, description and coordinates before being able to save
     onView(withId(R.id.reminderTitle)).perform(setTextInTextView("Title"))
     onView(withId(R.id.reminderDescription)).perform(setTextInTextView("Description"))
-    onView(withId(R.id.selectedLocation)).perform(setTextInTextView("City"))
-    onView(withId(R.id.coordinates)).perform(setTextInTextView("2.0,3.0"))
+    closeSoftKeyboard()
+   delay(3000)
+    //onView(withId(R.id.coordinates)).perform(setTextInTextView("2.0,3.0"))
 
     val navController = mock(NavController::class.java)
     scenario.onFragment {
@@ -68,10 +68,11 @@ fun saveReminder_SaveButtonClicked_SaveButtonNotVisible()
     }
     //When - User clicks save button
     onView(withId(R.id.saveReminder)).perform(click())
+    delay(3000)
 
     //Then - SaveButton is not visible
-    onView(withId(R.id.saveReminder)).check(matches(not(isDisplayed())))
-    //verify(navController).navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
+
+    onView(withId(R.id.refreshLayout)).check(matches((isDisplayed())))
 }
 
     @Test
@@ -79,7 +80,6 @@ fun saveReminder_SaveButtonClicked_SaveButtonNotVisible()
 
         //given - fragment
         val scenario = launchFragmentInContainer<SaveReminderFragment>(Bundle(),R.style.AppTheme)
-        //val scenario = FragmentScenario.launchInContainer(SaveReminderFragment::class.java, Bundle(),R.style.AppTheme,null)
         val navController = mock(NavController::class.java)
         scenario.onFragment {
             Navigation.setViewNavController(it.view!!,navController) }
