@@ -11,6 +11,7 @@ import androidx.navigation.Navigation
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.data.DataBufferObserver
 import com.udacity.project4.R
+import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentRemindersBinding
@@ -116,6 +117,9 @@ class ReminderListFragment : BaseFragment() {
         when (item.itemId) {
             R.id.logout -> {
 //                TODO: add the logout implementation
+                val intent = Intent(requireContext(),AuthenticationActivity::class.java)
+                intent.putExtra("flag", true)
+                startActivity(intent)
             }
         }
         return super.onOptionsItemSelected(item)

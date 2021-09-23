@@ -213,6 +213,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             Log.e(TAG, "Can't find style. Error: ", e)
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun isPermissionGranted() : Boolean {
         if (!runningQOrLater) {
@@ -322,22 +323,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         inflater.inflate(R.menu.map_options, menu)
     }
 
-   /* override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         // TODO: Change the map type based on the user's selection.
-        R.id.normal_map -> {
-            true
-        }
-        R.id.hybrid_map -> {
-            true
-        }
-        R.id.satellite_map -> {
-            true
-        }
-        R.id.terrain_map -> {
-            true
-        }
-        else -> super.onOptionsItemSelected(item)
-    }*/
+
     override fun onOptionsItemSelected(item: MenuItem)  : Boolean = when(item.itemId){
             // Change the map type based on the user's selection.
             R.id.normal_map -> {
