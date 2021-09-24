@@ -126,7 +126,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap?) {
         if (googleMap != null) {
             map = googleMap
-        enableMyLocation()
         }
         //onLocationSelected()
 
@@ -214,32 +213,34 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun isPermissionGranted() : Boolean {
-        if (!runningQOrLater) {
-            return ContextCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        }
-        else
-        {
-            return ContextCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        }
+
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.map_options, menu)
     }
 
+        // TODO: Change the map type based on the user's selection.
+
+    override fun onOptionsItemSelected(item: MenuItem)  : Boolean = when(item.itemId){
+            // Change the map type based on the user's selection.
+            R.id.normal_map -> {
+                map.mapType = GoogleMap.MAP_TYPE_NORMAL
+                true
+            }
+            R.id.hybrid_map -> {
+                map.mapType = GoogleMap.MAP_TYPE_HYBRID
+                true
+            }
+            R.id.satellite_map -> {
+                map.mapType = GoogleMap.MAP_TYPE_SATELLITE
+                true
+            }
+            R.id.terrain_map -> {
+                map.mapType = GoogleMap.MAP_TYPE_TERRAIN
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun enableMyLocation() {
         if (isPermissionGranted()) {
@@ -253,7 +254,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     requireContext(),
                     Manifest.permission.ACCESS_BACKGROUND_LOCATION
                 ) != PackageManager.PERMISSION_GRANTED))
-             {
+            {
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
                 // here to request the missing permissions, and then overriding
@@ -289,60 +290,31 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     REQUEST_LOCATION_PERMISSION
                 )
             }
-            }
-    }
-    //TODO: Why is this method still being called when I am running API 28 and Q is API 29?
-    @RequiresApi(Build.VERSION_CODES.Q)
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Check if location permissions are granted and if so enable the
-        // location data layer.
-
-        //"0" means permission granted for grantResults
-        println("OnRequestPermission called: " + grantResults.size + " , " + grantResults[0] +
-                " , " + grantResults[1])
-
-        println("Permissions: " + permissions[0] + ", " + permissions[1])
-
-            if (requestCode == REQUEST_LOCATION_PERMISSION && grantResults.size > 0 && (grantResults[0] ==
-                        PackageManager.PERMISSION_GRANTED) && (grantResults[1] == PackageManager.PERMISSION_GRANTED)
-               )
-                {
-                    println("Location: Request permission successful")
-                    enableMyLocation()
-                }
-            else
-                println("Location: Request permission failed")
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.map_options, menu)
-    }
-
-        // TODO: Change the map type based on the user's selection.
-
-    override fun onOptionsItemSelected(item: MenuItem)  : Boolean = when(item.itemId){
-            // Change the map type based on the user's selection.
-            R.id.normal_map -> {
-                map.mapType = GoogleMap.MAP_TYPE_NORMAL
-                true
-            }
-            R.id.hybrid_map -> {
-                map.mapType = GoogleMap.MAP_TYPE_HYBRID
-                true
-            }
-            R.id.satellite_map -> {
-                map.mapType = GoogleMap.MAP_TYPE_SATELLITE
-                true
-            }
-            R.id.terrain_map -> {
-                map.mapType = GoogleMap.MAP_TYPE_TERRAIN
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
         }
+    }
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun isPermissionGranted() : Boolean {
+        if (!runningQOrLater) {
+            return ContextCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+        else
+        {
+            return ContextCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        }
+    }
 }

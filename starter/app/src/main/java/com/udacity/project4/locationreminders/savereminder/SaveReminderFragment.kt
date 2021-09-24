@@ -16,7 +16,10 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ActivityCompat.startIntentSenderForResult
+import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 import androidx.navigation.fragment.NavHostFragment.findNavController
 import androidx.navigation.fragment.findNavController
@@ -35,13 +38,17 @@ import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import pub.devrel.easypermissions.AppSettingsDialog
+import pub.devrel.easypermissions.EasyPermissions
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
+import kotlin.Exception
 
 
 const val GEOFENCE_RADIUS_IN_METERS = 3200f
 
-class SaveReminderFragment : BaseFragment() {
+class SaveReminderFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,
+    EasyPermissions.RationaleCallbacks {
     private var counter = 0
     private val REQUEST_LOCATION_PERMISSION = 1
     private lateinit var contxt: Context
@@ -58,7 +65,6 @@ class SaveReminderFragment : BaseFragment() {
 
     private var latLng: LatLng = LatLng(33.0,-118.1)
     private lateinit var geofencingClient: GeofencingClient
-    private val runningQOrLater : Boolean = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
     private lateinit var reminderDataItem : ReminderDataItem
     private var intent = Intent()
 
@@ -135,8 +141,7 @@ class SaveReminderFragment : BaseFragment() {
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
 //             2) save the reminder to the local db
-            if (_viewModel.validateAndSaveReminder(reminderDataItem))
-            {
+
                 checkDeviceLocationSettingsAndStartGeofence()
 
                 val intent = Intent(requireContext(),RemindersActivity::class.java)
@@ -152,11 +157,7 @@ class SaveReminderFragment : BaseFragment() {
                 //findNavController().popBackStack()
                 /*_viewModel.navigationCommand.value =
                     NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())*/
-            }
-            else
-            {
-                Toast.makeText(context,"Missing title/description",Toast.LENGTH_SHORT).show()
-            }
+
         }
     }
 
@@ -180,17 +181,16 @@ class SaveReminderFragment : BaseFragment() {
 
         locationSettingsResponseTask.addOnFailureListener { exception ->
             if (exception is ResolvableApiException && resolve){
-
                 // Location settings are not satisfied, but this can be fixed
                 // by showing the user a dialog.
                 try {
+                    startIntentSenderForResult(geofencePendingIntent.intentSender, REQUEST_TURN_DEVICE_LOCATION_ON, null, 0, 0, 0, null)
+
                     // Show the dialog by calling startResolutionForResult(),
                     // and check the result in onActivityResult().
-                    exception.startResolutionForResult(
-                        contxt as Activity,
-                        REQUEST_TURN_DEVICE_LOCATION_ON
-                    )
-                } catch (sendEx: IntentSender.SendIntentException) {
+                    //exception.startResolutionForResult(contxt as Activity, REQUEST_TURN_DEVICE_LOCATION_ON)
+                }
+                catch (sendEx: IntentSender.SendIntentException) {
                 Timber.i("Error getting location settings resolution:" + sendEx.message)
                 //Log.d(TAG, "Error geting location settings resolution: " + sendEx.message)
                 }
@@ -211,10 +211,13 @@ class SaveReminderFragment : BaseFragment() {
             }
         }
     }
+
+
     //call only once permission is granted
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun addGeofenceForClue() {
-
+    //no need for check on running Q or later since
+        // "The background location permission is needed in SaveReminderFragment since we want to kick off a Geofence." - reviewer
         // Build the Geofence Object
         val geofence = latLng?.latitude?.let {
             latLng?.longitude?.let { it1 ->
@@ -251,7 +254,7 @@ class SaveReminderFragment : BaseFragment() {
                 contxt,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
-                    ) || !is_Q_Or_Lower()
+                    )
         ) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -263,8 +266,6 @@ class SaveReminderFragment : BaseFragment() {
             //return
             //Toast.makeText(context,"Permission Denied",Toast.LENGTH_SHORT).show()
             //TODO: Why is onDestroy() being called?
-            if (runningQOrLater)
-            {
                 ActivityCompat.requestPermissions(
                     contxt as Activity,
                     arrayOf(
@@ -274,28 +275,17 @@ class SaveReminderFragment : BaseFragment() {
                     ),
                     REQUEST_LOCATION_PERMISSION
                 )
-            }
-            else {
-                ActivityCompat.requestPermissions(
-                    contxt as Activity,
-                    arrayOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ),
-                    REQUEST_LOCATION_PERMISSION
-                )
-            }
         }
         else {
 
-            Toast.makeText(contxt,"Permission Granted",Toast.LENGTH_SHORT).show()
+            //Toast.makeText(contxt,"Permission Granted",Toast.LENGTH_SHORT).show()
 
             //to add a geofence, you add the actual geofence location (geofenceRequest) as well as where you want the
             //activity to start once the geofence is triggered (geofencePendingIntent), which in our case is BroadcastReceiver
             geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
                 addOnSuccessListener {
-                    counter++
-
+                    _viewModel.validateAndSaveReminder(reminderDataItem)
+                Toast.makeText(contxt,"Succesfully added geofence",Toast.LENGTH_SHORT).show()
                 }
                 addOnFailureListener {
                     Toast.makeText(
@@ -310,42 +300,38 @@ class SaveReminderFragment : BaseFragment() {
         }
     }
 
-    fun is_Q_Or_Lower() : Boolean
-    {
-        if (runningQOrLater && ActivityCompat.checkSelfPermission(
-                contxt, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-        )
-            return false
-        else
-            return true
-    }
-
+    //TODO: Why is this method still being called when I am running API 28 and Q is API 29?
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
         grantResults: IntArray
     ) {
-        // Check if location permissions are granted and if so enable the location data layer.
-        Toast.makeText(contxt,"ResultsRequest", Toast.LENGTH_SHORT).show()
-            if (is_Q_Or_Lower()) {
-                if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    && (grantResults[1] == PackageManager.PERMISSION_GRANTED)
-                ) {
-                    //Toast.makeText(requireContext(),"Q>=SuccessRequest", Toast.LENGTH_SHORT).show()
-                    checkDeviceLocationSettingsAndStartGeofence()
-                }
-            }
-            else
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        // Check if location permissions are granted and if so enable the
+        // location data layer.
+
+        //"0" means permission granted for grantResults
+        println("OnRequestPermission called: " + grantResults.size + " , " + grantResults[0] +
+                " , " + grantResults[1])
+
+        println("Permissions: " + permissions[0] + ", " + permissions[1])
+            if (requestCode == REQUEST_LOCATION_PERMISSION && grantResults.size > 0 && (grantResults[0] ==
+                        PackageManager.PERMISSION_GRANTED) && (grantResults[1] == PackageManager.PERMISSION_GRANTED)
+                && (grantResults[2] == PackageManager.PERMISSION_GRANTED)
+            )
             {
-                if (grantResults.size > 0 && (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-                    && (grantResults[1] == PackageManager.PERMISSION_GRANTED
-                            && (grantResults[2] == PackageManager.PERMISSION_GRANTED))
-                ) {
-                    //Toast.makeText(requireContext(),"Q>=SuccessRequest", Toast.LENGTH_SHORT).show()
-                    checkDeviceLocationSettingsAndStartGeofence()
-                }
+                println("Location: Request permission successful")
+                return
             }
+        //try requesting permission again
+        println("request permission failed")
+            addGeofenceForClue()
+        Toast.makeText(contxt,"Permission denied: Go to app settings to approve", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
+        println("Permission granted")
     }
 
     companion object {
@@ -353,16 +339,37 @@ class SaveReminderFragment : BaseFragment() {
             "RemindersActivity.savereminder.action.ACTION_GEOFENCE_EVENT"
     }
 
-
-
     override fun onDestroy() {
         super.onDestroy()
         println("Destroyed")
         //make sure to clear the view model after destroy, as it's a single view model.
         _viewModel.onClear()
-
-
     }
+
+    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
+
+        Toast.makeText(contxt,"Permission Denied by User", Toast.LENGTH_SHORT).show()
+        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms))
+        {
+            AppSettingsDialog.Builder(this).build().show()
+            Toast.makeText(contxt,"Enable location in app settings", Toast.LENGTH_SHORT).show()
+
+        }
+        else if (EasyPermissions.somePermissionDenied(requireActivity()))
+        {
+            Toast.makeText(contxt,"Some permission denied", Toast.LENGTH_SHORT).show()
+
+        }
+    }
+
+    override fun onRationaleAccepted(requestCode: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onRationaleDenied(requestCode: Int) {
+        TODO("Not yet implemented")
+    }
+
 }
 private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
 

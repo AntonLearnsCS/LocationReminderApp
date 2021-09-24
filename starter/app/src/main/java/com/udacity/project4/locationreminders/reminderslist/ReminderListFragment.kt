@@ -4,6 +4,7 @@ import android.content.Intent
 import android.database.Observable
 import android.os.Bundle
 import android.view.*
+import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
@@ -23,10 +24,12 @@ import com.udacity.project4.utils.setup
 import com.udacity.project4.utils.wrapEspressoIdlingResource
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import pub.devrel.easypermissions.AppSettingsDialog
+import pub.devrel.easypermissions.EasyPermissions
 import timber.log.Timber
 import java.util.*
 
-class ReminderListFragment : BaseFragment() {
+class ReminderListFragment : BaseFragment(), EasyPermissions.PermissionCallbacks {
     private lateinit var adapter : RemindersListAdapter
     //use Koin to retrieve the ViewModel instance
     override val _viewModel: RemindersListViewModel by inject()
@@ -129,6 +132,14 @@ class ReminderListFragment : BaseFragment() {
         super.onCreateOptionsMenu(menu, inflater)
 //        display logout as menu item
         inflater.inflate(R.menu.main_menu, menu)
+    }
+
+    override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
+        TODO("Not yet implemented")
+    }
+
+    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
+        TODO("Not yet implemented")
     }
 
 }
