@@ -6,6 +6,11 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View.inflate
+import android.widget.Toast
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.databinding.DataBindingUtil
@@ -46,6 +51,10 @@ import java.util.zip.Inflater
 class AuthenticationActivity : AppCompatActivity() {
     private lateinit var viewModel: AuthViewModel
     private  lateinit var binding : ActivityAuthenticationBinding
+    //"registerForActivityResult" is a launcher that is returned by registering a callback. It is a bit backward in that first we register the callback and
+    //then we receive the launcher that will actually launch the intent and whose result will be monitored by the callback. This is to ensure that the callback
+    //is always registered since monitoring of the callback is decoupled from the activity to save activity memory.
+    private lateinit var registerForActivityResult: ActivityResultLauncher<Intent>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //Interestingly, if we perform a setContentView(R.layout.activity_authentication) and a
@@ -81,6 +90,9 @@ class AuthenticationActivity : AppCompatActivity() {
                     }
                 }
 
+        //register
+        registerForSignInResult()
+
 
         //inflating xml layout in activity
         //for inflating xml layout in fragment: DataBindingUtil.inflate(inflater, R.layout.activity_authentication, container, false)
@@ -108,13 +120,13 @@ class AuthenticationActivity : AppCompatActivity() {
             // Create and launch sign-in intent.
             // We listen to the response of this activity with the
             // SIGN_IN_RESULT_CODE code
-            startActivityForResult(
-                AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(providers)
-                    .build(), SIGN_IN_RESULT_CODE
-            )
+
+            registerForActivityResult.launch(AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(providers)
+                .build())
         }
     }
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+
+   /* override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         wrapEspressoIdlingResource {
             super.onActivityResult(requestCode, resultCode, data)
             if (requestCode == SIGN_IN_RESULT_CODE) {
@@ -137,11 +149,33 @@ class AuthenticationActivity : AppCompatActivity() {
                 }
             }
         }
-    }
+
+    }*/
 
     companion object {
         const val TAG = "MainFragment"
         const val SIGN_IN_RESULT_CODE = 1001
     }
-
+    /**
+     * Register a launcher used to start the process of executing an ActivityResultContract
+     * so that we can listen to the result of the sign - in process
+     * This must be done in onCreate() or on Attach, ie before the fragment is created
+     */
+    private fun registerForSignInResult() {
+        registerForActivityResult = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()){ result: ActivityResult ->
+            val response = IdpResponse.fromResultIntent(result.data)
+            // Listen to the result of the sign - in process
+            if(result.resultCode == Activity.RESULT_OK){
+            Toast.makeText(this,"${FirebaseAuth.getInstance().currentUser?.displayName} has signed in",Toast.LENGTH_SHORT).show()
+            //Log.i(TAG, "User ${FirebaseAuth.getInstance().currentUser?.displayName} has signed in")
+            val intent = Intent(this,RemindersActivity::class.java)
+                startActivity(intent)
+            }
+            else {
+                Toast.makeText(this,"Sign in unsuccessful ${response?.error?.errorCode}",Toast.LENGTH_SHORT).show()
+                //Log.i(TAG, "Sign in unsuccessful ${response?.error?.errorCode}")
+            }
+        }
+    }
 }

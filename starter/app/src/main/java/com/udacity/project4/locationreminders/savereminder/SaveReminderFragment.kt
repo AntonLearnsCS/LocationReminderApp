@@ -14,8 +14,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
+
 import androidx.core.app.ActivityCompat.startIntentSenderForResult
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
@@ -47,12 +51,11 @@ import kotlin.Exception
 
 const val GEOFENCE_RADIUS_IN_METERS = 3200f
 
-class SaveReminderFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,
-    EasyPermissions.RationaleCallbacks {
+class SaveReminderFragment : BaseFragment() {
     private var counter = 0
     private val REQUEST_LOCATION_PERMISSION = 1
     private lateinit var contxt: Context
-
+    private lateinit var registerForActivityResult: ActivityResultLauncher<ActivityResultContracts.StartIntentSenderForResult>
 
     //Get the view model this time as a single to be shared with the another fragment, note the "override" tag
     //Note: We don't use "override val _viewModel: SaveReminderViewModel = get<SaveReminderViewModel>()"
@@ -184,6 +187,8 @@ class SaveReminderFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,
                 // Location settings are not satisfied, but this can be fixed
                 // by showing the user a dialog.
                 try {
+                    val intentSenderRequest =
+                        IntentSenderRequest.Builder(geofencePendingIntent).build()
                     startIntentSenderForResult(geofencePendingIntent.intentSender, REQUEST_TURN_DEVICE_LOCATION_ON, null, 0, 0, 0, null)
 
                     // Show the dialog by calling startResolutionForResult(),
@@ -210,6 +215,17 @@ class SaveReminderFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,
                 addGeofenceForClue()
             }
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON)
+        {
+            Toast.makeText(contxt,"Location enabled",Toast.LENGTH_SHORT).show()
+        }
+        else
+            Toast.makeText(contxt,"Location not enabled",Toast.LENGTH_SHORT).show()
+
     }
 
 
@@ -330,10 +346,6 @@ class SaveReminderFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,
         Toast.makeText(contxt,"Permission denied: Go to app settings to approve", Toast.LENGTH_SHORT).show()
     }
 
-    override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {
-        println("Permission granted")
-    }
-
     companion object {
         internal const val ACTION_GEOFENCE_EVENT =
             "RemindersActivity.savereminder.action.ACTION_GEOFENCE_EVENT"
@@ -346,29 +358,6 @@ class SaveReminderFragment : BaseFragment(),EasyPermissions.PermissionCallbacks,
         _viewModel.onClear()
     }
 
-    override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
-
-        Toast.makeText(contxt,"Permission Denied by User", Toast.LENGTH_SHORT).show()
-        if (EasyPermissions.somePermissionPermanentlyDenied(this, perms))
-        {
-            AppSettingsDialog.Builder(this).build().show()
-            Toast.makeText(contxt,"Enable location in app settings", Toast.LENGTH_SHORT).show()
-
-        }
-        else if (EasyPermissions.somePermissionDenied(requireActivity()))
-        {
-            Toast.makeText(contxt,"Some permission denied", Toast.LENGTH_SHORT).show()
-
-        }
-    }
-
-    override fun onRationaleAccepted(requestCode: Int) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onRationaleDenied(requestCode: Int) {
-        TODO("Not yet implemented")
-    }
 
 }
 private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
