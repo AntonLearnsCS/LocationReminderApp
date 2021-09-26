@@ -98,13 +98,13 @@ class ReminderListFragment : BaseFragment(), EasyPermissions.PermissionCallbacks
     }
 
     private fun navigateToAddReminder() {
-        //use the navigationCommand live data to navigate between the
-        //Q:How does posting a value for a generic mutable live data cause navigation to the SaveReminder fragment
-        _viewModel.navigationCommand.postValue(
-            NavigationCommand.To(
-                ReminderListFragmentDirections.toSaveReminder()
+            //use the navigationCommand live data to navigate between the
+            //Q:How does posting a value for a generic mutable live data cause navigation to the SaveReminder fragment
+            _viewModel.navigationCommand.postValue(
+                NavigationCommand.To(
+                    ReminderListFragmentDirections.toSaveReminder()
+                )
             )
-        )
     }
 
     private fun setupRecyclerView() {

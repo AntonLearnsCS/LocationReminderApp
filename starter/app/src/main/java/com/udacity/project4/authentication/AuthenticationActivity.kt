@@ -54,6 +54,7 @@ class AuthenticationActivity : AppCompatActivity() {
     //"registerForActivityResult" is a launcher that is returned by registering a callback. It is a bit backward in that first we register the callback and
     //then we receive the launcher that will actually launch the intent and whose result will be monitored by the callback. This is to ensure that the callback
     //is always registered since monitoring of the callback is decoupled from the activity to save activity memory.
+    //source: https://knowledge.udacity.com/questions/650170#650189
     private lateinit var registerForActivityResult: ActivityResultLauncher<Intent>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -121,6 +122,7 @@ class AuthenticationActivity : AppCompatActivity() {
             // We listen to the response of this activity with the
             // SIGN_IN_RESULT_CODE code
 
+            //Firebase creates an intent to a seperate activity to have the user sign in
             registerForActivityResult.launch(AuthUI.getInstance().createSignInIntentBuilder().setAvailableProviders(providers)
                 .build())
         }

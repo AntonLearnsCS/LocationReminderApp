@@ -52,9 +52,11 @@ class MyApp : Application() {
             //"single" is in contrast to "factory", which creates a new instance every time
             single {
                 //This view model is declared singleton to be used across multiple fragments
+             //alternatively:
                 SaveReminderViewModel(
                     get(),get() as ReminderDataSource
                 )
+              //  viewModel { SaveReminderViewModel(get(), get() as ReminderDataSource) }
             }
             //single{ApplicationProvider.getApplicationContext()}
             single {ServiceLocator.provideTasksRepository(applicationContext)}

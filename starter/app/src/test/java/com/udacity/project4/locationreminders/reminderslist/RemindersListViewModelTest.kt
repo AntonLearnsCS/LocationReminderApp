@@ -3,21 +3,12 @@ package com.udacity.project4.locationreminders.reminderslist
 import android.R
 import android.app.Activity
 import android.os.Build
-import android.view.InputDevice
-import android.view.MotionEvent
+
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.fragment.app.testing.launchFragmentInContainer
-import androidx.test.core.app.ActivityScenario
+
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.espresso.Espresso
-import androidx.test.espresso.ViewAction
-import androidx.test.espresso.action.GeneralClickAction
-import androidx.test.espresso.action.Press
-import androidx.test.espresso.action.Tap
-import androidx.test.espresso.action.ViewActions
-import androidx.test.espresso.matcher.ViewMatchers
+
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.espresso.action.CoordinatesProvider
 import com.udacity.project4.getOrAwaitValue
 import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
@@ -28,11 +19,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.*
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import org.junit.*
 import org.junit.runner.RunWith
+import org.koin.core.context.stopKoin
 import org.robolectric.annotation.Config
 
 
@@ -60,12 +49,14 @@ class RemindersListViewModelTest {
             repository.deleteAllReminders()
         }
         viewModel = RemindersListViewModel(ApplicationProvider.getApplicationContext(), repository)
-
+    }
+    @After
+    fun tearDown()
+    {
+        stopKoin()
     }
 
     //TODO: provide testing to the RemindersListViewModel and its live data objects
-
-
 
     @Test
     fun ReminderListViewModel_DeleteItem_ListChanges() = mainCoroutineRule.runBlockingTest {
