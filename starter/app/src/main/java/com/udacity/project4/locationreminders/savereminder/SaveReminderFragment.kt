@@ -2,6 +2,7 @@ package com.udacity.project4.locationreminders.savereminder
 
 import android.Manifest
 import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -14,6 +15,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
@@ -27,10 +29,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 import androidx.navigation.fragment.NavHostFragment.findNavController
 import androidx.navigation.fragment.findNavController
+import com.firebase.ui.auth.IdpResponse
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
 import com.udacity.project4.R
 import com.udacity.project4.authentication.AuthenticationActivity.Companion.TAG
 import com.udacity.project4.base.BaseFragment
@@ -55,7 +59,6 @@ class SaveReminderFragment : BaseFragment() {
     private var counter = 0
     private val REQUEST_LOCATION_PERMISSION = 1
     private lateinit var contxt: Context
-    private lateinit var registerForActivityResult: ActivityResultLauncher<ActivityResultContracts.StartIntentSenderForResult>
 
     //Get the view model this time as a single to be shared with the another fragment, note the "override" tag
     //Note: We don't use "override val _viewModel: SaveReminderViewModel = get<SaveReminderViewModel>()"
@@ -64,7 +67,6 @@ class SaveReminderFragment : BaseFragment() {
     override val _viewModel: SaveReminderViewModel by inject()
 
     private lateinit var binding: FragmentSaveReminderBinding
-    val GEOFENCE_EXPIRATION_IN_MILLISECONDS: Long = TimeUnit.HOURS.toMillis(1)
 
     private var latLng: LatLng = LatLng(33.0,-118.1)
     private lateinit var geofencingClient: GeofencingClient
@@ -78,6 +80,12 @@ class SaveReminderFragment : BaseFragment() {
         PendingIntent.getBroadcast(contxt, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private lateinit var registerGeofenceIntent : ActivityResultLauncher<IntentSenderRequest>
+    private lateinit var permissionCallback : ActivityResultLauncher<ActivityResultContracts.RequestMultiplePermissions>
+
+
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -100,6 +108,30 @@ class SaveReminderFragment : BaseFragment() {
         geofencingClient = LocationServices.getGeofencingClient(contxt)
         //TODO: Strange, pressing add button after save button calls onCreateView
 
+        registerGeofenceIntent  = registerForActivityResult(
+            ActivityResultContracts.StartIntentSenderForResult()
+        ) { result : ActivityResult ->
+            if (result.resultCode == RESULT_OK) {
+                checkDeviceLocationSettingsAndStartGeofence()
+            }
+            else
+                Toast.makeText(contxt,"Registering geofence failed",Toast.LENGTH_SHORT).show()
+        }
+
+        //TODO: Receiving Type Mistmatch error in defining permissionCallback
+        permissionCallback =
+            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted: Boolean ->
+                if (isGranted) {
+                    // Permission is granted. Continue the action or workflow in your
+                    // app.
+                } else {
+                    // Explain to the user that the feature is unavailable because the
+                    // features requires a permission that the user has denied. At the
+                    // same time, respect the user's decision. Don't link to system
+                    // settings in an effort to convince the user to change their
+                    // decision.
+                }
+            }
         return binding.root
     }
 
@@ -128,6 +160,8 @@ class SaveReminderFragment : BaseFragment() {
                 NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
         }
 
+
+
         binding.saveReminder.setOnClickListener {
             //two-way data binding
             val title = _viewModel.reminderTitle.value
@@ -147,12 +181,7 @@ class SaveReminderFragment : BaseFragment() {
 
                 checkDeviceLocationSettingsAndStartGeofence()
 
-                val intent = Intent(requireContext(),RemindersActivity::class.java)
-                val bundle = Bundle()
-                bundle.putSerializable("ReminderDataItem",reminderDataItem)
-                intent.putExtras(bundle)
-                _viewModel.cityNameForTwoWayBinding.value = "City"
-                startActivity(intent)
+
                 //TODO If I include navigation from here to reminderListFragment then save button persist
                 //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
                 //TODO: Why if I pop the backstack here then onDestroy is called before "checkDeviceLocationSettingsAndStartGeofence()"
@@ -160,7 +189,6 @@ class SaveReminderFragment : BaseFragment() {
                 //findNavController().popBackStack()
                 /*_viewModel.navigationCommand.value =
                     NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())*/
-
         }
     }
 
@@ -187,9 +215,11 @@ class SaveReminderFragment : BaseFragment() {
                 // Location settings are not satisfied, but this can be fixed
                 // by showing the user a dialog.
                 try {
-                    val intentSenderRequest =
-                        IntentSenderRequest.Builder(geofencePendingIntent).build()
-                    startIntentSenderForResult(geofencePendingIntent.intentSender, REQUEST_TURN_DEVICE_LOCATION_ON, null, 0, 0, 0, null)
+                    //"exception" is defined in terms of "locationSettingsResponseTask". exception.resolution a placeholder for a pendingIntent
+                        //source: https://knowledge.udacity.com/questions/650170#650189
+                    val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
+                    registerGeofenceIntent.launch(intentSenderRequest)
+                    //startIntentSenderForResult(geofencePendingIntent.intentSender, REQUEST_TURN_DEVICE_LOCATION_ON, null, 0, 0, 0, null)
 
                     // Show the dialog by calling startResolutionForResult(),
                     // and check the result in onActivityResult().
@@ -217,16 +247,6 @@ class SaveReminderFragment : BaseFragment() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_TURN_DEVICE_LOCATION_ON)
-        {
-            Toast.makeText(contxt,"Location enabled",Toast.LENGTH_SHORT).show()
-        }
-        else
-            Toast.makeText(contxt,"Location not enabled",Toast.LENGTH_SHORT).show()
-
-    }
 
 
     //call only once permission is granted
@@ -248,7 +268,7 @@ class SaveReminderFragment : BaseFragment() {
                     )
                     // Set the expiration duration of the geofence. This geofence gets
                     // automatically removed after this period of time.
-                    .setExpirationDuration(GEOFENCE_EXPIRATION_IN_MILLISECONDS)
+                    .setExpirationDuration(Geofence.NEVER_EXPIRE)
                     // Set the transition types of interest. Alerts are only generated for these
                     // transition. We track entry and exit transitions in this sample.
                     .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
@@ -302,6 +322,14 @@ class SaveReminderFragment : BaseFragment() {
                 addOnSuccessListener {
                     _viewModel.validateAndSaveReminder(reminderDataItem)
                 Toast.makeText(contxt,"Succesfully added geofence",Toast.LENGTH_SHORT).show()
+
+                    //navigate back only once geofence is added
+                    val intent = Intent(requireContext(),RemindersActivity::class.java)
+                    val bundle = Bundle()
+                    bundle.putSerializable("ReminderDataItem",reminderDataItem)
+                    intent.putExtras(bundle)
+                    _viewModel.cityNameForTwoWayBinding.value = "City"
+                    startActivity(intent)
                 }
                 addOnFailureListener {
                     Toast.makeText(
@@ -314,36 +342,6 @@ class SaveReminderFragment : BaseFragment() {
                 }
             }
         }
-    }
-
-    //TODO: Why is this method still being called when I am running API 28 and Q is API 29?
-    @RequiresApi(Build.VERSION_CODES.Q)
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Check if location permissions are granted and if so enable the
-        // location data layer.
-
-        //"0" means permission granted for grantResults
-        println("OnRequestPermission called: " + grantResults.size + " , " + grantResults[0] +
-                " , " + grantResults[1])
-
-        println("Permissions: " + permissions[0] + ", " + permissions[1])
-            if (requestCode == REQUEST_LOCATION_PERMISSION && grantResults.size > 0 && (grantResults[0] ==
-                        PackageManager.PERMISSION_GRANTED) && (grantResults[1] == PackageManager.PERMISSION_GRANTED)
-                && (grantResults[2] == PackageManager.PERMISSION_GRANTED)
-            )
-            {
-                println("Location: Request permission successful")
-                return
-            }
-        //try requesting permission again
-        println("request permission failed")
-            addGeofenceForClue()
-        Toast.makeText(contxt,"Permission denied: Go to app settings to approve", Toast.LENGTH_SHORT).show()
     }
 
     companion object {
