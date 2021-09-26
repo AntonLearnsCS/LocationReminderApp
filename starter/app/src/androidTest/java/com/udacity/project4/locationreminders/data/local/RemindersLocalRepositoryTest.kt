@@ -1,9 +1,11 @@
 package com.udacity.project4.locationreminders.data.local
 
 import android.app.Application
+import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
+import com.udacity.project4.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.data.dto.Result
@@ -11,10 +13,12 @@ import com.udacity.project4.locationreminders.data.dto.succeeded
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.`is`
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.android.ext.koin.androidContext
@@ -33,48 +37,24 @@ import org.koin.test.inject
 class RemindersLocalRepositoryTest : AutoCloseKoinTest() {
 
 //TODO: Add testing implementation to the RemindersLocalRepository.kt
+private lateinit var database : RemindersDatabase
 
-
-//Using Koin, inject a ReminderDataSource instead of a RemindersLocalRepository b/c RemindersLocalRepository
-// is cast as a ReminderDataSource
-// Source: https://knowledge.udacity.com/questions/647267
-private val repo by inject<ReminderDataSource>()
+    @get: Rule
+    val mainCoroutineRule = MainCoroutineRule()
 
     @Before
     fun init() {
-        //localDataSource = FakeDataSource(localDataSource.toMutableList())
-
-        stopKoin()//stop the original app koin
-        appContext = ApplicationProvider.getApplicationContext()
-        val myModule = module {
-            viewModel {
-                RemindersListViewModel(
-                    appContext,
-                    get() as ReminderDataSource
-                )
-            }
-            single {
-                SaveReminderViewModel(
-                    appContext,
-                    get() as ReminderDataSource
-                )
-            }
-            single { com.udacity.project4.locationreminders.data.local.RemindersLocalRepository(get()) as ReminderDataSource }
-            single { LocalDB.createRemindersDao(appContext) }
-        }
-        //declare a new koin module
-        startKoin {
-            //androidLogger()
-            androidContext(appContext)
-            modules(listOf(myModule))
-        }
-        //Get our real repository
-        repository = get()
-
-        //clear the data to start fresh
-        runBlocking {
-            repository.deleteAllReminders()
-        }
+        // Using an in-memory database so that the information stored here disappears when the
+        // process is killed.
+        //source for setTransactionExecutor: https://medium.com/@eyalg/testing-androidx-room-kotlin-coroutines-2d1faa3e674f
+        //if we don't specify the default dispatchers, a different default dispatcher will be provided, which will create a different scope
+        //that is beyond the ones created in the DAO functions
+        database = Room.inMemoryDatabaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            RemindersDatabase::class.java
+        ).setTransactionExecutor(mainCoroutineRule.dispatcher.asExecutor())
+            .setQueryExecutor(mainCoroutineRule.dispatcher.asExecutor())
+            .allowMainThreadQueries().build()
     }
 @Test
 fun saveTask_RetrieveTask() : Unit = runBlocking {
@@ -83,7 +63,7 @@ fun saveTask_RetrieveTask() : Unit = runBlocking {
     val myDTO = ReminderDTO("Title","Description","Location",2.0,3.0)
 
     //When - saved to local repo
-    repo.saveReminder(myDTO)
+    database.reminderDao().saveReminder(myDTO)
 
     //Then - will return the saved DTO
     val savedDTO = repo.getReminder(myDTO.id)

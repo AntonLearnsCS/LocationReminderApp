@@ -117,10 +117,11 @@ class SaveReminderFragment : BaseFragment() {
             else
                 Toast.makeText(contxt,"Registering geofence failed",Toast.LENGTH_SHORT).show()
         }
-
-        //TODO: Receiving Type Mistmatch error in defining permissionCallback
+        val permissionObject = ActivityResultContracts.RequestMultiplePermissions()
+        //TODO: Receiving Type Mistmatch error in defining permissionCallback when
+        // following: https://developer.android.com/training/permissions/requesting#allow-system-manage-request-code
         permissionCallback =
-            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted: Boolean ->
+            registerForActivityResult(permissionObject) { isGranted: Boolean ->
                 if (isGranted) {
                     // Permission is granted. Continue the action or workflow in your
                     // app.
