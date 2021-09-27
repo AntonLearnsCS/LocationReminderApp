@@ -20,6 +20,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 
 import androidx.core.app.ActivityCompat.startIntentSenderForResult
@@ -122,12 +123,14 @@ class SaveReminderFragment : BaseFragment() {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_BACKGROUND_LOCATION
-        )//ActivityResultContracts.RequestMultiplePermissions()
+        )
+
+        //val test = ActivityResultContracts.RequestMultiplePermissions().createIntent(contxt,Array(3))
         //TODO: Receiving Type Mismatch error in defining permissionCallback when
         // following: https://developer.android.com/training/permissions/requesting#allow-system-manage-request-code
         permissionCallback =
-            registerForActivityResult(permissionObject) { isGranted: Boolean ->
-                if (isGranted) {
+            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted: ActivityResultContract.SynchronousResult<Boolean> ->
+                if (isGranted.value) {
                     // Permission is granted. Continue the action or workflow in your
                     // app.
                 } else {
@@ -229,6 +232,8 @@ class SaveReminderFragment : BaseFragment() {
                     registerGeofenceIntent.launch(intentSenderRequest)
                     //startIntentSenderForResult(geofencePendingIntent.intentSender, REQUEST_TURN_DEVICE_LOCATION_ON, null, 0, 0, 0, null)
 
+                    val multiplePermissions = ActivityResultContracts.RequestMultiplePermissions()
+                    permissionCallback.launch(multiplePermissions)
                     // Show the dialog by calling startResolutionForResult(),
                     // and check the result in onActivityResult().
                     //exception.startResolutionForResult(contxt as Activity, REQUEST_TURN_DEVICE_LOCATION_ON)
