@@ -46,6 +46,7 @@ import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import pub.devrel.easypermissions.AppSettingsDialog
 import pub.devrel.easypermissions.EasyPermissions
 import timber.log.Timber
@@ -65,10 +66,10 @@ class SaveReminderFragment : BaseFragment() {
     //because we are setting up our code in a fragment, if it was in an activity it would be allowed
     //https://stackoverflow.com/questions/53332832/unresolved-reference-none-of-the-following-candidates-is-applicable-because-of
     override val _viewModel: SaveReminderViewModel by inject()
-
+    //alternatively: override val _viewModel by sharedViewModel<SaveReminderViewModel>()
     private lateinit var binding: FragmentSaveReminderBinding
 
-    private var latLng: LatLng = LatLng(33.0,-118.1)
+    private var latLng: LatLng? = LatLng(33.0,-118.1)
     private lateinit var geofencingClient: GeofencingClient
     private lateinit var reminderDataItem : ReminderDataItem
     private var intent = Intent()
@@ -120,7 +121,7 @@ class SaveReminderFragment : BaseFragment() {
         val permissionObject = ActivityResultContracts.RequestMultiplePermissions()
         //TODO: Receiving Type Mistmatch error in defining permissionCallback when
         // following: https://developer.android.com/training/permissions/requesting#allow-system-manage-request-code
-        permissionCallback =
+       /* permissionCallback =
             registerForActivityResult(permissionObject) { isGranted: Boolean ->
                 if (isGranted) {
                     // Permission is granted. Continue the action or workflow in your
@@ -132,7 +133,9 @@ class SaveReminderFragment : BaseFragment() {
                     // settings in an effort to convince the user to change their
                     // decision.
                 }
-            }
+            }*/
+
+        _viewModel.testSharedViewModel.value = "In saveReminderFragment"
         return binding.root
     }
 
@@ -168,10 +171,10 @@ class SaveReminderFragment : BaseFragment() {
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription.value
             val location = _viewModel.cityNameForTwoWayBinding.value
-            latLng = _viewModel.latLng.value!!
+            latLng = _viewModel.latLng?.value
             //no id for clicked location b/c ReminderDataItem will automatically generate one for us, id only for geofence
-            reminderDataItem = ReminderDataItem(title,description,location, latLng.latitude,
-                latLng.longitude
+            reminderDataItem = ReminderDataItem(title,description,location, latLng?.latitude,
+                latLng?.longitude
             )
 
             intent.putExtra("reminderDataItem", reminderDataItem)
@@ -179,8 +182,10 @@ class SaveReminderFragment : BaseFragment() {
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
 //             2) save the reminder to the local db
-
+                if(_viewModel.validateEnteredData(reminderDataItem))
                 checkDeviceLocationSettingsAndStartGeofence()
+                else
+                    Toast.makeText(contxt,"Missing information",Toast.LENGTH_SHORT).show()
 
 
                 //TODO If I include navigation from here to reminderListFragment then save button persist
@@ -321,7 +326,7 @@ class SaveReminderFragment : BaseFragment() {
             //activity to start once the geofence is triggered (geofencePendingIntent), which in our case is BroadcastReceiver
             geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
                 addOnSuccessListener {
-                    _viewModel.validateAndSaveReminder(reminderDataItem)
+                    _viewModel.saveReminder(reminderDataItem)
                 Toast.makeText(contxt,"Succesfully added geofence",Toast.LENGTH_SHORT).show()
 
                     //navigate back only once geofence is added

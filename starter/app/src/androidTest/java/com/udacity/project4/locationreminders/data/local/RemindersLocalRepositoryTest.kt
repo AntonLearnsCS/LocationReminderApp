@@ -15,8 +15,11 @@ import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.asExecutor
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers.`is`
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -32,13 +35,13 @@ import org.koin.test.inject
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
-//Medium Test to test the repository
+//Medium Test b/c we are also using the DAO via the database in the repository
 @MediumTest
 class RemindersLocalRepositoryTest : AutoCloseKoinTest() {
 
 //TODO: Add testing implementation to the RemindersLocalRepository.kt
 private lateinit var database : RemindersDatabase
-
+private lateinit var mRepo : RemindersLocalRepository
     @get: Rule
     val mainCoroutineRule = MainCoroutineRule()
 
@@ -55,18 +58,21 @@ private lateinit var database : RemindersDatabase
         ).setTransactionExecutor(mainCoroutineRule.dispatcher.asExecutor())
             .setQueryExecutor(mainCoroutineRule.dispatcher.asExecutor())
             .allowMainThreadQueries().build()
+    mRepo = RemindersLocalRepository(database.reminderDao(), mainCoroutineRule.dispatcher)
     }
+
+@ExperimentalCoroutinesApi
 @Test
-fun saveTask_RetrieveTask() : Unit = runBlocking {
+fun saveTask_RetrieveTask() : Unit = mainCoroutineRule.runBlockingTest{
 
     //Given - A new DTO
     val myDTO = ReminderDTO("Title","Description","Location",2.0,3.0)
 
     //When - saved to local repo
-    database.reminderDao().saveReminder(myDTO)
+    mRepo.saveReminder(myDTO)
 
     //Then - will return the saved DTO
-    val savedDTO = repo.getReminder(myDTO.id)
+    val savedDTO = mRepo.getReminder(myDTO.id)
 
     //"savedDTO" is wrapped in "Result"
     assertThat(savedDTO.succeeded,`is`(true))
@@ -74,11 +80,28 @@ fun saveTask_RetrieveTask() : Unit = runBlocking {
     assertThat(savedDTO.data.title, `is`("Title"))
     assertThat(savedDTO.data.description, `is`("Description"))
     assertThat(savedDTO.data.id, `is`(myDTO.id))
-
 }
 
-    private lateinit var repository: ReminderDataSource
-    private lateinit var appContext: Application
+    @Test
+    fun RemindersLocalRepository_GetReminder_ReturnError() = runBlockingTest{
+        //given - an empty local repository
+        mRepo.deleteAllReminders()
+
+        //when - user retrieves a data item that does not exists
+        val mRepoResultReminders = mRepo.getReminders()
+        //then - an error is returned
+        assertThat(mRepoResultReminders, `is`(Result.Error("Reminder not found!")))
+
+    }
+
+    @After
+    fun clean() = runBlockingTest{
+
+        mRepo.deleteAllReminders()
+    }
+
+
+
 
     /**
      * As we use Koin as a Service Locator Library to develop our code, we'll also use Koin to test our code.

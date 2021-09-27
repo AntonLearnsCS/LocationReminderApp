@@ -37,20 +37,15 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
     }
 */
 
+    val testSharedViewModel  = MutableLiveData<String>()
 
     val latLng : MutableLiveData<LatLng> = MutableLiveData(LatLng(33.842342, -118.1523526))
 
-   /* val locationSingle = MutableLiveData(latLng.value?.let { getLatLngAddress(it) })
-
-    var reminderSelectedLocationStr : String? = if (locationSingle.value != null) {
-        locationSingle.value?.postalCode }
-    else null*/
 
     val cityNameForTwoWayBinding = MutableLiveData("City")
 
     val reminderTitle = MutableLiveData<String>()
     val reminderDescription = MutableLiveData<String>()
-    //val reminderSelectedLocationStr : MutableLiveData<String> = MutableLiveData(locationSingle?.get(0).toString())
 
 
     val selectedPOI = MutableLiveData<PointOfInterest>()
@@ -66,7 +61,7 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
     fun onClear() {
         reminderTitle.value = null
         reminderDescription.value = null
-        latLng.value = null
+        latLng?.value = null
         selectedPOI.value = null
         latitude.value = null
         longitude.value = null
@@ -113,14 +108,13 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
             showSnackBarInt.value = R.string.err_enter_title
             return false
         }
+        if (reminderData.description.isNullOrEmpty()) {
+            showSnackBarInt.value = R.string.description_needed
+            return false
+        }
         //TODO uncomment after testing
         if (reminderData.location.isNullOrEmpty()) {
             showSnackBarInt.value = R.string.err_select_location
-            return false
-        }
-        if (reminderData.latitude == 33.8 && reminderData.longitude == -118.1)
-        {
-            showSnackBarInt.value = R.string.missing_coordinates
             return false
         }
         return true

@@ -25,8 +25,15 @@ class RemindersLocalRepository(
      */
     override suspend fun getReminders(): Result<List<ReminderDTO>> = withContext(ioDispatcher) {
         wrapEspressoIdlingResource {
+            val reminderList = remindersDao.getReminders()
+            //The try catch is for the DAO method while the if else statement is for the returned list of the DAO
             return@withContext try {
-                Result.Success(remindersDao.getReminders())
+                if (!reminderList.isEmpty())
+                {
+                    Result.Success(remindersDao.getReminders())
+                }
+                else
+                    Result.Error("Reminder not found!")
             } catch (ex: Exception) {
                 Result.Error(ex.localizedMessage)
             }
