@@ -64,7 +64,8 @@ class SaveReminderFragment : BaseFragment() {
     //because we are setting up our code in a fragment, if it was in an activity it would be allowed
     //https://stackoverflow.com/questions/53332832/unresolved-reference-none-of-the-following-candidates-is-applicable-because-of
     override val _viewModel: SaveReminderViewModel by inject()
-    //alternatively: override val _viewModel by sharedViewModel<SaveReminderViewModel>()
+    //alternatively:
+    //override val _viewModel by sharedViewModel<SaveReminderViewModel>()
     private lateinit var binding: FragmentSaveReminderBinding
 
     private var latLng: LatLng? = LatLng(33.0,-118.1)
@@ -134,7 +135,6 @@ class SaveReminderFragment : BaseFragment() {
                 }
             }
 */
-        _viewModel.testSharedViewModel.value = "In saveReminderFragment"
         return binding.root
     }
 
