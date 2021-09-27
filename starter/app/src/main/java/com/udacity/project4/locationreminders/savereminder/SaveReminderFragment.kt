@@ -27,14 +27,11 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
-import androidx.navigation.fragment.NavHostFragment.findNavController
-import androidx.navigation.fragment.findNavController
-import com.firebase.ui.auth.IdpResponse
+
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.auth.FirebaseAuth
 import com.udacity.project4.R
 import com.udacity.project4.authentication.AuthenticationActivity.Companion.TAG
 import com.udacity.project4.base.BaseFragment
@@ -46,6 +43,7 @@ import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
 import pub.devrel.easypermissions.AppSettingsDialog
 import pub.devrel.easypermissions.EasyPermissions
@@ -109,6 +107,7 @@ class SaveReminderFragment : BaseFragment() {
         geofencingClient = LocationServices.getGeofencingClient(contxt)
         //TODO: Strange, pressing add button after save button calls onCreateView
 
+        //TODO: Is it possible to pass in the permissionRequest callback here?
         registerGeofenceIntent  = registerForActivityResult(
             ActivityResultContracts.StartIntentSenderForResult()
         ) { result : ActivityResult ->
@@ -119,7 +118,7 @@ class SaveReminderFragment : BaseFragment() {
                 Toast.makeText(contxt,"Registering geofence failed",Toast.LENGTH_SHORT).show()
         }
         val permissionObject = ActivityResultContracts.RequestMultiplePermissions()
-        //TODO: Receiving Type Mistmatch error in defining permissionCallback when
+        //TODO: Receiving Type Mismatch error in defining permissionCallback when
         // following: https://developer.android.com/training/permissions/requesting#allow-system-manage-request-code
        /* permissionCallback =
             registerForActivityResult(permissionObject) { isGranted: Boolean ->
@@ -133,8 +132,8 @@ class SaveReminderFragment : BaseFragment() {
                     // settings in an effort to convince the user to change their
                     // decision.
                 }
-            }*/
-
+            }
+*/
         _viewModel.testSharedViewModel.value = "In saveReminderFragment"
         return binding.root
     }

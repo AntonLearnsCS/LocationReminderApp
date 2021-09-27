@@ -57,7 +57,6 @@ class MyApp : Application() {
                     get(),get() as ReminderDataSource
                 )*/
                 viewModel { SaveReminderViewModel(get(), get() as ReminderDataSource) }
-
             }
             //single{ApplicationProvider.getApplicationContext()}
             single {ServiceLocator.provideTasksRepository(applicationContext)}
