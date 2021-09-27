@@ -125,11 +125,11 @@ class SaveReminderFragment : BaseFragment() {
             Manifest.permission.ACCESS_BACKGROUND_LOCATION
         )
 
-        //val test = ActivityResultContracts.RequestMultiplePermissions().createIntent(contxt,Array(3))
+        val test = ActivityResultContracts.RequestMultiplePermissions()//.createIntent(contxt,Array(3))
         //TODO: Receiving Type Mismatch error in defining permissionCallback when
         // following: https://developer.android.com/training/permissions/requesting#allow-system-manage-request-code
         permissionCallback =
-            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { isGranted: ActivityResultContract.SynchronousResult<Boolean> ->
+            registerForActivityResult(test) { isGranted: ActivityResultContract.SynchronousResult<Boolean> ->
                 if (isGranted.value) {
                     // Permission is granted. Continue the action or workflow in your
                     // app.
@@ -232,8 +232,8 @@ class SaveReminderFragment : BaseFragment() {
                     registerGeofenceIntent.launch(intentSenderRequest)
                     //startIntentSenderForResult(geofencePendingIntent.intentSender, REQUEST_TURN_DEVICE_LOCATION_ON, null, 0, 0, 0, null)
 
-                    val multiplePermissions = ActivityResultContracts.RequestMultiplePermissions()
-                    permissionCallback.launch(multiplePermissions)
+                    //val multiplePermissions = ActivityResultContracts.RequestMultiplePermissions()
+                    //permissionCallback.launch(multiplePermissions)
                     // Show the dialog by calling startResolutionForResult(),
                     // and check the result in onActivityResult().
                     //exception.startResolutionForResult(contxt as Activity, REQUEST_TURN_DEVICE_LOCATION_ON)
