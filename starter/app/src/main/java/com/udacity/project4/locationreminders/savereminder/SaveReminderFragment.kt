@@ -118,10 +118,14 @@ class SaveReminderFragment : BaseFragment() {
             else
                 Toast.makeText(contxt,"Registering geofence failed",Toast.LENGTH_SHORT).show()
         }
-        val permissionObject = ActivityResultContracts.RequestMultiplePermissions()
+        val permissionObject = arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+        )//ActivityResultContracts.RequestMultiplePermissions()
         //TODO: Receiving Type Mismatch error in defining permissionCallback when
         // following: https://developer.android.com/training/permissions/requesting#allow-system-manage-request-code
-       /* permissionCallback =
+        permissionCallback =
             registerForActivityResult(permissionObject) { isGranted: Boolean ->
                 if (isGranted) {
                     // Permission is granted. Continue the action or workflow in your
@@ -134,7 +138,6 @@ class SaveReminderFragment : BaseFragment() {
                     // decision.
                 }
             }
-*/
         return binding.root
     }
 
@@ -361,7 +364,14 @@ class SaveReminderFragment : BaseFragment() {
         _viewModel.onClear()
     }
 
-
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        Log.i("requestCalled","onRequestPermissionResult called!")
+    }
 }
 private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
 
