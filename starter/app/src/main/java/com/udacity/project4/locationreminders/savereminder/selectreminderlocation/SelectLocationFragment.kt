@@ -187,10 +187,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         // Add a marker in Lakewood/Long Beach CA and move the camera, note that coordinates have a wide range, which is why decimals
         //can dictate the difference between two cities
-        updateLocationUI()
+        //updateLocationUI()
 
         //move camera to user's current location, if location is not turned on go to default location
-        //getDeviceLocation()
+        getDeviceLocation()
+
 
         map.addMarker(MarkerOptions().position(defaultLocation))
 
@@ -200,8 +201,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setMapLongClick(map)
         setPoiClick(map)
         setMapStyle(map)
-        //map.addGroundOverlay(androidOverlay)
     }
+
     fun enableLocation()
     {
         if (ActivityCompat.checkSelfPermission(
@@ -325,8 +326,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                             map.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                 LatLng(lastKnownLocation.latitude,
                                     lastKnownLocation.longitude), zoomLevel))
-
-                    } else {
+                    }
+                    else {
                         Log.i("test", "Current location is null. Using defaults.")
                         Log.e(TAG, "Exception: %s", task.exception)
                         map?.moveCamera(CameraUpdateFactory
@@ -347,7 +348,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
     private fun updateLocationUI() {
-
         try {
             if (locationPermissionGranted()) {
                 map?.moveCamera(CameraUpdateFactory
