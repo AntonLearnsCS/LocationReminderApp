@@ -17,18 +17,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContract
-import androidx.activity.result.contract.ActivityResultContracts
-
-import androidx.core.app.ActivityCompat.startIntentSenderForResult
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
-
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
@@ -39,18 +33,11 @@ import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSaveReminderBinding
 import com.udacity.project4.locationreminders.RemindersActivity
-import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
-
-import org.koin.androidx.viewmodel.ext.android.sharedViewModel
-import pub.devrel.easypermissions.AppSettingsDialog
-import pub.devrel.easypermissions.EasyPermissions
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
-import kotlin.Exception
 
 
 const val GEOFENCE_RADIUS_IN_METERS = 3200f
@@ -69,7 +56,7 @@ class SaveReminderFragment : BaseFragment() {
     //override val _viewModel by sharedViewModel<SaveReminderViewModel>()
     private lateinit var binding: FragmentSaveReminderBinding
 
-    private var latLng: LatLng? = LatLng(33.0,-118.1)
+    private var latLng: LatLng? = LatLng(33.0, -118.1)
     private lateinit var geofencingClient: GeofencingClient
     private lateinit var reminderDataItem : ReminderDataItem
     private var intent = Intent()
@@ -82,9 +69,8 @@ class SaveReminderFragment : BaseFragment() {
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private lateinit var registerGeofenceIntent : ActivityResultLauncher<IntentSenderRequest>
-    private lateinit var permissionCallback : ActivityResultLauncher<ActivityResultContracts.RequestMultiplePermissions>
-
+    private lateinit var requestLocationSetting : ActivityResultLauncher<IntentSenderRequest>
+    private lateinit var permissionCallback : ActivityResultLauncher<Array<String>>
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreateView(
@@ -110,35 +96,45 @@ class SaveReminderFragment : BaseFragment() {
         //TODO: Strange, pressing add button after save button calls onCreateView
 
         //TODO: Is it possible to pass in the permissionRequest callback here?
-        registerGeofenceIntent  = registerForActivityResult(
+        requestLocationSetting  = registerForActivityResult(
             ActivityResultContracts.StartIntentSenderForResult()
-        ) { result : ActivityResult ->
+        ) { result: ActivityResult ->
             if (result.resultCode == RESULT_OK) {
                 checkDeviceLocationSettingsAndStartGeofence()
             }
             else
-                Toast.makeText(contxt,"Registering geofence failed",Toast.LENGTH_SHORT).show()
+            {
+                //source: https://stackoverflow.com/questions/30729312/how-to-dismiss-a-snackbar-using-its-own-action-button
+                val mSnackbar = Snackbar.make(
+                    binding.saveReminderLayout,
+                    R.string.location_tracker_needed, Snackbar.LENGTH_LONG
+                )
+                mSnackbar.setAction("Dismiss"){mSnackbar.dismiss()}
+                    mSnackbar.show()
+                Log.i("Test", "location setting denied access")
+            }
         }
-        val permissionObject = arrayOf(
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION,
-            Manifest.permission.ACCESS_BACKGROUND_LOCATION
-        )
 
-        val test = ActivityResultContracts.RequestMultiplePermissions()//.createIntent(contxt,Array(3))
+
+        val test = ActivityResultContracts.RequestMultiplePermissions()
         //TODO: Receiving Type Mismatch error in defining permissionCallback when
         // following: https://developer.android.com/training/permissions/requesting#allow-system-manage-request-code
-        permissionCallback =
-            registerForActivityResult(test) { isGranted: ActivityResultContract.SynchronousResult<Boolean> ->
-                if (isGranted.value) {
-                    // Permission is granted. Continue the action or workflow in your
-                    // app.
-                } else {
-                    // Explain to the user that the feature is unavailable because the
-                    // features requires a permission that the user has denied. At the
-                    // same time, respect the user's decision. Don't link to system
-                    // settings in an effort to convince the user to change their
-                    // decision.
+            permissionCallback = registerForActivityResult(test) { permissions: Map<String, Boolean> ->
+                if(permissions.containsValue(true))
+                {
+                    checkDeviceLocationSettingsAndStartGeofence()
+                    Log.i("test", "permission granted contract")
+                }
+                else
+                {
+                    val mSnackbar = Snackbar.make(
+                        binding.saveReminderLayout,
+                        R.string.permission_denied_explanation, Snackbar.LENGTH_LONG
+                    )
+                    mSnackbar.setAction("dismiss"){mSnackbar.dismiss()}
+                    mSnackbar.show()
+
+                    Log.i("test", "permission not granted contract")
                 }
             }
         return binding.root
@@ -176,9 +172,10 @@ class SaveReminderFragment : BaseFragment() {
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription.value
             val location = _viewModel.cityNameForTwoWayBinding.value
-            latLng = _viewModel.latLng?.value
+            latLng = _viewModel.latLng.value
             //no id for clicked location b/c ReminderDataItem will automatically generate one for us, id only for geofence
-            reminderDataItem = ReminderDataItem(title,description,location, latLng?.latitude,
+            reminderDataItem = ReminderDataItem(
+                title, description, location, latLng?.latitude,
                 latLng?.longitude
             )
 
@@ -190,7 +187,7 @@ class SaveReminderFragment : BaseFragment() {
                 if(_viewModel.validateEnteredData(reminderDataItem))
                 checkDeviceLocationSettingsAndStartGeofence()
                 else
-                    Toast.makeText(contxt,"Missing information",Toast.LENGTH_SHORT).show()
+                    Toast.makeText(contxt, "Missing information", Toast.LENGTH_SHORT).show()
 
 
                 //TODO If I include navigation from here to reminderListFragment then save button persist
@@ -229,11 +226,9 @@ class SaveReminderFragment : BaseFragment() {
                     //"exception" is defined in terms of "locationSettingsResponseTask". exception.resolution a placeholder for a pendingIntent
                         //source: https://knowledge.udacity.com/questions/650170#650189
                     val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
-                    registerGeofenceIntent.launch(intentSenderRequest)
-                    //startIntentSenderForResult(geofencePendingIntent.intentSender, REQUEST_TURN_DEVICE_LOCATION_ON, null, 0, 0, 0, null)
+                    requestLocationSetting.launch(intentSenderRequest)
 
-                    //val multiplePermissions = ActivityResultContracts.RequestMultiplePermissions()
-                    //permissionCallback.launch(multiplePermissions)
+
                     // Show the dialog by calling startResolutionForResult(),
                     // and check the result in onActivityResult().
                     //exception.startResolutionForResult(contxt as Activity, REQUEST_TURN_DEVICE_LOCATION_ON)
@@ -315,7 +310,8 @@ class SaveReminderFragment : BaseFragment() {
             //return
             //Toast.makeText(context,"Permission Denied",Toast.LENGTH_SHORT).show()
             //TODO: Why is onDestroy() being called?
-                ActivityCompat.requestPermissions(
+                //deprecated, use "registerForActivityResult()" instead
+                /*ActivityCompat.requestPermissions(
                     contxt as Activity,
                     arrayOf(
                         Manifest.permission.ACCESS_FINE_LOCATION,
@@ -323,10 +319,17 @@ class SaveReminderFragment : BaseFragment() {
                         Manifest.permission.ACCESS_BACKGROUND_LOCATION
                     ),
                     REQUEST_LOCATION_PERMISSION
-                )
+                )*/
+
+            val permissionObject = arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            )
+
+            permissionCallback.launch(permissionObject)
         }
         else {
-
             //Toast.makeText(contxt,"Permission Granted",Toast.LENGTH_SHORT).show()
 
             //to add a geofence, you add the actual geofence location (geofenceRequest) as well as where you want the
@@ -334,12 +337,12 @@ class SaveReminderFragment : BaseFragment() {
             geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
                 addOnSuccessListener {
                     _viewModel.saveReminder(reminderDataItem)
-                Toast.makeText(contxt,"Succesfully added geofence",Toast.LENGTH_SHORT).show()
-
+                Toast.makeText(contxt, "Succesfully added geofence", Toast.LENGTH_SHORT).show()
+                    Log.i("test", "added geofence")
                     //navigate back only once geofence is added
-                    val intent = Intent(requireContext(),RemindersActivity::class.java)
+                    val intent = Intent(requireContext(), RemindersActivity::class.java)
                     val bundle = Bundle()
-                    bundle.putSerializable("ReminderDataItem",reminderDataItem)
+                    bundle.putSerializable("ReminderDataItem", reminderDataItem)
                     intent.putExtras(bundle)
                     _viewModel.cityNameForTwoWayBinding.value = "City"
                     startActivity(intent)
@@ -375,7 +378,7 @@ class SaveReminderFragment : BaseFragment() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.i("requestCalled","onRequestPermissionResult called!")
+        Log.i("requestCalled", "onRequestPermissionResult called!")
     }
 }
 private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
