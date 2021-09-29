@@ -11,6 +11,7 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.view.*
 import androidx.activity.result.ActivityResultLauncher
@@ -23,6 +24,7 @@ import androidx.navigation.fragment.findNavController
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
+import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
@@ -43,7 +45,17 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private var longitude : Double = -118.1480706
     private val zoomLevel = 12f
     private var defaultLocation = LatLng(latitude,longitude)
-
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var lastLocation : Task<Location>
+    private val locationCallBack: LocationCallback = object : LocationCallback() {
+        override fun onLocationResult(p0: LocationResult?) {
+            val location: Location? = p0?.lastLocation
+            if(location != null) {
+                latitude = defaultLocation.latitude
+                longitude = defaultLocation.longitude
+            }
+        }
+    }
     override fun onStart() {
         super.onStart()
         geocoder = Geocoder(requireContext(), Locale.ENGLISH)
@@ -77,6 +89,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             false
         )
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(contxt)
 
         binding.lifecycleOwner = requireActivity()
 
@@ -159,11 +172,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         super.onAttach(context)
         contxt = context
     }
-/*
+
+    //https://stackoverflow.com/questions/43100365/how-to-refresh-a-google-map-manually
     override fun onResume() {
         super.onResume()
         //source: https://stackoverflow.com/questions/37618738/how-to-check-if-a-lateinit-variable-has-been-initialized
         if(this::map.isInitialized) {
+            Log.i("test","map is initialized and onResume called")
             map.moveCamera(
                 CameraUpdateFactory.newLatLngZoom(
                     LatLng(
@@ -173,10 +188,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 )
             )
             mapFragment.getMapAsync(this)
+            Log.i("test",defaultLocation.latitude.toString())
         }
         else
             Log.i("test","map is not initialized")
-    }*/
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onMapReady(googleMap: GoogleMap?) {
@@ -184,14 +201,16 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             map = googleMap
         }
         //onLocationSelected()
-
+        if (defaultLocation.latitude.equals(33.8447593) && locationPermissionGranted())
+        {
+            getDeviceLocation()
+        }
         // Add a marker in Lakewood/Long Beach CA and move the camera, note that coordinates have a wide range, which is why decimals
         //can dictate the difference between two cities
         //updateLocationUI()
 
         //move camera to user's current location, if location is not turned on go to default location
-        getDeviceLocation()
-
+        //getDeviceLocation()
 
         map.addMarker(MarkerOptions().position(defaultLocation))
 
@@ -307,32 +326,43 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             return false
     }
 
-
+    //source: https://developers.google.com/maps/documentation/android-sdk/current-place-tutorial#kotlin_7
     private fun getDeviceLocation() {
         /*
          * Get the best and most recent location of the device, which may be null in rare
          * cases when a location is not available.
          */
+
         val fusedLocationProviderClient = FusedLocationProviderClient(contxt)
         var lastKnownLocation: Location
         try {
-            if (locationPermissionGranted()) {
+                if (locationPermissionGranted()) {
                 val locationResult = fusedLocationProviderClient.lastLocation
                 locationResult.addOnCompleteListener(requireActivity()) { task ->
                     if (task.isSuccessful && task.result != null) {
-                        // Set the map's camera position to the current location of the device.
-                        lastKnownLocation = task.result
-                            defaultLocation = LatLng(lastKnownLocation.latitude,lastKnownLocation.longitude)
-                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                LatLng(lastKnownLocation.latitude,
-                                    lastKnownLocation.longitude), zoomLevel))
+                       //TODO: Why is task.result null?
+                           Log.i("test","task.result is not null")
+                            // Set the map's camera position to the current location of the device.
+                            lastKnownLocation = task.result
+                            defaultLocation =
+                                LatLng(lastKnownLocation.latitude, lastKnownLocation.longitude)
+                            map.moveCamera(
+                                CameraUpdateFactory.newLatLngZoom(
+                                    LatLng(
+                                        lastKnownLocation.latitude,
+                                        lastKnownLocation.longitude
+                                    ), zoomLevel
+                                )
+                            )
+
                     }
                     else {
+                        requestLocation()
                         Log.i("test", "Current location is null. Using defaults.")
                         Log.e(TAG, "Exception: %s", task.exception)
-                        map?.moveCamera(CameraUpdateFactory
+                        /*map?.moveCamera(CameraUpdateFactory
                             .newLatLngZoom(defaultLocation, zoomLevel))
-                        map?.uiSettings?.isMyLocationButtonEnabled = false
+                        map?.uiSettings?.isMyLocationButtonEnabled = false*/
                     }
                 }
             }
@@ -347,20 +377,46 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             Log.e("Exception: %s", e.message, e)
         }
     }
-    private fun updateLocationUI() {
-        try {
-            if (locationPermissionGranted()) {
-                map?.moveCamera(CameraUpdateFactory
-                    .newLatLngZoom(defaultLocation, zoomLevel))
 
-                map?.isMyLocationEnabled = true
-                map?.uiSettings?.isMyLocationButtonEnabled = true
-            } else {
-                map?.isMyLocationEnabled = false
-                map?.uiSettings?.isMyLocationButtonEnabled = false
-            }
-        } catch (e: SecurityException) {
-            Log.e("Exception: %s", e.message, e)
+    //https://stackoverflow.com/questions/63223410/does-fusedlocationproviderclient-need-to-initialize-location-often-null
+    private fun requestLocation() {
+        val locationRequest = LocationRequest()
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        locationRequest.interval = 0
+        locationRequest.fastestInterval = 0
+        locationRequest.numUpdates = 1
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        if (ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
+
+        Log.i("test","requestLocation called, permission granted")
+
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallBack, Looper.myLooper())
+        lastLocation = fusedLocationClient.lastLocation
+        if (lastLocation.isSuccessful){
+            defaultLocation = LatLng(lastLocation.result.latitude, lastLocation.result.longitude)
+Log.i("test","last location is successful")
+        }
+        else
+        {
+            Log.i("test","updating location was not successful")
+            map.moveCamera(CameraUpdateFactory
+                .newLatLngZoom(defaultLocation, zoomLevel))
         }
     }
 
