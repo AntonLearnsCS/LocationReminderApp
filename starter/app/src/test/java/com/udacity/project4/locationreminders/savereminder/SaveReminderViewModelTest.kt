@@ -17,10 +17,12 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.`is`
+import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.core.context.stopKoin
 import org.koin.test.KoinTest
 import org.koin.test.inject
 import org.robolectric.annotation.Config
@@ -53,6 +55,8 @@ class SaveReminderViewModelTest : KoinTest { //extend KoinTest to be able to use
     }
     //TODO: provide testing to the SaveReminderView and its live data objects
     //convention in naming testing functions: subjectUnderTest_actionOrInput_resultState
+    @After
+    fun close() = stopKoin()
 
     @Test
     fun SaveReminderViewModel_ValidateFunction_Pass() = mainCoroutineRule.runBlockingTest {
