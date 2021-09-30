@@ -204,7 +204,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (defaultLocation.latitude.equals(33.8447593))
         {
             if (locationPermissionGranted())
-            getDeviceLocation()
+                getDeviceLocation()
             else {
                 if ((!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) || !shouldShowRequestPermissionRationale(
                         Manifest.permission.ACCESS_COARSE_LOCATION
