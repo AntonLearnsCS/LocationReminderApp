@@ -61,6 +61,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         geocoder = Geocoder(requireContext(), Locale.ENGLISH)
     }
 
+    //if POI or non-POI
 
     fun getLatLngAddress(LatLng: LatLng) : Address?
     {
@@ -370,7 +371,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                                 ), zoomLevel
                             )
                         )
-
                     }
                     else {
                         requestLocation()
@@ -401,7 +401,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         locationRequest.interval = 0
         locationRequest.fastestInterval = 0
         locationRequest.numUpdates = 1
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        //fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         if (ActivityCompat.checkSelfPermission(
                 contxt,
                 Manifest.permission.ACCESS_FINE_LOCATION
