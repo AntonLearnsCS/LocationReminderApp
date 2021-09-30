@@ -266,6 +266,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun setMapLongClick(map: GoogleMap) {
+
         map.setOnMapLongClickListener { latLng ->
             // A Snippet is Additional text that's displayed below the title.
             val snippet = String.format(
@@ -288,7 +289,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
              other Activities or Fragment
              Source: https://stackoverflow.com/questions/54871649/mutablelivedata-sets-value-but-getvalue-returns-null
              */
+
             _viewModel.cityNameForTwoWayBinding.value = getLatLngAddress(latLng)?.locality
+
             _viewModel.latLng?.value = latLng
             println("SelectLocation: " + latLng.latitude.toString() + ", " + latLng.longitude.toString())
             //println("locationSingle: " + _viewModel.locationSingle.value?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude
@@ -298,15 +301,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun setPoiClick(map: GoogleMap) {
-        map.setOnPoiClickListener { poi ->
+        map.setOnPoiClickListener {
+            poi ->
+                _viewModel.cityNameForTwoWayBinding.value = poi.name
+
             val poiMarker = map.addMarker(
                 MarkerOptions()
                     .position(poi.latLng)
                     .title(poi.name)
             )
             poiMarker.showInfoWindow()
+            findNavController().popBackStack()
+
         }
     }
+
     private fun setMapStyle(map: GoogleMap) {
         try {
             // Customize the styling of the base map using a JSON object defined

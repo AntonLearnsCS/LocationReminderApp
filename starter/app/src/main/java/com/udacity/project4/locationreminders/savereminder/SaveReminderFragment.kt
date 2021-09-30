@@ -115,7 +115,6 @@ class SaveReminderFragment : BaseFragment() {
             }
         }
 
-
         val test = ActivityResultContracts.RequestMultiplePermissions()
         //TODO: Receiving Type Mismatch error in defining permissionCallback when
         // following: https://developer.android.com/training/permissions/requesting#allow-system-manage-request-code
@@ -168,6 +167,8 @@ class SaveReminderFragment : BaseFragment() {
 
 
         binding.saveReminder.setOnClickListener {
+
+
             //two-way data binding
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription.value
@@ -176,10 +177,12 @@ class SaveReminderFragment : BaseFragment() {
             //no id for clicked location b/c ReminderDataItem will automatically generate one for us, id only for geofence
             reminderDataItem = ReminderDataItem(
                 title, description, location, latLng?.latitude,
-                latLng?.longitude
-            )
+                latLng?.longitude)
 
             intent.putExtra("reminderDataItem", reminderDataItem)
+
+            //Foreground and background location must be granted first
+            checkPermission()
 
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
@@ -188,7 +191,6 @@ class SaveReminderFragment : BaseFragment() {
                 checkDeviceLocationSettingsAndStartGeofence()
             else
                 Toast.makeText(contxt, "Missing information", Toast.LENGTH_SHORT).show()
-
 
             //TODO If I include navigation from here to reminderListFragment then save button persist
             //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
@@ -291,14 +293,74 @@ class SaveReminderFragment : BaseFragment() {
             .build()
 
         //TODO: Why is checkSelfPermission failing here when it was approved in SelectLocationFragment?
+
+
+            //Toast.makeText(contxt,"Permission Granted",Toast.LENGTH_SHORT).show()
+
+            //to add a geofence, you add the actual geofence location (geofenceRequest) as well as where you want the
+            //activity to start once the geofence is triggered (geofencePendingIntent), which in our case is BroadcastReceiver
         if ((ActivityCompat.checkSelfPermission(
                 contxt,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+            ) != PackageManager.PERMISSION_GRANTED
+         && ActivityCompat.checkSelfPermission(
                 contxt,
                 Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED) == true ||
+            ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
-                    )
+        )
+         {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            checkDeviceLocationSettingsAndStartGeofence()
+        }
+        geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
+                addOnSuccessListener {
+                    _viewModel.saveReminder(reminderDataItem)
+                    Toast.makeText(contxt, "Succesfully added geofence", Toast.LENGTH_SHORT).show()
+                    Log.i("test", "added geofence")
+                    //navigate back only once geofence is added
+                    val intent = Intent(requireActivity(), RemindersActivity::class.java)
+                    val bundle = Bundle()
+                    bundle.putSerializable("ReminderDataItem", reminderDataItem)
+                    intent.putExtras(bundle)
+                    _viewModel.cityNameForTwoWayBinding.value = "City"
+                    startActivity(intent)
+                }
+                addOnFailureListener {
+                    Toast.makeText(
+                        contxt, R.string.geofences_not_added,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    if ((it.message != null)) {
+                        Log.w(TAG, it.message!!)
+                    }
+                }
+            }
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    fun checkPermission() : Boolean
+    {
+        if ((ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED) == true || ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -328,36 +390,9 @@ class SaveReminderFragment : BaseFragment() {
             )
 
             permissionCallback.launch(permissionObject)
+            return false
         }
-        else {
-            //Toast.makeText(contxt,"Permission Granted",Toast.LENGTH_SHORT).show()
-
-            //to add a geofence, you add the actual geofence location (geofenceRequest) as well as where you want the
-            //activity to start once the geofence is triggered (geofencePendingIntent), which in our case is BroadcastReceiver
-            geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
-                addOnSuccessListener {
-                    _viewModel.saveReminder(reminderDataItem)
-                    Toast.makeText(contxt, "Succesfully added geofence", Toast.LENGTH_SHORT).show()
-                    Log.i("test", "added geofence")
-                    //navigate back only once geofence is added
-                    val intent = Intent(requireContext(), RemindersActivity::class.java)
-                    val bundle = Bundle()
-                    bundle.putSerializable("ReminderDataItem", reminderDataItem)
-                    intent.putExtras(bundle)
-                    _viewModel.cityNameForTwoWayBinding.value = "City"
-                    startActivity(intent)
-                }
-                addOnFailureListener {
-                    Toast.makeText(
-                        contxt, R.string.geofences_not_added,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    if ((it.message != null)) {
-                        Log.w(TAG, it.message!!)
-                    }
-                }
-            }
-        }
+        return true
     }
 
     companion object {
