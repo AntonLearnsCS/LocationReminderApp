@@ -140,7 +140,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             else
             {
                 if((shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)
-                            && shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)) == false)
+                            || shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)) == false)
                 {
                     val mSnackbar = Snackbar.make(
                         binding.layout,
@@ -210,7 +210,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         //updateLocationUI()
 
         //move camera to user's current location, if location is not turned on go to default location
-        //getDeviceLocation()
 
         map.addMarker(MarkerOptions().position(defaultLocation))
 
@@ -340,8 +339,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 val locationResult = fusedLocationProviderClient.lastLocation
                 locationResult.addOnCompleteListener(requireActivity()) { task ->
                     if (task.isSuccessful && task.result != null) {
-                       //TODO: Why is task.result null?
-                           Log.i("test","task.result is not null")
+                       //TODO: Why was task.result null?
                             // Set the map's camera position to the current location of the device.
                             lastKnownLocation = task.result
                             defaultLocation =
@@ -403,18 +401,14 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             // for ActivityCompat#requestPermissions for more details.
             return
         }
-
-        Log.i("test","requestLocation called, permission granted")
-
+        Log.i("test","requestLocation called")
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallBack, Looper.myLooper())
         lastLocation = fusedLocationClient.lastLocation
         if (lastLocation.isSuccessful){
             defaultLocation = LatLng(lastLocation.result.latitude, lastLocation.result.longitude)
-Log.i("test","last location is successful")
         }
         else
         {
-            Log.i("test","updating location was not successful")
             map.moveCamera(CameraUpdateFactory
                 .newLatLngZoom(defaultLocation, zoomLevel))
         }
