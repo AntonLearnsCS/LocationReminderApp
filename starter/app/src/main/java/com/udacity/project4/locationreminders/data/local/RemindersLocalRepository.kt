@@ -33,7 +33,7 @@ class RemindersLocalRepository(
                     Result.Success(remindersDao.getReminders())
                 }
                 else
-                    Result.Error("Reminder not found!")
+                    Result.Error("Empty reminder database")
             } catch (ex: Exception) {
                 Result.Error(ex.localizedMessage)
             }
