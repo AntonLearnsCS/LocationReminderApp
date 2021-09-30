@@ -90,7 +90,7 @@ fun saveTask_RetrieveTask() : Unit = mainCoroutineRule.runBlockingTest{
         //when - user retrieves a data item that does not exists
         val mRepoResultReminders = mRepo.getReminders()
         //then - an error is returned
-        assertThat(mRepoResultReminders, `is`(Result.Error("Reminder not found!")))
+        assertThat(mRepoResultReminders, `is`(Result.Error("Empty reminder database")))
 
     }
 

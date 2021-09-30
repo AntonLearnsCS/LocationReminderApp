@@ -2,30 +2,29 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 
 import android.Manifest
-import android.app.Application
 import android.content.Context
-import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Address
 import android.location.Geocoder
+import android.location.Location
+import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.util.Log
 import android.view.*
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.databinding.DataBindingUtil
-import androidx.databinding.ViewDataBinding
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentManager
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.fragment.findNavController
-import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
+import com.google.android.gms.tasks.Task
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
@@ -33,17 +32,30 @@ import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
-import timber.log.Timber
 import java.util.*
 
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private val TAG = "SelectLocationFragment"
-    private val REQUEST_LOCATION_PERMISSION = 1
     private lateinit var contxt: Context
     private lateinit var geocoder: Geocoder
     private lateinit var list : List<Address>
-
+    private lateinit var permissionCallback : ActivityResultLauncher<Array<String>>
+    private var latitude : Double = 33.8447593
+    private var longitude : Double = -118.1480706
+    private val zoomLevel = 12f
+    private var defaultLocation = LatLng(latitude,longitude)
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var lastLocation : Task<Location>
+    private val locationCallBack: LocationCallback = object : LocationCallback() {
+        override fun onLocationResult(p0: LocationResult?) {
+            val location: Location? = p0?.lastLocation
+            if(location != null) {
+                latitude = defaultLocation.latitude
+                longitude = defaultLocation.longitude
+            }
+        }
+    }
     override fun onStart() {
         super.onStart()
         geocoder = Geocoder(requireContext(), Locale.ENGLISH)
@@ -60,7 +72,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         else
             return null
     }
-    private val runningQOrLater = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
 
     //Use Koin to get the view model of the SaveReminder
     override val _viewModel: SaveReminderViewModel by inject()
@@ -71,8 +82,14 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
 
-        binding = DataBindingUtil.inflate(inflater,R.layout.fragment_select_location,container,false)
+        binding = DataBindingUtil.inflate(
+            inflater,
+            R.layout.fragment_select_location,
+            container,
+            false
+        )
 
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(contxt)
 
         binding.lifecycleOwner = requireActivity()
 
@@ -109,9 +126,44 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         //getMapAsync sets a callback object which will be triggered when the GoogleMap instance is ready to be used.
         //so "getMapAsync" will pass in the "googleMap" parameter in "onMapReady()"
 
-            //getMapAsync is called and executed from the Main thread
-            mapFragment.getMapAsync(this)
+        //getMapAsync is called and executed from the Main thread
+        mapFragment.getMapAsync(this)
 
+        val test = ActivityResultContracts.RequestMultiplePermissions()
+
+        permissionCallback = registerForActivityResult(test) { permissions: Map<String, Boolean> ->
+            if(permissions.containsValue(true))
+            {
+                getDeviceLocation()
+                Log.i("test", "permission granted contract")
+            }
+            else
+            {
+                if((shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) == false
+                            || shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION) == false))
+                {
+                    val mSnackbar = Snackbar.make(
+                        binding.layout,
+                        "Go to app settings to enable map location", Snackbar.LENGTH_SHORT
+                    )
+
+                    mSnackbar.setAction("dismiss"){mSnackbar.dismiss()}
+                    mSnackbar.show()
+
+                }
+                val mSnackbar = Snackbar.make(
+                    binding.layout,
+                    "Enabling location moves map to your location", Snackbar.LENGTH_LONG
+                )
+
+                mSnackbar.setAction("dismiss"){mSnackbar.dismiss()}
+                mSnackbar.show()
+
+                Log.i("test", "permission not granted contract")
+            }
+        }
+
+        enableLocation()
 
         return binding.root
     }
@@ -121,6 +173,27 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         contxt = context
     }
 
+    //https://stackoverflow.com/questions/43100365/how-to-refresh-a-google-map-manually
+    override fun onResume() {
+        super.onResume()
+        //source: https://stackoverflow.com/questions/37618738/how-to-check-if-a-lateinit-variable-has-been-initialized
+        if(this::map.isInitialized) {
+            Log.i("test","map is initialized and onResume called")
+            map.moveCamera(
+                CameraUpdateFactory.newLatLngZoom(
+                    LatLng(
+                        defaultLocation.latitude,
+                        defaultLocation.longitude
+                    ), zoomLevel
+                )
+            )
+            mapFragment.getMapAsync(this)
+            Log.i("test",defaultLocation.latitude.toString())
+        }
+        else
+            Log.i("test","map is not initialized")
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onMapReady(googleMap: GoogleMap?) {
@@ -128,28 +201,67 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             map = googleMap
         }
         //onLocationSelected()
+        if (defaultLocation.latitude.equals(33.8447593))
+        {
+            if (locationPermissionGranted())
+            getDeviceLocation()
+            else {
+                if ((!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) || !shouldShowRequestPermissionRationale(
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ))
+                ) {
+                    val mSnackbar = Snackbar.make(
+                        binding.layout,
+                        "Go to app settings to enable map location", Snackbar.LENGTH_LONG
+                    )
+
+                    mSnackbar.setAction("dismiss") { mSnackbar.dismiss() }
+                    mSnackbar.show()
+
+                }
+            }
+        }
+
 
         // Add a marker in Lakewood/Long Beach CA and move the camera, note that coordinates have a wide range, which is why decimals
         //can dictate the difference between two cities
-        val latitude = 33.8447593
-        val longitude = -118.1480706
-        val zoomLevel = 12f
+        //updateLocationUI()
 
-        val homeLatLng = LatLng(latitude, longitude)
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(homeLatLng, zoomLevel))
-        map.addMarker(MarkerOptions().position(homeLatLng))
+        //move camera to user's current location, if location is not turned on go to default location
 
-        val overlaySize = 100f
-        val androidOverlay = GroundOverlayOptions()
-            .image(BitmapDescriptorFactory.fromResource(R.drawable.fui_ic_github_white_24dp))
-            .position(homeLatLng, overlaySize)
+        map.addMarker(MarkerOptions().position(defaultLocation))
+
 
         //BitmapDescriptorFactory is used to create a definition of a Bitmap image, used for marker icons and ground overlays.
 
         setMapLongClick(map)
         setPoiClick(map)
         setMapStyle(map)
-        //map.addGroundOverlay(androidOverlay)
+    }
+
+    fun enableLocation()
+    {
+        if (ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+        {
+            Log.i("test", "SelectLocation foreground permission enabled")
+            return
+        }
+        else{
+            Log.i("test", "SelectLocation foreground permission not yet enabled")
+
+            val mArray = arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+            )
+            permissionCallback.launch(mArray)
+        }
     }
 
     private fun setMapLongClick(map: GoogleMap) {
@@ -179,7 +291,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             _viewModel.latLng?.value = latLng
             println("SelectLocation: " + latLng.latitude.toString() + ", " + latLng.longitude.toString())
             //println("locationSingle: " + _viewModel.locationSingle.value?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude
-              //          + ", " + _viewModel.latLng.value?.longitude )
+            //          + ", " + _viewModel.latLng.value?.longitude )
             findNavController().popBackStack()
         }
     }
@@ -191,6 +303,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .position(poi.latLng)
                     .title(poi.name)
             )
+            poiMarker.showInfoWindow()
         }
     }
     private fun setMapStyle(map: GoogleMap) {
@@ -213,108 +326,137 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
+    fun locationPermissionGranted() : Boolean
+    {
+        if ((ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+                    )
+        ){
+            return true
+        }
+        else
+            return false
+    }
+
+    //source: https://developers.google.com/maps/documentation/android-sdk/current-place-tutorial#kotlin_7
+    private fun getDeviceLocation() {
+        /*
+         * Get the best and most recent location of the device, which may be null in rare
+         * cases when a location is not available.
+         */
+
+        val fusedLocationProviderClient = FusedLocationProviderClient(contxt)
+        var lastKnownLocation: Location
+        try {
+            if (locationPermissionGranted()) {
+                val locationResult = fusedLocationProviderClient.lastLocation
+                locationResult.addOnCompleteListener(requireActivity()) { task ->
+                    if (task.isSuccessful && task.result != null) {
+                        //TODO: Why was task.result null?
+                        // Set the map's camera position to the current location of the device.
+                        lastKnownLocation = task.result
+                        defaultLocation =
+                            LatLng(lastKnownLocation.latitude, lastKnownLocation.longitude)
+                        map.moveCamera(
+                            CameraUpdateFactory.newLatLngZoom(
+                                LatLng(
+                                    lastKnownLocation.latitude,
+                                    lastKnownLocation.longitude
+                                ), zoomLevel
+                            )
+                        )
+
+                    }
+                    else {
+                        requestLocation()
+                        Log.i("test", "Current location is null. Using defaults.")
+                        Log.e(TAG, "Exception: %s", task.exception)
+                        /*map?.moveCamera(CameraUpdateFactory
+                            .newLatLngZoom(defaultLocation, zoomLevel))
+                        map?.uiSettings?.isMyLocationButtonEnabled = false*/
+                    }
+                }
+            }
+            else
+            {
+                Log.i("test", "Current location is null. Using defaults.")
+                map?.moveCamera(CameraUpdateFactory
+                    .newLatLngZoom(defaultLocation, zoomLevel))
+                map?.uiSettings?.isMyLocationButtonEnabled = false
+            }
+        } catch (e: SecurityException) {
+            Log.e("Exception: %s", e.message, e)
+        }
+    }
+
+    //https://stackoverflow.com/questions/63223410/does-fusedlocationproviderclient-need-to-initialize-location-often-null
+    private fun requestLocation() {
+        val locationRequest = LocationRequest()
+        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        locationRequest.interval = 0
+        locationRequest.fastestInterval = 0
+        locationRequest.numUpdates = 1
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        if (ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
+        Log.i("test","requestLocation called")
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallBack, Looper.myLooper())
+        lastLocation = fusedLocationClient.lastLocation
+        if (lastLocation.isSuccessful){
+            defaultLocation = LatLng(lastLocation.result.latitude, lastLocation.result.longitude)
+        }
+        else
+        {
+            map.moveCamera(CameraUpdateFactory
+                .newLatLngZoom(defaultLocation, zoomLevel))
+        }
+    }
 
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.map_options, menu)
     }
 
-        // TODO: Change the map type based on the user's selection.
+    // TODO: Change the map type based on the user's selection.
 
     override fun onOptionsItemSelected(item: MenuItem)  : Boolean = when(item.itemId){
-            // Change the map type based on the user's selection.
-            R.id.normal_map -> {
-                map.mapType = GoogleMap.MAP_TYPE_NORMAL
-                true
-            }
-            R.id.hybrid_map -> {
-                map.mapType = GoogleMap.MAP_TYPE_HYBRID
-                true
-            }
-            R.id.satellite_map -> {
-                map.mapType = GoogleMap.MAP_TYPE_SATELLITE
-                true
-            }
-            R.id.terrain_map -> {
-                map.mapType = GoogleMap.MAP_TYPE_TERRAIN
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+        // Change the map type based on the user's selection.
+        R.id.normal_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_NORMAL
+            true
         }
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun enableMyLocation() {
-        if (isPermissionGranted()) {
-            if (ActivityCompat.checkSelfPermission(
-                    requireContext(),
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
-                    requireContext(),
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED || (runningQOrLater && ActivityCompat.checkSelfPermission(
-                    requireContext(),
-                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED))
-            {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return
-            }
-            else
-            {
-                map.setMyLocationEnabled(true)
-                println("Location: Enabled location successfully")
-                _viewModel.successfuPermissionGranted.value = true
-            }
+        R.id.hybrid_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_HYBRID
+            true
         }
-        else
-        {
-            if (runningQOrLater)
-            {
-                requestPermissions(arrayOf<String>(Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_BACKGROUND_LOCATION),
-                    REQUEST_LOCATION_PERMISSION)
-            }
-            else {
-                //https://stackoverflow.com/questions/32714787/android-m-permissions-onrequestpermissionsresult-not-being-called
-                println("Requesting permission")
-                requestPermissions(
-                    arrayOf<String>(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ),
-                    REQUEST_LOCATION_PERMISSION
-                )
-            }
+        R.id.satellite_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_SATELLITE
+            true
         }
-    }
-    @RequiresApi(Build.VERSION_CODES.Q)
-    private fun isPermissionGranted() : Boolean {
-        if (!runningQOrLater) {
-            return ContextCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
+        R.id.terrain_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_TERRAIN
+            true
         }
-        else
-        {
-            return ContextCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ContextCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        }
+        else -> super.onOptionsItemSelected(item)
     }
 }

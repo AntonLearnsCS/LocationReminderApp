@@ -34,6 +34,7 @@ import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
+import com.udacity.project4.locationreminders.data.dto.Result
 import com.udacity.project4.locationreminders.data.local.LocalDB
 import com.udacity.project4.locationreminders.data.local.RemindersLocalRepository
 import com.udacity.project4.locationreminders.reminderslist.RemindersListViewModel
@@ -154,7 +155,8 @@ fun endToEndTest() = runBlocking { //runBlockingTest will ignore delay()
     startActivity(ApplicationProvider.getApplicationContext(),(activity.intent),Bundle())}//, Bundle()))*/
 
         // Set initial state.
-        repository.saveReminder(ReminderDTO("TITLE1", "DESCRIPTIONq", "LOCATION", 2.0, 5.0))
+    val tempReminder = ReminderDTO("TITLE1", "DESCRIPTIONq", "LOCATION", 2.0, 5.0)
+        repository.saveReminder(tempReminder)
 
         // Start up Tasks screen.
         val activityScenario = ActivityScenario.launch(AuthenticationActivity::class.java)
@@ -193,8 +195,12 @@ fun endToEndTest() = runBlocking { //runBlockingTest will ignore delay()
 
    onView(withText("Removed")).inRoot(RootMatchers.withDecorView(Matchers.not(`is`(getActivity(reminderScenario)?.window?.decorView))))
        .check(matches(isDisplayed()))
-    //Note: Flakiness can be attributed to snackbars and toasts blocking view add delay here b/c snackbar blocks FAB
+
+    //Note: Flakiness can be attributed to snackbars and toasts blocking view add delay here b/c snackbar blocks FAB which is why we add the delay
     delay(6000)
+    val getReminderResult = repository.getReminders()
+    assertThat(getReminderResult, `is`(Result.Error("Empty reminder database")))
+    //onView()
 
     onView(withId(R.id.addReminderFAB)).check(matches(isDisplayed()))
     onView(withId(R.id.addReminderFAB)).perform(click())
