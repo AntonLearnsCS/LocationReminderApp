@@ -46,6 +46,8 @@ class SaveReminderFragment : BaseFragment() {
     private var counter = 0
     private val REQUEST_LOCATION_PERMISSION = 1
     private lateinit var contxt: Context
+    private val runningQOrLater =
+        android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
 
     //Get the view model this time as a single to be shared with the another fragment, note the "override" tag
     //Note: We don't use "override val _viewModel: SaveReminderViewModel = get<SaveReminderViewModel>()"
@@ -71,7 +73,8 @@ class SaveReminderFragment : BaseFragment() {
     @RequiresApi(Build.VERSION_CODES.Q)
     private lateinit var requestLocationSetting : ActivityResultLauncher<IntentSenderRequest>
     private lateinit var permissionCallback : ActivityResultLauncher<Array<String>>
-
+    //private lateinit var requestBackgroundPermission : ActivityResultLauncher<IntentSenderRequest>
+    private var backgroundFlag = false
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -95,7 +98,16 @@ class SaveReminderFragment : BaseFragment() {
         geofencingClient = LocationServices.getGeofencingClient(contxt)
         //TODO: Strange, pressing add button after save button calls onCreateView
 
-        //TODO: Is it possible to pass in the permissionRequest callback here?
+        /*requestBackgroundPermission = registerForActivityResult(
+            ActivityResultContracts.StartIntentSenderForResult()
+        ){
+            result: ActivityResult ->
+            if (result.resultCode == RESULT_OK)
+                backgroundFlag = true
+            else
+                Toast.makeText(contxt,"background permission denied",Toast.LENGTH_SHORT).show()
+        }*/
+
         requestLocationSetting  = registerForActivityResult(
             ActivityResultContracts.StartIntentSenderForResult()
         ) { result: ActivityResult ->
@@ -115,14 +127,27 @@ class SaveReminderFragment : BaseFragment() {
             }
         }
 
+
         val test = ActivityResultContracts.RequestMultiplePermissions()
         //TODO: Receiving Type Mismatch error in defining permissionCallback when
         // following: https://developer.android.com/training/permissions/requesting#allow-system-manage-request-code
         permissionCallback = registerForActivityResult(test) { permissions: Map<String, Boolean> ->
             if(permissions.containsValue(true))
             {
-                checkDeviceLocationSettingsAndStartGeofence()
-                Log.i("test", "permission granted contract")
+                //On Android <= 9, being granted location permission also grants background permission
+                if(runningQOrLater && ActivityCompat.checkSelfPermission(
+                        contxt,
+                        Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED )
+                {
+                    Log.i("test","Background permission is not grarnted")
+                    requestBackgroundLocationPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                }
+                else
+                {
+                    checkDeviceLocationSettingsAndStartGeofence()
+                    Log.i("test", "permission granted contract, running less than Q")
+                }
             }
             else
             {
@@ -167,8 +192,6 @@ class SaveReminderFragment : BaseFragment() {
 
 
         binding.saveReminder.setOnClickListener {
-
-
             //two-way data binding
             val title = _viewModel.reminderTitle.value
             val description = _viewModel.reminderDescription.value
@@ -177,11 +200,11 @@ class SaveReminderFragment : BaseFragment() {
             //no id for clicked location b/c ReminderDataItem will automatically generate one for us, id only for geofence
             reminderDataItem = ReminderDataItem(
                 title, description, location, latLng?.latitude,
-                latLng?.longitude)
+                latLng?.longitude
+            )
 
             intent.putExtra("reminderDataItem", reminderDataItem)
 
-            //Foreground and background location must be granted first
             checkPermission()
 
 //            TODO: use the user entered reminder details to:
@@ -191,6 +214,7 @@ class SaveReminderFragment : BaseFragment() {
                 checkDeviceLocationSettingsAndStartGeofence()
             else
                 Toast.makeText(contxt, "Missing information", Toast.LENGTH_SHORT).show()
+
 
             //TODO If I include navigation from here to reminderListFragment then save button persist
             //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
@@ -230,7 +254,7 @@ class SaveReminderFragment : BaseFragment() {
                     val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
                     requestLocationSetting.launch(intentSenderRequest)
 
-
+                    //requestBackgroundPermission.launch(intentSenderRequest)
                     // Show the dialog by calling startResolutionForResult(),
                     // and check the result in onActivityResult().
                     //exception.startResolutionForResult(contxt as Activity, REQUEST_TURN_DEVICE_LOCATION_ON)
@@ -292,43 +316,34 @@ class SaveReminderFragment : BaseFragment() {
             .addGeofence(geofence)
             .build()
 
-        //TODO: Why is checkSelfPermission failing here when it was approved in SelectLocationFragment?
+        if ((ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED)
 
+        ) {
 
+            val permissionObject = arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION)
+
+            permissionCallback.launch(permissionObject)
+        }
+        else {
             //Toast.makeText(contxt,"Permission Granted",Toast.LENGTH_SHORT).show()
 
             //to add a geofence, you add the actual geofence location (geofenceRequest) as well as where you want the
             //activity to start once the geofence is triggered (geofencePendingIntent), which in our case is BroadcastReceiver
-        if ((ActivityCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-         && ActivityCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED) == true ||
-            ActivityCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        )
-         {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            checkDeviceLocationSettingsAndStartGeofence()
-        }
-        geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
+            geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
                 addOnSuccessListener {
                     _viewModel.saveReminder(reminderDataItem)
                     Toast.makeText(contxt, "Succesfully added geofence", Toast.LENGTH_SHORT).show()
                     Log.i("test", "added geofence")
                     //navigate back only once geofence is added
-                    val intent = Intent(requireActivity(), RemindersActivity::class.java)
+                    val intent = Intent(requireContext(), RemindersActivity::class.java)
                     val bundle = Bundle()
                     bundle.putSerializable("ReminderDataItem", reminderDataItem)
                     intent.putExtras(bundle)
@@ -345,52 +360,32 @@ class SaveReminderFragment : BaseFragment() {
                     }
                 }
             }
-
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     fun checkPermission() : Boolean
     {
+        if (runningQOrLater) {
+            requestBackgroundLocationPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+            return false
+        }
+
         if ((ActivityCompat.checkSelfPermission(
                 contxt,
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                 contxt,
                 Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED) == true || ActivityCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+            ) != PackageManager.PERMISSION_GRANTED)
         ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            //return
-            //Toast.makeText(context,"Permission Denied",Toast.LENGTH_SHORT).show()
-            //TODO: Why is onDestroy() being called?
-            //deprecated, use "registerForActivityResult()" instead
-            /*ActivityCompat.requestPermissions(
-                contxt as Activity,
-                arrayOf(
+
+                val permissionObject = arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                ),
-                REQUEST_LOCATION_PERMISSION
-            )*/
-
-            val permissionObject = arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION
-            )
-
-            permissionCallback.launch(permissionObject)
-            return false
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+                permissionCallback.launch(permissionObject)
+                return false
         }
         return true
     }
@@ -398,6 +393,15 @@ class SaveReminderFragment : BaseFragment() {
     companion object {
         internal const val ACTION_GEOFENCE_EVENT =
             "RemindersActivity.savereminder.action.ACTION_GEOFENCE_EVENT"
+    }
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private var requestBackgroundLocationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { permissionGranted ->
+        if (permissionGranted)
+        checkDeviceLocationSettingsAndStartGeofence()
+        else
+             Toast.makeText(contxt,"background permission denied",Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroy() {
@@ -417,4 +421,3 @@ class SaveReminderFragment : BaseFragment() {
     }
 }
 private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
-
