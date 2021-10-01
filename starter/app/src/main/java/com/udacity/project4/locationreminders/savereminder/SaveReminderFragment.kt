@@ -73,7 +73,7 @@ class SaveReminderFragment : BaseFragment() {
     @RequiresApi(Build.VERSION_CODES.Q)
     private lateinit var requestLocationSetting : ActivityResultLauncher<IntentSenderRequest>
     private lateinit var permissionCallback : ActivityResultLauncher<Array<String>>
-    //private lateinit var requestBackgroundPermission : ActivityResultLauncher<IntentSenderRequest>
+    //ensures that permission is granted before asking to turn on location
     private var backgroundFlag = false
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreateView(
@@ -132,8 +132,7 @@ class SaveReminderFragment : BaseFragment() {
         //TODO: Receiving Type Mismatch error in defining permissionCallback when
         // following: https://developer.android.com/training/permissions/requesting#allow-system-manage-request-code
         permissionCallback = registerForActivityResult(test) { permissions: Map<String, Boolean> ->
-            if(permissions.containsValue(true))
-            {
+
                 //On Android <= 9, being granted location permission also grants background permission
                 if(runningQOrLater && ActivityCompat.checkSelfPermission(
                         contxt,
@@ -148,18 +147,7 @@ class SaveReminderFragment : BaseFragment() {
                     checkDeviceLocationSettingsAndStartGeofence()
                     Log.i("test", "permission granted contract, running less than Q")
                 }
-            }
-            else
-            {
-                val mSnackbar = Snackbar.make(
-                    binding.saveReminderLayout,
-                    R.string.permission_denied_explanation, Snackbar.LENGTH_LONG
-                )
-                mSnackbar.setAction("dismiss"){mSnackbar.dismiss()}
-                mSnackbar.show()
 
-                Log.i("test", "permission not granted contract")
-            }
         }
         return binding.root
     }
@@ -251,8 +239,11 @@ class SaveReminderFragment : BaseFragment() {
                 try {
                     //"exception" is defined in terms of "locationSettingsResponseTask". exception.resolution a placeholder for a pendingIntent
                     //source: https://knowledge.udacity.com/questions/650170#650189
-                    val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
-                    requestLocationSetting.launch(intentSenderRequest)
+                        if (backgroundFlag) {
+                            val intentSenderRequest =
+                                IntentSenderRequest.Builder(exception.resolution).build()
+                            requestLocationSetting.launch(intentSenderRequest)
+                        }
 
                     //requestBackgroundPermission.launch(intentSenderRequest)
                     // Show the dialog by calling startResolutionForResult(),
@@ -367,6 +358,7 @@ class SaveReminderFragment : BaseFragment() {
     fun checkPermission() : Boolean
     {
         if (runningQOrLater) {
+            Log.i("test","runningQOrLater")
             requestBackgroundLocationPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
             return false
         }
@@ -399,8 +391,11 @@ class SaveReminderFragment : BaseFragment() {
     private var requestBackgroundLocationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { permissionGranted ->
-        if (permissionGranted)
-        checkDeviceLocationSettingsAndStartGeofence()
+        if (permissionGranted) {
+        backgroundFlag = true
+            checkDeviceLocationSettingsAndStartGeofence()
+
+        }
         else
              Toast.makeText(contxt,"background permission denied",Toast.LENGTH_SHORT).show()
     }
