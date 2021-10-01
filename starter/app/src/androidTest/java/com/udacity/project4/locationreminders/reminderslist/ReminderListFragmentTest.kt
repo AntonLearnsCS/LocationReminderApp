@@ -33,6 +33,7 @@ import androidx.test.filters.MediumTest
 import com.udacity.project4.MyApp
 import com.udacity.project4.R
 import com.udacity.project4.ServiceLocator
+import com.udacity.project4.locationreminders.ReminderDescriptionActivity
 import com.udacity.project4.locationreminders.RemindersActivity
 import com.udacity.project4.locationreminders.data.ReminderDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
@@ -40,6 +41,7 @@ import com.udacity.project4.locationreminders.data.dto.Result
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragment
 import com.udacity.project4.locationreminders.savereminder.SaveReminderFragmentDirections
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.CoreMatchers.*
@@ -69,12 +71,14 @@ class ReminderListFragmentTest : KoinTest {
 
     //The IntentsTestRule simply calls Intents.init() before the @Test block and Intents.release()
     // after the @Test block is completed.
+    val bundleItem = Bundle()
+    val reminderDataItem = ReminderDataItem("Title","Description","Location",1.0,2.0)
+
     @get:Rule
     val intentsTestRule = IntentsTestRule(RemindersActivity::class.java)
-
     //Since it is a rule, Activity scenario rule will call Intents.init() and Intents.release() before & after each test
-    /*@get : Rule
-    var rule: ActivityScenarioRule<RemindersActivity> = ActivityScenarioRule(RemindersActivity::class.java)*/
+   /* @get : Rule
+    var activityScenarioRule: ActivityScenarioRule<RemindersActivity> = ActivityScenarioRule(RemindersActivity::class.java)*/
 
     private lateinit var reminderZ_id : String
     private lateinit var realRepo : ReminderDataSource
@@ -85,7 +89,6 @@ class ReminderListFragmentTest : KoinTest {
 //    TODO: test the navigation of the fragments.
 //    TODO: test the displayed data on the UI.
 //    TODO: add testing for the error messages.
-
 
     @Test
     fun SaveReminderFragment_LocationClick_NavigateToMap()
@@ -139,9 +142,9 @@ class ReminderListFragmentTest : KoinTest {
     }
 
     //can be used to test notification
-    //We don't actually use Espresso to test pending intent. If you want to test the intent used by the notification, see:
+    //Note: We don't actually use Espresso to test pending intent. If you want to test the intent used by the notification, see:
     // https://stackoverflow.com/questions/34467310/espresso-test-for-notification-to-showing-up
-    @Test
+   /* @Test
     fun saveReminderFragment_saveReminder_PendingIntentCalled()
     {
         //Given - The reminderListFragment
@@ -174,13 +177,16 @@ class ReminderListFragmentTest : KoinTest {
 
         //verify(navController.navigate(ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity()))
         //Then - the selected task should be gone from ReminderListFragment
-    }
+    }*/
 
-
+    //TODO: intended() does not recognize intent
     @Test
     fun ReminderListFragment_ClickItem_NavigateDetailFragment()
     {
         //Given - ReminderListFragment
+       /* activityScenarioRule.getScenario().onActivity({ activity ->
+        // use 'activity'.
+    })*/
         val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
         val mNavController = mock(NavController::class.java)
 
@@ -203,6 +209,10 @@ class ReminderListFragmentTest : KoinTest {
                     hasDescendant(withText("TitleZ")), click()
                 )
             )
+        runBlocking{
+            delay(5000)
+        }
+        onView(withId(R.id.description)).check(matches(isDisplayed()))
 
         intended(toPackage("com.udacity.project4.locationreminders.ReminderDescriptionActivity"))
     /*    verify(mNavController).navigate(

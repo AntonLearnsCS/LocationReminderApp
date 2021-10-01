@@ -360,7 +360,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
          * cases when a location is not available.
          */
 
-        val fusedLocationProviderClient = FusedLocationProviderClient(contxt)
+        val fusedLocationProviderClient = FusedLocationProviderClient(requireActivity())
         var lastKnownLocation: Location
         try {
             if (locationPermissionGranted()) {
