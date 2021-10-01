@@ -394,6 +394,7 @@ class SaveReminderFragment : BaseFragment() {
         internal const val ACTION_GEOFENCE_EVENT =
             "RemindersActivity.savereminder.action.ACTION_GEOFENCE_EVENT"
     }
+    //inspired by: https://github.com/yuriikonovalov/UdacityNanodegreeLocationReminderApp/blob/master/app/src/main/java/com/udacity/project4/locationreminders/savereminder/SaveReminderFragment.kt
     @RequiresApi(Build.VERSION_CODES.Q)
     private var requestBackgroundLocationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
