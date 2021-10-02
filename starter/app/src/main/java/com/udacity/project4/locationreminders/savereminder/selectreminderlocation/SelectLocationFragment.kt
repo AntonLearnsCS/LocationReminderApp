@@ -45,8 +45,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private var defaultLocation = LatLng(latitude,longitude)
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation : Task<Location>
+    //private lateinit var fusedLocationProviderClient :
     private val locationCallBack: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(p0: LocationResult?) {
+            super.onLocationResult(p0)
             val location: Location? = p0?.lastLocation
             if(location != null) {
                 latitude = defaultLocation.latitude
@@ -144,9 +146,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
                     return@registerForActivityResult
                 }
-                map.setMyLocationEnabled(true)
-                map.uiSettings.isMyLocationButtonEnabled = true
-                getDeviceLocation()
+                //map.setMyLocationEnabled(true)
+                //map.uiSettings.isMyLocationButtonEnabled = true
+                //getDeviceLocation()
                 Log.i("test", "permission granted contract")
             }
             else
@@ -199,6 +201,19 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     ), zoomLevel
                 )
             )
+            if (ActivityCompat.checkSelfPermission(
+                    contxt,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                    contxt,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                return
+            }
+            map.setMyLocationEnabled(true)
+            map.uiSettings.isMyLocationButtonEnabled = true
+            getDeviceLocation()
             //mapFragment.getMapAsync(this)
             Log.i("test",defaultLocation.latitude.toString())
         }
@@ -207,13 +222,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
 
+
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onMapReady(googleMap: GoogleMap?) {
         if (googleMap != null) {
             map = googleMap
         }
-
-
+        Log.i("test","onMapReady() called")
         //if using default location and permission has been granted
         if (defaultLocation.latitude.equals(33.8447593))
         {
@@ -255,6 +270,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         //updateLocationUI()
 
         //move camera to user's current location, if location is not turned on go to default location
+        getDeviceLocation()
 
         map.addMarker(MarkerOptions().position(defaultLocation))
 
@@ -400,11 +416,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
          * cases when a location is not available.
          */
 
-        val fusedLocationProviderClient = FusedLocationProviderClient(contxt)
+          //val fusedLocationClient = FusedLocationProviderClient(requireActivity())
         var lastKnownLocation: Location
         try {
             if (locationPermissionGranted()) {
-                val locationResult = fusedLocationProviderClient.lastLocation
+                val locationResult = fusedLocationClient.lastLocation
                 locationResult.addOnCompleteListener(requireActivity()) { task ->
                     if (task.isSuccessful && task.result != null) {
                         //TODO: Why was task.result null?
@@ -475,9 +491,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         lastLocation = fusedLocationClient.lastLocation
         if (lastLocation.isSuccessful){
             defaultLocation = LatLng(lastLocation.result.latitude, lastLocation.result.longitude)
+            map.moveCamera(CameraUpdateFactory
+                .newLatLngZoom(defaultLocation, zoomLevel))
         }
         else
         {
+            Log.i("test","requestLocation not successfull")
             map.moveCamera(CameraUpdateFactory
                 .newLatLngZoom(defaultLocation, zoomLevel))
         }
