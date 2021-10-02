@@ -223,7 +223,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         super.onResume()
         //Note: We need to declare fusedLocationClient here again b/c initially the contxt was when permission had not been granted
         //so we need to get the new contxt when permission has been granted
-        fusedLocationClient = FusedLocationProviderClient(contxt)
+        //fusedLocationClient = FusedLocationProviderClient(contxt)
         //source: https://stackoverflow.com/questions/37618738/how-to-check-if-a-lateinit-variable-has-been-initialized
         if(this::map.isInitialized) {
             Log.i("test","map is initialized and onResume called")
@@ -450,11 +450,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
          * cases when a location is not available.
          */
         //TODO: By creating the instance of fusedLocationProviderClient here in addition to onCreate, the
-       //val fusedLocationProviderClient = FusedLocationProviderClient(contxt)
+       val fusedLocationProviderClient = FusedLocationProviderClient(requireActivity())
         var lastKnownLocation: Location
         try {
             if (locationPermissionGranted()) {
-                val locationResult = fusedLocationClient.lastLocation
+                val locationResult = fusedLocationProviderClient.lastLocation
                 locationResult.addOnCompleteListener(requireActivity()) { task ->
                     if (task.isSuccessful && task.result != null) {
                         //TODO: Why was task.result null?
