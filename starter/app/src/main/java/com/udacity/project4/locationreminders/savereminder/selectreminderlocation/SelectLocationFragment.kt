@@ -2,7 +2,9 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.location.Address
@@ -13,12 +15,15 @@ import android.os.Bundle
 import android.os.Looper
 import android.util.Log
 import android.view.*
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.*
@@ -30,6 +35,7 @@ import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import timber.log.Timber
 import java.util.*
 
 
@@ -45,6 +51,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private var defaultLocation = LatLng(latitude,longitude)
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation : Task<Location>
+    private lateinit var requestLocationSetting : ActivityResultLauncher<IntentSenderRequest>
+    private var backgroundFlag = false
     //private lateinit var fusedLocationProviderClient :
     private val locationCallBack: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(p0: LocationResult?) {
@@ -79,6 +87,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private lateinit var binding: FragmentSelectLocationBinding
     private lateinit var mapFragment: SupportMapFragment
     private lateinit var map : GoogleMap
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
@@ -130,6 +139,26 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         //getMapAsync is called and executed from the Main thread
         mapFragment.getMapAsync(this)
 
+        requestLocationSetting  = registerForActivityResult(
+            ActivityResultContracts.StartIntentSenderForResult()
+        ) { result: ActivityResult ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                Log.i("test","location setting enabled")
+                getDeviceLocation()
+            }
+            else
+            {
+                //source: https://stackoverflow.com/questions/30729312/how-to-dismiss-a-snackbar-using-its-own-action-button
+                val mSnackbar = Snackbar.make(
+                    binding.layout,
+                    R.string.location_tracker_needed, Snackbar.LENGTH_LONG
+                )
+                mSnackbar.setAction("Dismiss"){mSnackbar.dismiss()}
+                mSnackbar.show()
+                Log.i("Test", "location setting denied access")
+            }
+        }
+
         val test = ActivityResultContracts.RequestMultiplePermissions()
 
         permissionCallback = registerForActivityResult(test) { permissions: Map<String, Boolean> ->
@@ -146,6 +175,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
                     return@registerForActivityResult
                 }
+                backgroundFlag = true
+                checkDeviceLocationSettings()
                 //map.setMyLocationEnabled(true)
                 //map.uiSettings.isMyLocationButtonEnabled = true
                 //getDeviceLocation()
@@ -190,6 +221,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     //https://stackoverflow.com/questions/43100365/how-to-refresh-a-google-map-manually
     override fun onResume() {
         super.onResume()
+        //Note: We need to declare fusedLocationClient here again b/c initially the contxt was when permission had not been granted
+        //so we need to get the new contxt when permission has been granted
+        fusedLocationClient = FusedLocationProviderClient(contxt)
         //source: https://stackoverflow.com/questions/37618738/how-to-check-if-a-lateinit-variable-has-been-initialized
         if(this::map.isInitialized) {
             Log.i("test","map is initialized and onResume called")
@@ -415,8 +449,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
          * Get the best and most recent location of the device, which may be null in rare
          * cases when a location is not available.
          */
-
-          //val fusedLocationClient = FusedLocationProviderClient(requireActivity())
+        //TODO: By creating the instance of fusedLocationProviderClient here in addition to onCreate, the
+       //val fusedLocationProviderClient = FusedLocationProviderClient(contxt)
         var lastKnownLocation: Location
         try {
             if (locationPermissionGranted()) {
@@ -467,7 +501,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         locationRequest.interval = 0
         locationRequest.fastestInterval = 0
         locationRequest.numUpdates = 1
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(contxt)
         if (ActivityCompat.checkSelfPermission(
                 contxt,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -499,6 +533,59 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             Log.i("test","requestLocation not successfull")
             map.moveCamera(CameraUpdateFactory
                 .newLatLngZoom(defaultLocation, zoomLevel))
+        }
+    }
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun checkDeviceLocationSettings(resolve: Boolean = true) {
+        val locationRequest = LocationRequest.create().apply {
+            priority = LocationRequest.PRIORITY_LOW_POWER
+        }
+
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+
+        val settingsClient = LocationServices.getSettingsClient(contxt)
+
+        val locationSettingsResponseTask =
+            settingsClient.checkLocationSettings(builder.build())
+
+        locationSettingsResponseTask.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException && resolve){
+                // Location settings are not satisfied, but this can be fixed
+                // by showing the user a dialog.
+                try {
+                    //"exception" is defined in terms of "locationSettingsResponseTask". exception.resolution a placeholder for a pendingIntent
+                    //source: https://knowledge.udacity.com/questions/650170#650189
+                    if (backgroundFlag) {
+                        backgroundFlag = false
+                        val intentSenderRequest =
+                            IntentSenderRequest.Builder(exception.resolution).build()
+                            requestLocationSetting.launch(intentSenderRequest)
+                    }
+
+                    //requestBackgroundPermission.launch(intentSenderRequest)
+                    // Show the dialog by calling startResolutionForResult(),
+                    // and check the result in onActivityResult().
+                    //exception.startResolutionForResult(contxt as Activity, REQUEST_TURN_DEVICE_LOCATION_ON)
+                }
+                catch (sendEx: IntentSender.SendIntentException) {
+                    Timber.i("Error getting location settings resolution:" + sendEx.message)
+                    //Log.d(TAG, "Error geting location settings resolution: " + sendEx.message)
+                }
+            }
+            else {
+                Snackbar.make(
+                    binding.layout,
+                    R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
+                ).setAction(android.R.string.ok) {
+                    checkDeviceLocationSettings()
+                }.show()
+            }
+        }
+
+        locationSettingsResponseTask.addOnCompleteListener {
+            if ( it.isSuccessful && !isDetached) {
+                Log.i("test","location settings is enabled")
+            }
         }
     }
 
