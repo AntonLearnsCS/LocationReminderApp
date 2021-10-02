@@ -42,6 +42,8 @@ class RemindersLocalRepositoryTest : AutoCloseKoinTest() {
 //TODO: Add testing implementation to the RemindersLocalRepository.kt
 private lateinit var database : RemindersDatabase
 private lateinit var mRepo : RemindersLocalRepository
+private val myDTO = ReminderDTO("Title","Description","Location",2.0,3.0)
+
     @get: Rule
     val mainCoroutineRule = MainCoroutineRule()
 
@@ -66,7 +68,6 @@ private lateinit var mRepo : RemindersLocalRepository
 fun saveTask_RetrieveTask() : Unit = mainCoroutineRule.runBlockingTest{
 
     //Given - A new DTO
-    val myDTO = ReminderDTO("Title","Description","Location",2.0,3.0)
 
     //When - saved to local repo
     mRepo.saveReminder(myDTO)
@@ -89,8 +90,11 @@ fun saveTask_RetrieveTask() : Unit = mainCoroutineRule.runBlockingTest{
 
         //when - user retrieves a data item that does not exists
         val mRepoResultReminders = mRepo.getReminders()
+        val mRepoResultRemindersId = mRepo.getReminder(myDTO.id)
+
         //then - an error is returned
         assertThat(mRepoResultReminders, `is`(Result.Error("Empty reminder database")))
+        assertThat(mRepoResultRemindersId, `is`(Result.Error("Reminder not found!")))
 
     }
 
@@ -99,9 +103,6 @@ fun saveTask_RetrieveTask() : Unit = mainCoroutineRule.runBlockingTest{
 
         mRepo.deleteAllReminders()
     }
-
-
-
 
     /**
      * As we use Koin as a Service Locator Library to develop our code, we'll also use Koin to test our code.

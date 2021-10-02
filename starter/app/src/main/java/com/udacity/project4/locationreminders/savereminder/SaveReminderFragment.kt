@@ -240,6 +240,7 @@ class SaveReminderFragment : BaseFragment() {
                     //"exception" is defined in terms of "locationSettingsResponseTask". exception.resolution a placeholder for a pendingIntent
                     //source: https://knowledge.udacity.com/questions/650170#650189
                         if (backgroundFlag) {
+                            backgroundFlag = false
                             val intentSenderRequest =
                                 IntentSenderRequest.Builder(exception.resolution).build()
                             requestLocationSetting.launch(intentSenderRequest)
