@@ -141,5 +141,4 @@ class ReminderListFragment : BaseFragment(), EasyPermissions.PermissionCallbacks
     override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
         TODO("Not yet implemented")
     }
-
 }

@@ -355,6 +355,7 @@ class SaveReminderFragment : BaseFragment() {
         }
     }
 
+
     @RequiresApi(Build.VERSION_CODES.Q)
     fun checkPermission() : Boolean
     {
@@ -403,7 +404,7 @@ class SaveReminderFragment : BaseFragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        println("Destroyed")
+        println("test, is finishing?: " + requireActivity().isFinishing)
         //make sure to clear the view model after destroy, as it's a single view model.
         _viewModel.onClear()
     }
