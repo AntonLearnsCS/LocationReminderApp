@@ -1,5 +1,6 @@
 package com.udacity.project4.locationreminders.reminderslist
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -138,7 +139,8 @@ class ReminderListFragmentTest : KoinTest {
         runBlocking {
             realRepo.deleteAllReminders()
         }
-      //  Intents.release()
+
+       //Intents.release()
     }
 
     //can be used to test notification
@@ -209,21 +211,12 @@ class ReminderListFragmentTest : KoinTest {
                     hasDescendant(withText("TitleZ")), click()
                 )
             )
-        runBlocking{
-            delay(5000)
-        }
+
         onView(withId(R.id.description)).check(matches(isDisplayed()))
 
-        intended(toPackage("com.udacity.project4.locationreminders.ReminderDescriptionActivity"))
-    /*    verify(mNavController).navigate(
-            ReminderListFragmentDirections.actionReminderListFragmentToReminderDescriptionActivity(
-                returnReminderDataItemFromDb(reminderZ_id)
-            )
-        )*/
-        //check if a view exists
-        //onView(withId(R.id.taskTitle)).check(matches(isDisplayed()))
 
-        //onView(withId(R.layout.reminder_description_fragment)).check(matches(withText("TitleZ")))
+        intended(hasComponent(ReminderDescriptionActivity::class.java.name))
+
     }
 
     fun returnReminderDataItemFromDb(id: String) : ReminderDataItem =
