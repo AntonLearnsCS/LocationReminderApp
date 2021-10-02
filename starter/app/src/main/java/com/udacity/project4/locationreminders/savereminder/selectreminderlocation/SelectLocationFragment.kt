@@ -212,19 +212,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (googleMap != null) {
             map = googleMap
         }
-        if (ActivityCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                contxt,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
 
-            return
-        }
-        if(locationPermissionGranted())
-            map.setMyLocationEnabled(true)
 
         //if using default location and permission has been granted
         if (defaultLocation.latitude.equals(33.8447593))
@@ -240,6 +228,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 ) {
                     return
                 }
+                Log.i("test","setMyLocationEnabled is set to true")
                 map.setMyLocationEnabled(true)
                 getDeviceLocation()
             }
@@ -274,6 +263,19 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         setMapLongClick(map)
         setPoiClick(map)
         setMapStyle(map)
+
+        if (ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        if(locationPermissionGranted())
+            map.setMyLocationEnabled(true)
     }
 
     fun enableLocation()
