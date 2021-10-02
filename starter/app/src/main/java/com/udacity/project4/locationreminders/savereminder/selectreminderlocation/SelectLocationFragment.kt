@@ -135,6 +135,19 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         permissionCallback = registerForActivityResult(test) { permissions: Map<String, Boolean> ->
             if(permissions.containsValue(true))
             {
+                if (ActivityCompat.checkSelfPermission(
+                        contxt,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        contxt,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+
+                    return@registerForActivityResult
+                }
+                map.setMyLocationEnabled(true)
+                map.uiSettings.isMyLocationButtonEnabled = true
                 getDeviceLocation()
                 Log.i("test", "permission granted contract")
             }
@@ -204,9 +217,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         //onLocationSelected()
         if (defaultLocation.latitude.equals(33.8447593))
         {
-            if (locationPermissionGranted())
+            if (locationPermissionGranted()) {
+                if (ActivityCompat.checkSelfPermission(
+                        contxt,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        contxt,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    return
+                }
+                map.setMyLocationEnabled(true)
                 getDeviceLocation()
-            else {
+            }
+                else {
                 if ((!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) || !shouldShowRequestPermissionRationale(
                         Manifest.permission.ACCESS_COARSE_LOCATION
                     ))
@@ -231,7 +256,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         //move camera to user's current location, if location is not turned on go to default location
 
         map.addMarker(MarkerOptions().position(defaultLocation))
-
 
         //BitmapDescriptorFactory is used to create a definition of a Bitmap image, used for marker icons and ground overlays.
 

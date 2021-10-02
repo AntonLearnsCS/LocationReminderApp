@@ -335,7 +335,7 @@ class SaveReminderFragment : BaseFragment() {
                     Toast.makeText(contxt, "Succesfully added geofence", Toast.LENGTH_SHORT).show()
                     Log.i("test", "added geofence")
                     //navigate back only once geofence is added
-                    val intent = Intent(requireContext(), RemindersActivity::class.java)
+                    val intent = Intent(contxt, RemindersActivity::class.java)
                     val bundle = Bundle()
                     bundle.putSerializable("ReminderDataItem", reminderDataItem)
                     intent.putExtras(bundle)
