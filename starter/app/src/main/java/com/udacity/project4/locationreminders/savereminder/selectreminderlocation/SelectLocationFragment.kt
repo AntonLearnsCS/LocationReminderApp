@@ -8,7 +8,6 @@ import android.content.res.Resources
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
-import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Looper
@@ -18,7 +17,6 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.location.*
@@ -201,7 +199,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     ), zoomLevel
                 )
             )
-            mapFragment.getMapAsync(this)
+            //mapFragment.getMapAsync(this)
             Log.i("test",defaultLocation.latitude.toString())
         }
         else
@@ -214,7 +212,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (googleMap != null) {
             map = googleMap
         }
-        //onLocationSelected()
+        if (ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                contxt,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+
+            return
+        }
+        if(locationPermissionGranted())
+            map.setMyLocationEnabled(true)
+
+        //if using default location and permission has been granted
         if (defaultLocation.latitude.equals(33.8447593))
         {
             if (locationPermissionGranted()) {
@@ -269,7 +281,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
+            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
@@ -335,6 +347,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .title(poi.name)
             )
             poiMarker.showInfoWindow()
+            _viewModel.latLng.value = poi.latLng
+
             findNavController().popBackStack()
 
         }
@@ -384,7 +398,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
          * cases when a location is not available.
          */
 
-        val fusedLocationProviderClient = FusedLocationProviderClient(requireActivity())
+        val fusedLocationProviderClient = FusedLocationProviderClient(contxt)
         var lastKnownLocation: Location
         try {
             if (locationPermissionGranted()) {
@@ -409,6 +423,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         requestLocation()
                         Log.i("test", "Current location is null. Using defaults.")
                         Log.e(TAG, "Exception: %s", task.exception)
+                        map.uiSettings?.isMyLocationButtonEnabled = false
                         /*map?.moveCamera(CameraUpdateFactory
                             .newLatLngZoom(defaultLocation, zoomLevel))
                         map?.uiSettings?.isMyLocationButtonEnabled = false*/
@@ -434,7 +449,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         locationRequest.interval = 0
         locationRequest.fastestInterval = 0
         locationRequest.numUpdates = 1
-        //fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
         if (ActivityCompat.checkSelfPermission(
                 contxt,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -450,6 +465,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
+                map.uiSettings.isMyLocationButtonEnabled = false
             return
         }
         Log.i("test","requestLocation called")
@@ -492,4 +508,23 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
         else -> super.onOptionsItemSelected(item)
     }
+
+   /* override fun onLocationChanged(p0: Location?) {
+        val userLocation = p0?.latitude?.let { LatLng(it, p0.longitude) }
+        map.moveCamera(CameraUpdateFactory.newLatLng(userLocation))
+        if (p0 == null)
+        {
+            Log.i("test","onLocationChanged returns null value for location")
+        }
+        if (p0 != null) {
+            map.moveCamera(
+                CameraUpdateFactory.newLatLngZoom(
+                    LatLng(
+                        p0.latitude,
+                        p0.longitude
+                    ), zoomLevel
+                )
+            )
+        }
+    }*/
 }
