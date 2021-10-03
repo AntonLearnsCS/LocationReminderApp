@@ -49,10 +49,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private var longitude : Double = -118.1480706
     private val zoomLevel = 12f
     private var defaultLocation = LatLng(latitude,longitude)
-    /*FusedLocationProvider -
-    It manages the underlying location technologies, such as GPS and Wi-Fi, and provides a simple
-    API so that you can specify requirements at a high level, like high accuracy or low power.
-     */
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation : Task<Location>
     private lateinit var requestLocationSetting : ActivityResultLauncher<IntentSenderRequest>
@@ -227,7 +223,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         super.onResume()
         //Note: We need to declare fusedLocationClient here again b/c initially the contxt was when permission had not been granted
         //so we need to get the new contxt when permission has been granted
-        fusedLocationClient = FusedLocationProviderClient(contxt)
+        //fusedLocationClient = FusedLocationProviderClient(contxt)
         //source: https://stackoverflow.com/questions/37618738/how-to-check-if-a-lateinit-variable-has-been-initialized
         if(this::map.isInitialized) {
             Log.i("test","map is initialized and onResume called")
@@ -285,7 +281,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 map.setMyLocationEnabled(true)
                 getDeviceLocation()
             }
-                else {
+            else {
                 if ((!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) || !shouldShowRequestPermissionRationale(
                         Manifest.permission.ACCESS_COARSE_LOCATION
                     ))
@@ -394,8 +390,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private fun setPoiClick(map: GoogleMap) {
         map.setOnPoiClickListener {
-            poi ->
-                _viewModel.cityNameForTwoWayBinding.value = poi.name
+                poi ->
+            _viewModel.cityNameForTwoWayBinding.value = poi.name
 
             val poiMarker = map.addMarker(
                 MarkerOptions()
@@ -453,8 +449,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
          * Get the best and most recent location of the device, which may be null in rare
          * cases when a location is not available.
          */
-        //TODO: By using requireActivity() instead of contxt the camera updates to current location
-       val fusedLocationProviderClient = FusedLocationProviderClient(contxt)
+        //TODO: By creating the instance of fusedLocationProviderClient here in addition to onCreate, the
+        val fusedLocationProviderClient = FusedLocationProviderClient(requireActivity())
         var lastKnownLocation: Location
         try {
             if (locationPermissionGranted()) {
@@ -505,7 +501,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         locationRequest.interval = 0
         locationRequest.fastestInterval = 0
         locationRequest.numUpdates = 1
-        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity())
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(contxt)
         if (ActivityCompat.checkSelfPermission(
                 contxt,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -521,7 +517,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-                map.uiSettings.isMyLocationButtonEnabled = false
+            map.uiSettings.isMyLocationButtonEnabled = false
             return
         }
         Log.i("test","requestLocation called")
@@ -563,7 +559,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         backgroundFlag = false
                         val intentSenderRequest =
                             IntentSenderRequest.Builder(exception.resolution).build()
-                            requestLocationSetting.launch(intentSenderRequest)
+                        requestLocationSetting.launch(intentSenderRequest)
                     }
 
                     //requestBackgroundPermission.launch(intentSenderRequest)
@@ -621,22 +617,22 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         else -> super.onOptionsItemSelected(item)
     }
 
-   /* override fun onLocationChanged(p0: Location?) {
-        val userLocation = p0?.latitude?.let { LatLng(it, p0.longitude) }
-        map.moveCamera(CameraUpdateFactory.newLatLng(userLocation))
-        if (p0 == null)
-        {
-            Log.i("test","onLocationChanged returns null value for location")
-        }
-        if (p0 != null) {
-            map.moveCamera(
-                CameraUpdateFactory.newLatLngZoom(
-                    LatLng(
-                        p0.latitude,
-                        p0.longitude
-                    ), zoomLevel
-                )
-            )
-        }
-    }*/
+    /* override fun onLocationChanged(p0: Location?) {
+         val userLocation = p0?.latitude?.let { LatLng(it, p0.longitude) }
+         map.moveCamera(CameraUpdateFactory.newLatLng(userLocation))
+         if (p0 == null)
+         {
+             Log.i("test","onLocationChanged returns null value for location")
+         }
+         if (p0 != null) {
+             map.moveCamera(
+                 CameraUpdateFactory.newLatLngZoom(
+                     LatLng(
+                         p0.latitude,
+                         p0.longitude
+                     ), zoomLevel
+                 )
+             )
+         }
+     }*/
 }
