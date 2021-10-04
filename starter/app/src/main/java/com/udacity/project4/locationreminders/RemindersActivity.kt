@@ -14,8 +14,6 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
  * The RemindersActivity that holds the reminders fragments
  */
 class RemindersActivity : AppCompatActivity() {
-    private val REQUEST_LOCATION_PERMISSION = 1
-    private val runningQOrLater = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

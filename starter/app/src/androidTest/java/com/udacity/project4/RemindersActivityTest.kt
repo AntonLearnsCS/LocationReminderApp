@@ -207,6 +207,8 @@ fun endToEndTest() = runBlocking { //runBlockingTest will ignore delay()
 
         onView(withId(R.id.reminderTitle)).perform(replaceText("TITLE2"))
         onView(withId(R.id.saveReminder)).perform(click())
+    onView(withText("Missing information")).inRoot(RootMatchers.withDecorView(Matchers.not(`is`(getActivity(reminderScenario)?.window?.decorView))))
+        .check(matches(isDisplayed()))
     //check snackbar is displayed
         onView(withText(R.string.description_needed)).check(matches(isDisplayed()))
         onView(withId(R.id.reminderDescription)).perform(setTextInTextView("Description"))
