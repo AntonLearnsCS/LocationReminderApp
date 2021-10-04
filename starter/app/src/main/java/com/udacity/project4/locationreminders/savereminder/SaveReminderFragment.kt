@@ -198,12 +198,6 @@ class SaveReminderFragment : BaseFragment() {
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
 //             2) save the reminder to the local db
-           /* if(_viewModel.validateEnteredData(reminderDataItem))
-                checkDeviceLocationSettingsAndStartGeofence()
-            else
-                Toast.makeText(contxt, "Missing information", Toast.LENGTH_SHORT).show()*/
-            if(!_viewModel.validateEnteredData(reminderDataItem))
-                Toast.makeText(contxt, "Missing information", Toast.LENGTH_SHORT).show()
 
             //TODO If I include navigation from here to reminderListFragment then save button persist
             //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
@@ -357,6 +351,11 @@ class SaveReminderFragment : BaseFragment() {
     @RequiresApi(Build.VERSION_CODES.Q)
     fun checkPermission() : Boolean
     {
+        if(!_viewModel.validateEnteredData(reminderDataItem)) {
+            Toast.makeText(contxt, "Missing information", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
         if (runningQOrLater) {
             Log.i("test","runningQOrLater")
             requestBackgroundLocationPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
