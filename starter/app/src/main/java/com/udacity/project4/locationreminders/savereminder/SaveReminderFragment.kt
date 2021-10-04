@@ -198,11 +198,12 @@ class SaveReminderFragment : BaseFragment() {
 //            TODO: use the user entered reminder details to:
 //             1) add a geofencing request
 //             2) save the reminder to the local db
-            if(_viewModel.validateEnteredData(reminderDataItem))
+           /* if(_viewModel.validateEnteredData(reminderDataItem))
                 checkDeviceLocationSettingsAndStartGeofence()
             else
+                Toast.makeText(contxt, "Missing information", Toast.LENGTH_SHORT).show()*/
+            if(!_viewModel.validateEnteredData(reminderDataItem))
                 Toast.makeText(contxt, "Missing information", Toast.LENGTH_SHORT).show()
-
 
             //TODO If I include navigation from here to reminderListFragment then save button persist
             //findNavController().navigate(SaveReminderFragmentDirections.actionSaveReminderFragmentToReminderListFragment())
@@ -240,16 +241,13 @@ class SaveReminderFragment : BaseFragment() {
                     //"exception" is defined in terms of "locationSettingsResponseTask". exception.resolution a placeholder for a pendingIntent
                     //source: https://knowledge.udacity.com/questions/650170#650189
                         if (backgroundFlag) {
+                            Log.i("test","location settings need not be called")
                             backgroundFlag = false
                             val intentSenderRequest =
                                 IntentSenderRequest.Builder(exception.resolution).build()
                             requestLocationSetting.launch(intentSenderRequest)
                         }
-
-                    //requestBackgroundPermission.launch(intentSenderRequest)
-                    // Show the dialog by calling startResolutionForResult(),
-                    // and check the result in onActivityResult().
-                    //exception.startResolutionForResult(contxt as Activity, REQUEST_TURN_DEVICE_LOCATION_ON)
+                    return@addOnFailureListener
                 }
                 catch (sendEx: IntentSender.SendIntentException) {
                     Timber.i("Error getting location settings resolution:" + sendEx.message)
@@ -317,14 +315,15 @@ class SaveReminderFragment : BaseFragment() {
             ) != PackageManager.PERMISSION_GRANTED)
 
         ) {
-
-            val permissionObject = arrayOf(
+            Log.i("test","foreground permission not granted in addGeofence()")
+           /* val permissionObject = arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION)
 
-            permissionCallback.launch(permissionObject)
+            permissionCallback.launch(permissionObject)*/
         }
-        else {
+
+
             //Toast.makeText(contxt,"Permission Granted",Toast.LENGTH_SHORT).show()
 
             //to add a geofence, you add the actual geofence location (geofenceRequest) as well as where you want the
@@ -351,7 +350,6 @@ class SaveReminderFragment : BaseFragment() {
                         Log.w(TAG, it.message!!)
                     }
                 }
-            }
         }
     }
 
@@ -399,7 +397,7 @@ class SaveReminderFragment : BaseFragment() {
 
         }
         else
-             Toast.makeText(contxt,"background permission denied",Toast.LENGTH_SHORT).show()
+             Toast.makeText(contxt,"background permission needed for LocationReminder",Toast.LENGTH_SHORT).show()
     }
 
     override fun onDestroy() {
@@ -408,14 +406,4 @@ class SaveReminderFragment : BaseFragment() {
         //make sure to clear the view model after destroy, as it's a single view model.
         _viewModel.onClear()
     }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.i("requestCalled", "onRequestPermissionResult called!")
-    }
 }
-private const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
