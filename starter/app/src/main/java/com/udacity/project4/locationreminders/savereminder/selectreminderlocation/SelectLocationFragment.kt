@@ -54,15 +54,28 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private lateinit var lastLocation : Task<Location>
     private lateinit var requestLocationSetting : ActivityResultLauncher<IntentSenderRequest>
     private var backgroundFlag = false
+    private var locationFlag = false
     //private lateinit var fusedLocationProviderClient :
     private val locationCallBack: LocationCallback = object : LocationCallback() {
         override fun onLocationResult(p0: LocationResult?) {
+            p0 ?: return
             super.onLocationResult(p0)
-            val location: Location? = p0?.lastLocation
-            if(location != null) {
-                latitude = defaultLocation.latitude
-                longitude = defaultLocation.longitude
-            }
+                for (location in p0.locations)
+                {
+                    if (location != null) {
+                        val tempLatLng = LatLng(location.latitude, location.longitude)
+                        defaultLocation = tempLatLng
+                        map.moveCamera(
+                            CameraUpdateFactory.newLatLngZoom(
+                                LatLng(
+                                    location.latitude,
+                                    location.longitude
+                                ), zoomLevel
+                            )
+                        )
+                        map.uiSettings.isMyLocationButtonEnabled = true
+                    }
+                }
         }
     }
     override fun onStart() {
@@ -145,6 +158,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         ) { result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
                 Log.i("test","location setting enabled")
+                locationFlag = true
                 getDeviceLocation()
             }
             else
@@ -179,8 +193,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 backgroundFlag = true
                 map.setMyLocationEnabled(true)
                 checkDeviceLocationSettings()
-                //map.uiSettings.isMyLocationButtonEnabled = true
-                //getDeviceLocation()
+
                 Log.i("test", "permission granted contract")
             }
             else
@@ -222,6 +235,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     //https://stackoverflow.com/questions/43100365/how-to-refresh-a-google-map-manually
     override fun onResume() {
         super.onResume()
+        if(locationFlag)
+            requestLocation()
         //Note: We need to declare fusedLocationClient here again b/c initially the contxt was when permission had not been granted
         //so we need to get the new contxt when permission has been granted
         fusedLocationClient = FusedLocationProviderClient(contxt)
@@ -246,10 +261,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             ) {
                 return
             }
-            //map.setMyLocationEnabled(true)
-            //map.uiSettings.isMyLocationButtonEnabled = true
+
             getDeviceLocation()
-            //mapFragment.getMapAsync(this)
             Log.i("test",defaultLocation.latitude.toString())
         }
         else
@@ -384,8 +397,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
             _viewModel.latLng?.value = latLng
             println("SelectLocation: " + latLng.latitude.toString() + ", " + latLng.longitude.toString())
-            //println("locationSingle: " + _viewModel.locationSingle.value?.locality + " Coordinates: " + _viewModel.latLng.value?.latitude
-            //          + ", " + _viewModel.latLng.value?.longitude )
             findNavController().popBackStack()
         }
     }
@@ -479,18 +490,15 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         Log.i("test", "Current location is null. Using defaults.")
                         Log.e(TAG, "Exception: %s", task.exception)
                         map.uiSettings?.isMyLocationButtonEnabled = false
-                        /*map?.moveCamera(CameraUpdateFactory
-                            .newLatLngZoom(defaultLocation, zoomLevel))
-                        map?.uiSettings?.isMyLocationButtonEnabled = false*/
                     }
                 }
             }
             else
             {
                 Log.i("test", "Current location is null. Using defaults.")
-                map?.moveCamera(CameraUpdateFactory
+                map.moveCamera(CameraUpdateFactory
                     .newLatLngZoom(defaultLocation, zoomLevel))
-                map?.uiSettings?.isMyLocationButtonEnabled = false
+                map.uiSettings?.isMyLocationButtonEnabled = false
             }
         } catch (e: SecurityException) {
             Log.e("Exception: %s", e.message, e)
@@ -501,9 +509,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private fun requestLocation() {
         val locationRequest = LocationRequest()
         locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        locationRequest.interval = 0
-        locationRequest.fastestInterval = 0
-        locationRequest.numUpdates = 1
+        locationRequest.interval = 2000
+        locationRequest.numUpdates = 2
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(contxt)
         if (ActivityCompat.checkSelfPermission(
                 contxt,
@@ -519,19 +526,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
         Log.i("test","requestLocation called")
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallBack, Looper.myLooper())
-        lastLocation = fusedLocationClient.lastLocation
-        if (lastLocation.isSuccessful){
-            defaultLocation = LatLng(lastLocation.result.latitude, lastLocation.result.longitude)
-            map.moveCamera(CameraUpdateFactory
-                .newLatLngZoom(defaultLocation, zoomLevel))
-        }
-        else
-        {
-            Log.i("test","requestLocation not successfull")
-            map.moveCamera(CameraUpdateFactory
-                .newLatLngZoom(defaultLocation, zoomLevel))
-        }
     }
+
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun checkDeviceLocationSettings(resolve: Boolean = true) {
         val locationRequest = LocationRequest.create().apply {
@@ -558,15 +554,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                             IntentSenderRequest.Builder(exception.resolution).build()
                         requestLocationSetting.launch(intentSenderRequest)
                     }
-
-                    //requestBackgroundPermission.launch(intentSenderRequest)
-                    // Show the dialog by calling startResolutionForResult(),
-                    // and check the result in onActivityResult().
-                    //exception.startResolutionForResult(contxt as Activity, REQUEST_TURN_DEVICE_LOCATION_ON)
                 }
                 catch (sendEx: IntentSender.SendIntentException) {
                     Timber.i("Error getting location settings resolution:" + sendEx.message)
-                    //Log.d(TAG, "Error geting location settings resolution: " + sendEx.message)
                 }
             }
             else {
@@ -613,23 +603,4 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
         else -> super.onOptionsItemSelected(item)
     }
-
-    /* override fun onLocationChanged(p0: Location?) {
-         val userLocation = p0?.latitude?.let { LatLng(it, p0.longitude) }
-         map.moveCamera(CameraUpdateFactory.newLatLng(userLocation))
-         if (p0 == null)
-         {
-             Log.i("test","onLocationChanged returns null value for location")
-         }
-         if (p0 != null) {
-             map.moveCamera(
-                 CameraUpdateFactory.newLatLngZoom(
-                     LatLng(
-                         p0.latitude,
-                         p0.longitude
-                     ), zoomLevel
-                 )
-             )
-         }
-     }*/
 }
