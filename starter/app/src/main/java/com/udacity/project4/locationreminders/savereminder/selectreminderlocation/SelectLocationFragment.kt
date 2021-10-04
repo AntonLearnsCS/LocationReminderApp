@@ -34,6 +34,7 @@ import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
+import kotlinx.coroutines.delay
 import org.koin.android.ext.android.inject
 import timber.log.Timber
 import java.util.*
@@ -176,8 +177,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     return@registerForActivityResult
                 }
                 backgroundFlag = true
+                map.setMyLocationEnabled(true)
                 checkDeviceLocationSettings()
-                //map.setMyLocationEnabled(true)
                 //map.uiSettings.isMyLocationButtonEnabled = true
                 //getDeviceLocation()
                 Log.i("test", "permission granted contract")
@@ -223,7 +224,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         super.onResume()
         //Note: We need to declare fusedLocationClient here again b/c initially the contxt was when permission had not been granted
         //so we need to get the new contxt when permission has been granted
-        //fusedLocationClient = FusedLocationProviderClient(contxt)
+        fusedLocationClient = FusedLocationProviderClient(contxt)
         //source: https://stackoverflow.com/questions/37618738/how-to-check-if-a-lateinit-variable-has-been-initialized
         if(this::map.isInitialized) {
             Log.i("test","map is initialized and onResume called")
@@ -245,8 +246,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             ) {
                 return
             }
-            map.setMyLocationEnabled(true)
-            map.uiSettings.isMyLocationButtonEnabled = true
+            //map.setMyLocationEnabled(true)
+            //map.uiSettings.isMyLocationButtonEnabled = true
             getDeviceLocation()
             //mapFragment.getMapAsync(this)
             Log.i("test",defaultLocation.latitude.toString())
@@ -263,7 +264,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             map = googleMap
         }
         Log.i("test","onMapReady() called")
-        //if using default location and permission has been granted
+        //if using default location and permission has been granted, used b/c does not automatically update location (shouln't be necessary)
         if (defaultLocation.latitude.equals(33.8447593))
         {
             if (locationPermissionGranted()) {
@@ -324,6 +325,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         ) {
             return
         }
+        //Note: setMyLocationEnabled updates user icon on map
         if(locationPermissionGranted())
             map.setMyLocationEnabled(true)
     }
@@ -450,6 +452,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
          * cases when a location is not available.
          */
         //TODO: By creating the instance of fusedLocationProviderClient here in addition to onCreate, the
+
         val fusedLocationProviderClient = FusedLocationProviderClient(requireActivity())
         var lastKnownLocation: Location
         try {
@@ -510,13 +513,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+
             map.uiSettings.isMyLocationButtonEnabled = false
             return
         }

@@ -157,9 +157,15 @@ dependencies {
 
     // For developers using AndroidX in their applications
     implementation 'pub.devrel:easypermissions:3.0.0'
+    implementation "androidx.core:core-ktx:1.6.0"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.2.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
 /*    //Multidex
     androidTestImplementation('com.android.support:multidex-instrumentation:1.0.3') {
         exclude group: 'com.android.support', module: 'multidex'
     }*/
+}
+repositories {
+    mavenCentral()
 }
