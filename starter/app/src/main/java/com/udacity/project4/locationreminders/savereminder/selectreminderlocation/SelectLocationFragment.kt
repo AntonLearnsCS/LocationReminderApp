@@ -73,7 +73,19 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                                 ), zoomLevel
                             )
                         )
-                        map.uiSettings.isMyLocationButtonEnabled = true
+                        if (ActivityCompat.checkSelfPermission(
+                                contxt,
+                                Manifest.permission.ACCESS_FINE_LOCATION
+                            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                                contxt,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            return
+                        }
+                        map.setMyLocationEnabled(true)
+
+                        //map.isMyLocationEnabled = true
                     }
                 }
         }
@@ -158,6 +170,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         ) { result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
                 Log.i("test","location setting enabled")
+
                 locationFlag = true
                 getDeviceLocation()
             }
@@ -187,13 +200,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         Manifest.permission.ACCESS_COARSE_LOCATION
                     ) != PackageManager.PERMISSION_GRANTED
                 ) {
-
                     return@registerForActivityResult
                 }
-                backgroundFlag = true
                 map.setMyLocationEnabled(true)
-                checkDeviceLocationSettings()
 
+                //map.isMyLocationEnabled = true
+                backgroundFlag = true
+                checkDeviceLocationSettings()
                 Log.i("test", "permission granted contract")
             }
             else
@@ -277,41 +290,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             map = googleMap
         }
         Log.i("test","onMapReady() called")
-        //if using default location and permission has been granted, used b/c does not automatically update location (shouln't be necessary)
-        if (defaultLocation.latitude.equals(33.8447593))
-        {
-            if (locationPermissionGranted()) {
-                if (ActivityCompat.checkSelfPermission(
-                        contxt,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                        contxt,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    return
-                }
-                Log.i("test","setMyLocationEnabled is set to true")
-                map.setMyLocationEnabled(true)
-                getDeviceLocation()
-            }
-            else {
-                if ((!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) || !shouldShowRequestPermissionRationale(
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ))
-                ) {
-                    val mSnackbar = Snackbar.make(
-                        binding.layout,
-                        "Go to app settings to enable map location", Snackbar.LENGTH_LONG
-                    )
-
-                    mSnackbar.setAction("dismiss") { mSnackbar.dismiss() }
-                    mSnackbar.show()
-
-                }
-            }
-        }
-
 
         // Add a marker in Lakewood/Long Beach CA and move the camera, note that coordinates have a wide range, which is why decimals
         //can dictate the difference between two cities
@@ -331,16 +309,16 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (ActivityCompat.checkSelfPermission(
                 contxt,
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+            ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
                 contxt,
                 Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
+            ) == PackageManager.PERMISSION_GRANTED
         ) {
-            return
-        }
-        //Note: setMyLocationEnabled updates user icon on map
-        if(locationPermissionGranted())
+            //Note: setMyLocationEnabled updates user icon on map
             map.setMyLocationEnabled(true)
+
+            //map.isMyLocationEnabled = true
+        }
     }
 
     fun enableLocation()
@@ -348,7 +326,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (ActivityCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+            ) == PackageManager.PERMISSION_GRANTED || ActivityCompat.checkSelfPermission(
                 requireContext(),
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
@@ -489,7 +467,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         requestLocation()
                         Log.i("test", "Current location is null. Using defaults.")
                         Log.e(TAG, "Exception: %s", task.exception)
-                        map.uiSettings?.isMyLocationButtonEnabled = false
                     }
                 }
             }
@@ -498,7 +475,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 Log.i("test", "Current location is null. Using defaults.")
                 map.moveCamera(CameraUpdateFactory
                     .newLatLngZoom(defaultLocation, zoomLevel))
-                map.uiSettings?.isMyLocationButtonEnabled = false
+                //map.uiSettings?.isMyLocationButtonEnabled = false
             }
         } catch (e: SecurityException) {
             Log.e("Exception: %s", e.message, e)
@@ -520,8 +497,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-
-            map.uiSettings.isMyLocationButtonEnabled = false
             return
         }
         Log.i("test","requestLocation called")
@@ -571,7 +546,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         locationSettingsResponseTask.addOnCompleteListener {
             if ( it.isSuccessful && !isDetached) {
+                if (ActivityCompat.checkSelfPermission(
+                        contxt,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        contxt,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    return@addOnCompleteListener
+                }
+                map.setMyLocationEnabled(true)
+
+                //map.isMyLocationEnabled = true
                 Log.i("test","location settings is enabled")
+
             }
         }
     }

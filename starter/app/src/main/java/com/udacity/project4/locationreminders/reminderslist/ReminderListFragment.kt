@@ -44,7 +44,7 @@ class ReminderListFragment : BaseFragment(), EasyPermissions.PermissionCallbacks
                 inflater,
                 R.layout.fragment_reminders, container, false
             )
-
+        //test
         binding.viewModel = _viewModel
         //binding.setLifecycleOwner { requireActivity().lifecycle }
         setHasOptionsMenu(true)
