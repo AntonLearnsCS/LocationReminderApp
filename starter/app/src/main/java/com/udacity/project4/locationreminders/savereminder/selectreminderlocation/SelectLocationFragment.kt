@@ -84,6 +84,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                             return
                         }
                         map.setMyLocationEnabled(true)
+
                         //map.isMyLocationEnabled = true
                     }
                 }
@@ -169,18 +170,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         ) { result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
                 Log.i("test","location setting enabled")
-                if (ActivityCompat.checkSelfPermission(
-                        contxt,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                        contxt,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    return@registerForActivityResult
-                }
-                map.setMyLocationEnabled(true)
-                //map.isMyLocationEnabled = true
+
                 locationFlag = true
                 getDeviceLocation()
             }
@@ -202,6 +192,19 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         permissionCallback = registerForActivityResult(test) { permissions: Map<String, Boolean> ->
             if(permissions.containsValue(true))
             {
+                if (ActivityCompat.checkSelfPermission(
+                        contxt,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                        contxt,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    return@registerForActivityResult
+                }
+                map.setMyLocationEnabled(true)
+
+                //map.isMyLocationEnabled = true
                 backgroundFlag = true
                 checkDeviceLocationSettings()
                 Log.i("test", "permission granted contract")
@@ -313,6 +316,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         ) {
             //Note: setMyLocationEnabled updates user icon on map
             map.setMyLocationEnabled(true)
+
             //map.isMyLocationEnabled = true
         }
     }
@@ -553,6 +557,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     return@addOnCompleteListener
                 }
                 map.setMyLocationEnabled(true)
+
                 //map.isMyLocationEnabled = true
                 Log.i("test","location settings is enabled")
 
