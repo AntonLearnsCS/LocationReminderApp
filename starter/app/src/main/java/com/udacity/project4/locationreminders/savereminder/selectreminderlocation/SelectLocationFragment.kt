@@ -83,7 +83,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         ) {
                             return
                         }
-                        map.isMyLocationEnabled = true
+                        map.setMyLocationEnabled(true)
+                        //map.isMyLocationEnabled = true
                     }
                 }
         }
@@ -178,7 +179,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 ) {
                     return@registerForActivityResult
                 }
-                map.isMyLocationEnabled = true
+                map.setMyLocationEnabled(true)
+                //map.isMyLocationEnabled = true
                 locationFlag = true
                 getDeviceLocation()
             }
@@ -285,41 +287,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             map = googleMap
         }
         Log.i("test","onMapReady() called")
-        //if using default location and permission has been granted, used b/c does not automatically update location (shouln't be necessary)
-        /*if (defaultLocation.latitude.equals(33.8447593))
-        {
-            if (locationPermissionGranted()) {
-                if (ActivityCompat.checkSelfPermission(
-                        contxt,
-                        Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                        contxt,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    return
-                }
-                Log.i("test","setMyLocationEnabled is set to true")
-                map.setMyLocationEnabled(true)
-                getDeviceLocation()
-            }
-            else {
-                if ((!shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) || !shouldShowRequestPermissionRationale(
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    ))
-                ) {
-                    val mSnackbar = Snackbar.make(
-                        binding.layout,
-                        "Go to app settings to enable map location", Snackbar.LENGTH_LONG
-                    )
-
-                    mSnackbar.setAction("dismiss") { mSnackbar.dismiss() }
-                    mSnackbar.show()
-
-                }
-            }
-        }*/
-
 
         // Add a marker in Lakewood/Long Beach CA and move the camera, note that coordinates have a wide range, which is why decimals
         //can dictate the difference between two cities
@@ -345,7 +312,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             ) == PackageManager.PERMISSION_GRANTED
         ) {
             //Note: setMyLocationEnabled updates user icon on map
-            map.isMyLocationEnabled = true
+            map.setMyLocationEnabled(true)
+            //map.isMyLocationEnabled = true
         }
     }
 
@@ -584,7 +552,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 ) {
                     return@addOnCompleteListener
                 }
-                map.isMyLocationEnabled = true
+                map.setMyLocationEnabled(true)
+                //map.isMyLocationEnabled = true
                 Log.i("test","location settings is enabled")
 
             }
